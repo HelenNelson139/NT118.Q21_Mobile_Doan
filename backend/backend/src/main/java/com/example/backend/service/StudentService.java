@@ -1,11 +1,20 @@
 package com.example.backend.service;
 
 import com.example.backend.Mapper.StudentMapper;
+import com.example.backend.Mapper.TeacherMapper;
 import com.example.backend.Mapper.UserMapper;
 import com.example.backend.dto.student.request.CreateStudentRequest;
+import com.example.backend.dto.student.request.UpdateStudentRequest;
+import com.example.backend.dto.student.response.StudentResponseProfile;
+import com.example.backend.dto.teacher.request.UpdateTeacherRequest;
 import com.example.backend.dto.user.request.CreateUserRequest;
+import com.example.backend.dto.user.request.UpdateUserRequest;
+import com.example.backend.dto.user.response.UserResponseProfile;
 import com.example.backend.entity.Student;
+import com.example.backend.entity.Teacher;
 import com.example.backend.entity.User;
+import com.example.backend.exception.AppException;
+import com.example.backend.exception.ErrorCode;
 import com.example.backend.respository.StudentResponsitory;
 import com.example.backend.respository.UserResponsitory;
 import jakarta.transaction.Transactional;
@@ -15,13 +24,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class StudentService implements IUserService {
+public class StudentService extends IUserService<CreateUserRequest, UpdateUserRequest> {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserResponsitory userResponsitory;
     private final StudentResponsitory studentResponsitory;
     private final StudentMapper studentMapper;
     private final UserService userService;
+    private final TeacherMapper teacherMapper;
 
     @Override
     @Transactional
@@ -38,4 +48,24 @@ public class StudentService implements IUserService {
         }
 
     }
+    @Override
+    public void update(Integer userId, UpdateUserRequest request){
+            User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+            userMapper.updateEntityFromRequest(request, user);
+            if(request instanceof UpdateStudentRequest updateStudentRequest){
+                Student student = user.getStudent();
+                studentMapper.updateEntityFromRequest(updateStudentRequest, student);
+                studentResponsitory.save(student);
+            }
+            userResponsitory.save(user);
+        }
+
+    @Override
+    public StudentResponseProfile getUserProfile(Integer userId){
+        User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return studentMapper.toProfileResponse(user);
+    }
+
+
+
 }

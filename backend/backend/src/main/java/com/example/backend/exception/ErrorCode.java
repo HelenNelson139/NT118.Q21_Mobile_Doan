@@ -6,8 +6,9 @@ import lombok.*;
 @NoArgsConstructor
 public enum ErrorCode {
     USER_NOT_FOUND(1001, "User Not Found"),
-    UN_AUTHENTICATED(1002, "Cannot Authenticate");
-
+    UN_AUTHENTICATED(1002, "Cannot Authenticate"),
+    PASSWORD_ERROR(1003,"Passsword Error" ),
+    PASSWORD_CHECK(1004,"New Password and Old Password are the same" );
     private int code;
     private String message;
 

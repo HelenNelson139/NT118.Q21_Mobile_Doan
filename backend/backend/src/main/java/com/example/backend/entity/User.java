@@ -33,4 +33,11 @@ public class User {
      @CreatedDate
      @Column(updatable = false, nullable = false)
      Date created_at;
+     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+     Student student;
+     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+     Teacher teacher;
+     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+     Admin admin;
+
 }
