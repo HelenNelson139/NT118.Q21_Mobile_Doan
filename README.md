@@ -1,4 +1,4 @@
-# Course Management Mobile Application
+# Course Management Mobile App
 
 A full-stack mobile course management system developed using Spring Boot and Android, supporting JWT authentication, role-based access control, Redis-powered caching, and asynchronous media upload workflows integrated with RabbitMQ and Firebase Storage.
 ## Tech Stack
