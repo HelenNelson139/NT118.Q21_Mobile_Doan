@@ -37,7 +37,7 @@ A full-stack mobile course management system developed using Spring Boot and And
       <b>User Profile</b>
     </td>
     <td align="center">
-      <img src="docs/images/dashboard.png" width="220"/><br/>
+      <img src="docs/images/dashboard.png" width="219"/><br/>
       <b>Dashboard</b>
     </td>
      <td align="center">
