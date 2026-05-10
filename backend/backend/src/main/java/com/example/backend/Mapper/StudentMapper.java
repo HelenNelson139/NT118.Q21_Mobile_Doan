@@ -13,6 +13,7 @@ import org.mapstruct.*;
 public interface StudentMapper {
     @Mapping(target = "id", ignore = true)
     Student toCreate(CreateStudentRequest createStudentRequest);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Student updateEntityFromRequest(UpdateStudentRequest request, @MappingTarget Student student);
 

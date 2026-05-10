@@ -1,6 +1,16 @@
 spring:
   application:
     name: backend
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      connect-timeout: 60000
+      lettuce:
+        pool:
+          max-active: 8 #nhận 8 kết nối
+          max-idle: 8 #8 kết nối chờ sẵn
+          min-idle: 0 #số lượng kết nối tối thiểu luôn duy trì trong pool
 
   datasource:
     url: jdbc:mysql://localhost:3306/NT118
