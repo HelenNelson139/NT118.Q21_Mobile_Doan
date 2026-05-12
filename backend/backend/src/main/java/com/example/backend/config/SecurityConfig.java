@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,10 +20,11 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${jwt.sigerKey}")
-    private String secrect;
+    private String secret;
 
     private final String[] PUBLIC_ENDPOINTS = { "/api/users"
     };
@@ -38,7 +40,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests ->
                 requests
-                       .requestMatchers(HttpMethod.POST, "/api/teachers/register" ).hasRole("TEACHER")
+                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/teachers/register" ).hasRole("TEACHER")
                         .requestMatchers(HttpMethod.POST, "/api/students/register" ).hasRole("STUDENT")
                         .anyRequest().authenticated());
         httpSecurity.oauth2ResourceServer(oauth2 ->
@@ -53,7 +56,7 @@ public class SecurityConfig {
 // init Bean jwt decode để gán vào security config
     @Bean
     JwtDecoder jwtDecoder(){
-        SecretKeySpec secretKeySpec = new SecretKeySpec("secret".getBytes(), "HS512");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(), "HS512");
        return NimbusJwtDecoder
                .withSecretKey(secretKeySpec)
                .macAlgorithm(MacAlgorithm.HS512)
