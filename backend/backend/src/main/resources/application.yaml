@@ -21,7 +21,7 @@ spring:
       ddl-auto: update
     show-sql: true
 jwt:
-  sigerKey: "5f7aa140ecd9f3a9ad700c6b6ef2549395b9dc68eee93c5d64789a2b217c7706"
+  signerKey: "15a54f9abdccf354b2afcd1008f8b6e8f78640a4ce4d38a5d01b7d25806dc4ed"
 server:
   port: 8080
   servlet:

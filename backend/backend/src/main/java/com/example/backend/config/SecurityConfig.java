@@ -17,17 +17,15 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("${jwt.sigerKey}")
+    @Value("${jwt.signerKey}")
     private String secret;
-
-    private final String[] PUBLIC_ENDPOINTS = { "/api/users"
-    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,10 +38,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests ->
                 requests
-                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/teachers/register" ).hasRole("TEACHER")
-                        .requestMatchers(HttpMethod.POST, "/api/students/register" ).hasRole("STUDENT")
+                       .requestMatchers(HttpMethod.POST, "/api/teachers/register" , "/api/students/register", "/api/auth/login").permitAll()
                         .anyRequest().authenticated());
+
         httpSecurity.oauth2ResourceServer(oauth2 ->
                 oauth2.jwt(jwtConfigurer -> jwtConfigurer
                         .decoder(jwtDecoder())
@@ -56,10 +53,11 @@ public class SecurityConfig {
 // init Bean jwt decode để gán vào security config
     @Bean
     JwtDecoder jwtDecoder(){
-        SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(), "HS512");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256");
        return NimbusJwtDecoder
                .withSecretKey(secretKeySpec)
-               .macAlgorithm(MacAlgorithm.HS512)
+               .macAlgorithm(MacAlgorithm.HS256)
                .build();
 
     }
