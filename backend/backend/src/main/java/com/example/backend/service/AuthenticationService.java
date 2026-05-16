@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,10 +36,11 @@ import java.util.Date;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthenticationService {
+    @Autowired
     UserResponsitory userResponsitory;
 
     @NonFinal
-    @Value("{jwt.signerKey}")
+    @Value("${jwt.signerKey}")
     protected String SIGNER_KEY;
 // Hàm verified token
     public IntrospectResponse introspect(IntrospectRequest introspectRequest) throws JOSEException, ParseException {
@@ -75,7 +77,7 @@ public class AuthenticationService {
     }
 
     public String generateToken(User user){
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
