@@ -8,14 +8,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static com.example.backend.enums.Role.ADMIN;
 
 @Configuration
-@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-@AllArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE,makeFinal = true)
+//@AllArgsConstructor
 @RequiredArgsConstructor
 @Slf4j
 // thêm user Admin khi khởi tạo
@@ -23,6 +24,7 @@ public class ApplicationInitConfig {
     UserResponsitory userResponsitory;
     PasswordEncoder passwordEncoder;
 
+    @Bean
     ApplicationRunner applicationRunner(){
         return args -> {
             if(userResponsitory.findByUsername("admin").isEmpty()){

@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 @EnableJpaAuditing
 public interface TeacherResponsitory extends JpaRepository<Teacher, Integer> {
-    Optional<Teacher> findByUserEmail(String email);
+    //Optional<Teacher> findByUserEmail(String email);
+    Optional<Teacher> findByUserUsername(String username);
 
 }

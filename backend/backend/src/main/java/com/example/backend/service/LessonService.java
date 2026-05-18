@@ -25,7 +25,7 @@ public class LessonService {
         String name = context.getAuthentication().getName();
 
         // 2. Tìm Teacher dựa trên thông tin đăng nhập
-        Teacher teacher = teacherResponsitory.findByUserEmail(name)
+        Teacher teacher = teacherResponsitory.findByUserUsername(name)
                 .orElseThrow(() -> new RuntimeException("Not have permission"));
 
         // 3. Map và lưu

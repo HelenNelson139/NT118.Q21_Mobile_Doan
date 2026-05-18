@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.example.backend.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -36,6 +37,7 @@ public class User {
      @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
      Student student;
      @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+     @JsonIgnore
      Teacher teacher;
      @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
      Admin admin;
