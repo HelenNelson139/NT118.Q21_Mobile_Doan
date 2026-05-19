@@ -8,10 +8,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/lessons")
@@ -27,6 +26,27 @@ public class LessonController {
                 .code(1000)
                 .message("Create Successful")
                 .result(lessonService.createLesson(request))
+                .build();
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ApiResponse<List<Lesson>> searchLessons(@RequestParam String keyword) {
+        return ApiResponse.<List<Lesson>>builder()
+                .code(1000)
+                .message("Search Successful")
+                .result(lessonService.searchLessons(keyword))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ApiResponse<String> deleteLesson(@PathVariable Integer id) {
+        lessonService.deleteLesson(id);
+        return ApiResponse.<String>builder()
+                .code(1000)
+                .message("Delete Successful")
+                .result("Lesson with ID " + id + " has been deleted.")
                 .build();
     }
 }
