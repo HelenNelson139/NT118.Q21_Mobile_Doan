@@ -24,4 +24,5 @@ public class Module {
     String example;
     String image_example_url;
     Integer order_index;
+    Integer status;
 }

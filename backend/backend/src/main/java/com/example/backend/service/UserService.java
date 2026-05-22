@@ -9,15 +9,18 @@ import com.example.backend.exception.ErrorCode;
 import com.example.backend.respository.UserResponsitory;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor //cần phải khởi tạo biến private final liền sau đó không thay đổi biến này nữa nên dùng
 public class UserService {
-    private final UserResponsitory userResponsitory;
-    private final PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserResponsitory userResponsitory;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     public boolean checkUserExist(CreateUserRequest createUserRequest) {
         if (userResponsitory.findByUsername(createUserRequest.getUsername()).isPresent()) {
             throw new RuntimeException("User already exist");
@@ -49,6 +52,6 @@ public class UserService {
     @Transactional
     public void deleteUser(Integer userId){
         User user = userResponsitory.findById(userId).orElseThrow(()->new AppException(ErrorCode.USER_NOT_FOUND));
-        userResponsitory.delete(user);
+        user.setStatus("Deactivated");
     }
 }

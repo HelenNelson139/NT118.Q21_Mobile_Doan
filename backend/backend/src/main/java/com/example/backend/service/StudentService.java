@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class StudentService extends IUserService<CreateUserRequest, UpdateUserRequest> {
+public class StudentService extends IUserService<CreateUserRequest, UpdateStudentRequest> {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserResponsitory userResponsitory;
@@ -49,14 +49,12 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateUserRe
 
     }
     @Override
-    public void update(Integer userId, UpdateUserRequest request){
+    public void update(Integer userId, UpdateStudentRequest request){
             User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
             userMapper.updateEntityFromRequest(request, user);
-            if(request instanceof UpdateStudentRequest updateStudentRequest){
                 Student student = user.getStudent();
-                studentMapper.updateEntityFromRequest(updateStudentRequest, student);
+                studentMapper.updateEntityFromRequest(request, student);
                 studentResponsitory.save(student);
-            }
             userResponsitory.save(user);
         }
 

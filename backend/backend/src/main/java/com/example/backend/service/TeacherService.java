@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class TeacherService extends IUserService<CreateUserRequest, UpdateUserRequest>{
+public class TeacherService extends IUserService<CreateUserRequest, UpdateTeacherRequest>{
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -49,14 +49,12 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateUserRe
 
     @Override
     @Transactional
-    public void update(Integer userId, UpdateUserRequest request){
+    public void update(Integer userId, UpdateTeacherRequest request){
         User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         userMapper.updateEntityFromRequest(request, user);
-        if(request instanceof UpdateTeacherRequest updateTeacherRequest){
             Teacher teacher = user.getTeacher();
-            teacherMapper.updateEntityFromRequest(updateTeacherRequest, teacher);
+            teacherMapper.updateEntityFromRequest(request, teacher);
             teacherResponsitory.save(teacher);
-        }
         userResponsitory.save(user);
     }
     @Override

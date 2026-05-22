@@ -10,7 +10,6 @@ import lombok.experimental.FieldDefaults;
 @Builder
 public class UpdateUserRequest {
     String username;
-    String password;
     String email;
     String phone;
     String full_name;

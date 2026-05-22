@@ -14,7 +14,6 @@ import java.util.Date;
 @AllArgsConstructor
 @Data
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Lesson {
     @Id
