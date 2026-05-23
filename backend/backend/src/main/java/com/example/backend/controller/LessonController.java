@@ -49,4 +49,24 @@ public class LessonController {
                 .result("Lesson with ID " + id + " has been deleted.")
                 .build();
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ApiResponse<Lesson> getLessonById(@PathVariable Integer id) {
+        return ApiResponse.<Lesson>builder()
+                .code(1000)
+                .message("Get Lesson Detail Successful")
+                .result(lessonService.getLessonById(id))
+                .build();
+    }
+
+    @PutMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Lesson> approveLesson(@PathVariable Integer id) {
+        return ApiResponse.<Lesson>builder()
+                .code(1000)
+                .message("Lesson Approved Successfully")
+                .result(lessonService.approveLesson(id))
+                .build();
+    }
 }

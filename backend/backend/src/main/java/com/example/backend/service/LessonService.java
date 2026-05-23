@@ -4,6 +4,7 @@ import com.example.backend.Mapper.LessonMapper;
 import com.example.backend.dto.teacher.request.LessonCreationRequest;
 import com.example.backend.entity.Lesson;
 import com.example.backend.entity.Teacher;
+import com.example.backend.enums.Status;
 import com.example.backend.respository.LessonRepository;
 import com.example.backend.respository.TeacherResponsitory;
 import jakarta.transaction.Transactional;
@@ -31,7 +32,6 @@ public class LessonService {
         Teacher teacher = teacherResponsitory.findByUserUsername(name)
                 .orElseThrow(() -> new RuntimeException("Not have permission"));
 
-        //  Map và lưu
         Lesson lesson = lessonMapper.toLesson(request);
         lesson.setTeacher(teacher);
 
@@ -47,5 +47,19 @@ public class LessonService {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!") );
         lessonRepository.delete(lesson);
+    }
+
+    public Lesson getLessonById(Integer id){
+        return lessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!") );
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public Lesson approveLesson(Integer id){
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy khóa học để thực hiện duyệt!"));
+
+        lesson.setStatus(Status.ACTIVE);
+        return lessonRepository.save(lesson);
     }
 }
