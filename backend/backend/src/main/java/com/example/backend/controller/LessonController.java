@@ -45,8 +45,18 @@ public class LessonController {
         lessonService.deleteLesson(id);
         return ApiResponse.<String>builder()
                 .code(1000)
-                .message("Delete Successful")
-                .result("Lesson with ID " + id + " has been deleted.")
+                .message("Delete request has been sent, please wait.")
+                .result("Lesson ID"  + id + " status changed to PENDING_DELETE.")
+                .build();
+    }
+
+    @PutMapping("/{id}/approve-delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Lesson> approveDeleteLesson(@PathVariable Integer id) {
+        return ApiResponse.<Lesson>builder()
+                .code(1000)
+                .message("Admin approved deletion successfully")
+                .result(lessonService.approveDeleteLesson(id))
                 .build();
     }
 

@@ -39,19 +39,56 @@ public class LessonService {
     }
 
     public List<Lesson> searchLessons(String keyword){
-        return lessonRepository.findByTitleContainingIgnoreCase(keyword);
+        List<Lesson> lessons = lessonRepository.findByTitleContainingIgnoreCase(keyword);
+
+        boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TEACHER"));
+
+        if (isTeacher) {
+            return lessons.stream()
+                    .filter(lesson -> lesson.getStatus() != Status.REJECTED)
+                    .toList();
+        }
+
+        return lessons;
     }
 
     @Transactional
     public void deleteLesson(Integer id){
         Lesson lesson = lessonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!") );
-        lessonRepository.delete(lesson);
+                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!"));
+
+        lesson.setStatus(Status.PENDING);
+        lessonRepository.save(lesson);
+    }
+
+    @Transactional
+    public Lesson approveDeleteLesson(Integer id) {
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+
+        // Kiểm tra xem khóa học có đang nằm trong danh sách chờ xóa không
+        if (lesson.getStatus() != Status.PENDING) {
+            throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu xóa!");
+        }
+
+        // Admin đồng ý xóa -> Chuyển sang REJECTED (Xóa mềm / Disable)
+        lesson.setStatus(Status.REJECTED);
+        return lessonRepository.save(lesson);
     }
 
     public Lesson getLessonById(Integer id){
-        return lessonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!") );
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!"));
+
+        boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TEACHER"));
+
+        if (isTeacher && lesson.getStatus() == Status.REJECTED) {
+            throw new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!");
+        }
+
+        return lesson;
     }
 
     @org.springframework.transaction.annotation.Transactional
