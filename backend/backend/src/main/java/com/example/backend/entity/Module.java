@@ -1,21 +1,21 @@
 package com.example.backend.entity;
 
+import com.example.backend.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Builder
 @Data
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Module {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
     @ManyToOne
-    @MapsId
     @JoinColumn(name = "lesson_id")
     Lesson lesson;
     String title;
@@ -24,5 +24,5 @@ public class Module {
     String example;
     String image_example_url;
     Integer order_index;
-    Integer status;
+    Status status;
 }

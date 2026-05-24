@@ -34,6 +34,7 @@ public class LessonService {
 
         Lesson lesson = lessonMapper.toLesson(request);
         lesson.setTeacher(teacher);
+        lesson.setStatus(Status.PENDING);
 
         return lessonRepository.save(lesson);
     }

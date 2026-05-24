@@ -15,6 +15,7 @@ import java.util.Date;
 @Data
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class Lesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
