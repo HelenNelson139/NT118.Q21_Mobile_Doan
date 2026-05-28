@@ -32,6 +32,4 @@ public class Lesson {
     @CreatedDate
     @Column(updatable = false, nullable = false)
     Date created_at;
-
-
 }

@@ -8,6 +8,7 @@ import com.example.backend.dto.user.request.CreateUserRequest;
 import com.example.backend.dto.user.request.UpdateUserRequest;
 import com.example.backend.service.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import static java.util.stream.DoubleStream.builder;
@@ -28,6 +29,7 @@ public class TeacherController {
            }
 
     @PatchMapping("/update")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ApiResponse<String> updateTeacher(@RequestBody UpdateTeacherRequest updateTeacherRequest, @RequestParam Integer userId){
         teacherService.update(userId, updateTeacherRequest);
         return ApiResponse.<String>builder()
@@ -38,6 +40,7 @@ public class TeacherController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public TeacherResponseProfile getTeacherProfile(@RequestParam Integer userId){
         return teacherService.getUserProfile(userId);
     }

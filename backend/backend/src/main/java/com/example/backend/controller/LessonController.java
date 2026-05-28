@@ -3,12 +3,15 @@ package com.example.backend.controller;
 import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.teacher.request.LessonCreationRequest;
 import com.example.backend.entity.Lesson;
+import com.example.backend.enums.Status;
 import com.example.backend.service.LessonService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -18,6 +21,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class LessonController {
     LessonService lessonService;
+    private final JsonMapper.Builder builder;
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
@@ -77,6 +81,32 @@ public class LessonController {
                 .code(1000)
                 .message("Lesson Approved Successfully")
                 .result(lessonService.approveLesson(id))
+                .build();
+    }
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    public ApiResponse<List<Lesson>> getAllLessons() {
+        return ApiResponse.<List<Lesson>>builder()
+                .code(1000)
+                .message("Get All of Lessons")
+                .result(lessonService.findAllLesson())
+                .build();
+    }
+
+    //pagination testing
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    public ApiResponse<Page<Lesson>> getLessons(
+            @RequestParam(required = false) Status status,
+            @RequestParam(required = false) Integer teacherId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ApiResponse.<Page<Lesson>>builder()
+                .code(1000)
+                .message("Get Lessons Successfully")
+                .result(lessonService.getLessons(status, teacherId, keyword, page, size))
                 .build();
     }
 }

@@ -6,6 +6,7 @@ import com.example.backend.dto.student.request.UpdateStudentRequest;
 import com.example.backend.dto.student.response.StudentResponseProfile;
 import com.example.backend.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,12 +19,13 @@ public class StudentController {
         studentService.register(createStudentRequest);
         return ApiResponse.<String>builder()
                 .code(1000)
-                .message("Đăng ký giáo viên thành công")
+                .message("Đăng ký học viên thành công")
                 .result("Dữ liệu đã được lưu cho mã: " + createStudentRequest.getStudent_code())
                 .build();
     }
 
     @PatchMapping("/update")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
     public ApiResponse<String> updateStudent(@RequestBody UpdateStudentRequest updateStudentRequest, @RequestParam Integer userId){
         studentService.update(userId, updateStudentRequest);
         return ApiResponse.<String>builder()
@@ -34,6 +36,7 @@ public class StudentController {
     }
 
     @GetMapping("/get")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
     public StudentResponseProfile getStudentProfile(@RequestParam Integer userId){
         return studentService.getUserProfile(userId);
     }

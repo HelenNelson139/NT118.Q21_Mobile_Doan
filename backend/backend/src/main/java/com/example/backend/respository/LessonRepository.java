@@ -1,10 +1,29 @@
 package com.example.backend.respository;
 
 import com.example.backend.entity.Lesson;
+import com.example.backend.enums.Status;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 public interface LessonRepository extends JpaRepository<Lesson, Integer> {
     List<Lesson> findByTitleContainingIgnoreCase(String title);
+
+    @Query("""
+    SELECT l
+    FROM Lesson l
+    WHERE (:status IS NULL OR l.status = :status)
+    AND (:teacherId IS NULL OR l.teacher.id = :teacherId)
+    AND (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+""")
+    Page<Lesson> searchLessons(
+            @Param("status") Status status,
+            @Param("teacherId") Integer teacherId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

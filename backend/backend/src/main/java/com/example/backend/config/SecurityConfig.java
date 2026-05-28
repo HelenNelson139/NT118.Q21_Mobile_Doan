@@ -39,8 +39,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests ->
                 requests
                        .requestMatchers(HttpMethod.POST, "/api/teachers/register" , "/api/students/register", "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/teachers/update", "/api/users/password", "/api/users/delete").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/teachers/get").permitAll()
                         .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 ->

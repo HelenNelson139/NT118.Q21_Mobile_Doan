@@ -123,6 +123,17 @@
 			<artifactId>spring-security-core</artifactId>
 		</dependency>
 
+		<!-- RabbitMQ -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+		<!-- Supabase -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
 		<!-- Source: https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
 		<!-- Source: https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
 		<dependency>

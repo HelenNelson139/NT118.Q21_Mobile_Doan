@@ -4,10 +4,8 @@ import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.user.request.ChangePasswordRequest;
 import com.example.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -16,6 +14,7 @@ public class UserController {
     private  UserService userService;
 
     @PatchMapping("/delete")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiResponse<String> deleteUser(Integer userId){
         userService.deleteUser(userId);
         return ApiResponse.<String>builder()
@@ -26,7 +25,8 @@ public class UserController {
     }
 
     @PatchMapping("/password")
-    public ApiResponse<String> changePassword(Integer userId, ChangePasswordRequest changePasswordRequest){
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'STUDENT')")
+    public ApiResponse<String> changePassword( @RequestParam Integer userId, @RequestBody ChangePasswordRequest changePasswordRequest){
         userService.changePassword(userId, changePasswordRequest);
         return ApiResponse.<String>builder()
                 .code(1000)

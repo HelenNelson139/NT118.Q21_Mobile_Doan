@@ -11,6 +11,10 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +58,10 @@ public class LessonService {
         return lessons;
     }
 
+    public List<Lesson> findAllLesson(){
+        return lessonRepository.findAll();
+    }
+
     @Transactional
     public void deleteLesson(Integer id){
         Lesson lesson = lessonRepository.findById(id)
@@ -92,12 +100,25 @@ public class LessonService {
         return lesson;
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public Lesson approveLesson(Integer id){
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy khóa học để thực hiện duyệt!"));
 
         lesson.setStatus(Status.ACTIVE);
         return lessonRepository.save(lesson);
+    }
+
+    //pagination testing
+    public Page<Lesson> getLessons(
+            Status status,
+            Integer teacherId,
+            String keyword,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
+        return lessonRepository.searchLessons(status, teacherId, keyword, pageable);
     }
 }

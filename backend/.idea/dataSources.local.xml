@@ -15,5 +15,9 @@
       </schema-mapping>
       <load-sources>user_and_system_sources</load-sources>
     </data-source>
+    <data-source name="0@localhost" uuid="44685be0-de2a-4cd3-a152-0fbea986d41d">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="REDIS" />
+      <schema-mapping />
+    </data-source>
   </component>
 </project>
