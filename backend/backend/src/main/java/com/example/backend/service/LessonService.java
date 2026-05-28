@@ -1,7 +1,8 @@
 package com.example.backend.service;
 
 import com.example.backend.Mapper.LessonMapper;
-import com.example.backend.dto.teacher.request.LessonCreationRequest;
+import com.example.backend.dto.lesson.request.LessonCreationRequest;
+import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.entity.Teacher;
 import com.example.backend.enums.Status;
@@ -43,19 +44,19 @@ public class LessonService {
         return lessonRepository.save(lesson);
     }
 
-    public List<Lesson> searchLessons(String keyword){
+    public List<LessonResponse> searchLessons(String keyword){
         List<Lesson> lessons = lessonRepository.findByTitleContainingIgnoreCase(keyword);
 
         boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TEACHER"));
 
         if (isTeacher) {
-            return lessons.stream()
+            lessons = lessons.stream()
                     .filter(lesson -> lesson.getStatus() != Status.REJECTED)
                     .toList();
         }
 
-        return lessons;
+        return lessonMapper.toLessonResponseList(lessons);
     }
 
     public List<Lesson> findAllLesson(){
@@ -86,7 +87,7 @@ public class LessonService {
         return lessonRepository.save(lesson);
     }
 
-    public Lesson getLessonById(Integer id){
+    public LessonResponse getLessonById(Integer id){
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!"));
 
@@ -97,7 +98,7 @@ public class LessonService {
             throw new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!");
         }
 
-        return lesson;
+        return lessonMapper.toLessonResponse(lesson);
     }
 
     @Transactional

@@ -1,7 +1,8 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.teacher.request.ModuleCreationRequest;
+import com.example.backend.dto.lesson.request.ModuleCreationRequest;
 import com.example.backend.dto.ApiResponse;
+import com.example.backend.dto.lesson.response.ModuleResponse;
 import com.example.backend.entity.Module;
 import com.example.backend.service.ModuleService;
 import lombok.AccessLevel;
@@ -32,8 +33,8 @@ public class ModuleController {
 
     @GetMapping("/search")
     @PreAuthorize("hasRole('TEACHER')")
-    public ApiResponse<List<Module>> searchModules(@RequestParam String keyword) {
-        return ApiResponse.<List<Module>>builder()
+    public ApiResponse<List<ModuleResponse>> searchModules(@RequestParam String keyword) {
+        return ApiResponse.<List<ModuleResponse>>builder()
                 .code(1000)
                 .message("Search Modules Successful")
                 .result(moduleService.searchModules(keyword))
@@ -42,8 +43,8 @@ public class ModuleController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
-    public ApiResponse<Module> getModuleById(@PathVariable Integer id) {
-        return ApiResponse.<Module>builder()
+    public ApiResponse<ModuleResponse> getModuleById(@PathVariable Integer id) {
+        return ApiResponse.<ModuleResponse>builder()
                 .code(1000)
                 .message("Get Module Detail Successful")
                 .result(moduleService.getModuleById(id))

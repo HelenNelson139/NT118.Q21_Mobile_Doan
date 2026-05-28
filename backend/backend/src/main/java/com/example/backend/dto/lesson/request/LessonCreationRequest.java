@@ -1,4 +1,4 @@
-package com.example.backend.dto.teacher.request;
+package com.example.backend.dto.lesson.request;
 
 import com.example.backend.entity.Teacher;
 import lombok.AccessLevel;

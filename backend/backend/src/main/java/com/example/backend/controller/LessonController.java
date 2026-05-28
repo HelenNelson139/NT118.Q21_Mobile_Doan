@@ -1,7 +1,8 @@
 package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
-import com.example.backend.dto.teacher.request.LessonCreationRequest;
+import com.example.backend.dto.lesson.request.LessonCreationRequest;
+import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.enums.Status;
 import com.example.backend.service.LessonService;
@@ -35,8 +36,8 @@ public class LessonController {
 
     @GetMapping("/search")
     @PreAuthorize("hasRole('TEACHER')")
-    public ApiResponse<List<Lesson>> searchLessons(@RequestParam String keyword) {
-        return ApiResponse.<List<Lesson>>builder()
+    public ApiResponse<List<LessonResponse>> searchLessons(@RequestParam String keyword) {
+        return ApiResponse.<List<LessonResponse>>builder()
                 .code(1000)
                 .message("Search Successful")
                 .result(lessonService.searchLessons(keyword))
@@ -66,8 +67,8 @@ public class LessonController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
-    public ApiResponse<Lesson> getLessonById(@PathVariable Integer id) {
-        return ApiResponse.<Lesson>builder()
+    public ApiResponse<LessonResponse> getLessonById(@PathVariable Integer id) {
+        return ApiResponse.<LessonResponse>builder()
                 .code(1000)
                 .message("Get Lesson Detail Successful")
                 .result(lessonService.getLessonById(id))

@@ -1,7 +1,8 @@
 package com.example.backend.service;
 
 import com.example.backend.Mapper.ModuleMapper;
-import com.example.backend.dto.teacher.request.ModuleCreationRequest;
+import com.example.backend.dto.lesson.request.ModuleCreationRequest;
+import com.example.backend.dto.lesson.response.ModuleResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.enums.Status;
 import com.example.backend.respository.LessonRepository;
@@ -42,21 +43,21 @@ public class ModuleService {
     }
 
 
-    public List<Module> searchModules(String keyword) {
+    public List<ModuleResponse> searchModules(String keyword) {
         List<Module> modules = moduleRepository.findByTitleContainingIgnoreCase(keyword);
 
         boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_TEACHER"));
 
         if (isTeacher) {
-            return modules.stream()
+            modules = modules.stream()
                     .filter(m -> m.getStatus() != Status.REJECTED && m.getStatus() != Status.PENDING)
                     .toList();
         }
-        return modules;
+        return moduleMapper.toModuleResponseList(modules);
     }
 
-    public Module getModuleById(Integer id) {
+    public ModuleResponse getModuleById(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!"));
 
@@ -66,7 +67,7 @@ public class ModuleService {
         if (isTeacher && (module.getStatus() == Status.REJECTED || module.getStatus() == Status.PENDING)) {
             throw new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!");
         }
-        return module;
+        return moduleMapper.toModuleResponse(module);
     }
 
 
