@@ -32,11 +32,9 @@ public class LessonService {
     LessonMapper lessonMapper;
     SupabaseStorageService supabaseStorageService;
 
-    public Lesson createLesson(LessonCreationRequest request){
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        Teacher teacher = teacherResponsitory.findByUserUsername(name)
-                .orElseThrow(() -> new RuntimeException("Not have permission"));
+    public LessonResponse createLesson(LessonCreationRequest request){
+        Teacher teacher = teacherResponsitory.findById(request.getTeacherId())
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
         Lesson lesson = lessonMapper.toLesson(request);
         lesson.setTeacher(teacher);
@@ -50,7 +48,8 @@ public class LessonService {
             );
             lesson.setThumbnail_url(thumbnail_url);
         }
-        return lessonRepository.save(lesson);
+        Lesson savedLesson = lessonRepository.save(lesson);
+        return lessonMapper.toLessonResponse(savedLesson);
     }
 
     public List<LessonResponse> searchLessons(String keyword){
@@ -65,8 +64,9 @@ public class LessonService {
         return lessonMapper.toLessonResponseList(lessons);
     }
 
-    public List<Lesson> findAllLesson(){
-        return lessonRepository.findAll();
+    public List<LessonResponse> findAllLesson(){
+        List<Lesson> listLessonFound = lessonRepository.findAll();
+        return lessonMapper.toLessonResponseList(listLessonFound);
     }
 
     @Transactional
@@ -78,14 +78,15 @@ public class LessonService {
     }
 
     @Transactional
-    public Lesson approveDeleteLesson(Integer id) {
+    public LessonResponse approveDeleteLesson(Integer id) {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
         if (lesson.getStatus() != Status.PENDING) {
             throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu xóa!");
         }
         lesson.setStatus(Status.REJECTED);
-        return lessonRepository.save(lesson);
+        Lesson savedLesson = lessonRepository.save(lesson);
+        return lessonMapper.toLessonResponse(savedLesson);
     }
 
     public LessonResponse getLessonById(Integer id){
@@ -100,11 +101,12 @@ public class LessonService {
     }
 
     @Transactional
-    public Lesson approveLesson(Integer id){
+    public LessonResponse approveLesson(Integer id){
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy khóa học để thực hiện duyệt!"));
         lesson.setStatus(Status.ACTIVE);
-        return lessonRepository.save(lesson);
+        Lesson savedLesson = lessonRepository.save(lesson);
+        return lessonMapper.toLessonResponse(savedLesson);
     }
     public Page<Lesson> getLessons(
             Status status,

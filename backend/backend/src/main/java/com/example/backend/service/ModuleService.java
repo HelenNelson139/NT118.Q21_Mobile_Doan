@@ -28,7 +28,7 @@ public class ModuleService {
     SupabaseStorageService supabaseStorageService;
 
     @Transactional
-    public Module createModule(ModuleCreationRequest request) {
+    public ModuleResponse createModule(ModuleCreationRequest request) {
         Lesson lesson = lessonRepository.findById(request.getLessonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học tương ứng!"));
 
@@ -47,7 +47,8 @@ public class ModuleService {
             );
             module.setImage_example_url(image_url);
         }
-        return moduleRepository.save(module);
+        Module savedModule = moduleRepository.save(module);
+        return moduleMapper.toModuleResponse(savedModule);
     }
 
 
@@ -86,15 +87,16 @@ public class ModuleService {
     }
 
     @Transactional
-    public Module approveModule(Integer id) {
+    public ModuleResponse approveModule(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
         module.setStatus(Status.ACTIVE);
-        return moduleRepository.save(module);
+        Module savedModule = moduleRepository.save(module);
+        return moduleMapper.toModuleResponse(savedModule);
     }
 
     @Transactional
-    public Module approveDeleteModule(Integer id) {
+    public ModuleResponse approveDeleteModule(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
 
@@ -103,7 +105,8 @@ public class ModuleService {
         }
 
         module.setStatus(Status.REJECTED);
-        return moduleRepository.save(module);
+        Module savedModule = moduleRepository.save(module);
+        return moduleMapper.toModuleResponse(savedModule);
     }
 }
 
