@@ -19,11 +19,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LessonActivity extends AppCompatActivity {
-
     TextView txtLessonTitle, txtObjective, txtContent, txtExample;
     ImageView imgExample;
     ImageButton btnBack, btnNext;
-
     int currentIndex;
     List<LessonResponse> lessonList = new ArrayList<>();
 
@@ -32,7 +30,6 @@ public class LessonActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
 
-        // ánh xạ view
         txtLessonTitle = findViewById(R.id.txtLessonTitle);
         txtObjective = findViewById(R.id.txtObjective);
         txtContent = findViewById(R.id.txtContent);
@@ -42,21 +39,13 @@ public class LessonActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnNext = findViewById(R.id.btnNext);
 
-        // dữ liệu
-        //  lessonList = LessonData.getAllLessons();
-
         currentIndex = getIntent().getIntExtra("index", 0);
+
+        btnBack.setVisibility(View.INVISIBLE);
+        btnNext.setVisibility(View.INVISIBLE);
 
         fetchLessonsFromServer();
 
-        // tránh crash nếu index sai
-        if (currentIndex < 0 || currentIndex >= lessonList.size()) {
-            currentIndex = 0;
-        }
-
-        loadLesson();
-
-        // NEXT
         btnNext.setOnClickListener(v -> {
             if (currentIndex < lessonList.size() - 1) {
                 currentIndex++;
@@ -64,7 +53,6 @@ public class LessonActivity extends AppCompatActivity {
             }
         });
 
-        // BACK
         btnBack.setOnClickListener(v -> {
             if (currentIndex == 0) {
                 finish();
@@ -79,7 +67,6 @@ public class LessonActivity extends AppCompatActivity {
         if (lessonList == null || lessonList.isEmpty()) return;
 
         LessonResponse lesson = lessonList.get(currentIndex);
-
         txtLessonTitle.setText((currentIndex + 1) + "/" + lessonList.size() + " - " + lesson.getTitle());
         txtObjective.setText(lesson.getWhatYouLearn());
         txtContent.setText(lesson.getDescription());
@@ -105,6 +92,7 @@ public class LessonActivity extends AppCompatActivity {
             btnNext.setVisibility(View.VISIBLE);
         }
     }
+
     private void fetchLessonsFromServer() {
         LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
 

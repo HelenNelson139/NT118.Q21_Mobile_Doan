@@ -1,7 +1,7 @@
 package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
-
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -15,72 +15,90 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdminManageCourse extends AppCompatActivity {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
+public class AdminManageCourse extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private MaterialCardView btnMenu;
     private RecyclerView rvCourseList;
     private EditText edtSearch;
     private AdminCourseSummaryAdapter adapter;
-    private List<AdminCourseSummary> courseList;
+    private List<LessonResponse> lessonList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Lưu ý: Đảm bảo tên file XML là "admin_course_manage" (khớp với file bạn đã gửi)
         setContentView(R.layout.admin_course_manage);
-
-        // 1. Ánh xạ các View chính
         drawerLayout = findViewById(R.id.drawerLayout);
         btnMenu = findViewById(R.id.btnMenuCard);
         rvCourseList = findViewById(R.id.rvCourseList);
         edtSearch = findViewById(R.id.edtSearch);
-
-        // 2. Thiết lập Sidebar Navigation
         AdminSidebarNavigationHelper.setupSidebar(this, drawerLayout);
-
-        // 3. Xử lý mở Menu
         btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.END));
-
-        // 4. Khởi tạo RecyclerView và Dữ liệu
         setupRecyclerView();
-
-        // 5. Xử lý Tìm kiếm/Lọc
+        fetchCoursesFromServer();
         setupSearch();
-
-        // 6. Xử lý nút Back (Cách mới thay cho onBackPressed đã bị deprecated)
         setupBackPressed();
     }
 
     private void setupRecyclerView() {
-        courseList = new ArrayList<>();
-        // Thêm dữ liệu mẫu để test giao diện miniview
-        courseList.add(new AdminCourseSummary("1", "Lập trình C++ căn bản", "Nguyễn Huỳnh Tiến", "13/04/2026"));
-        courseList.add(new AdminCourseSummary("2", "Lập trình Android Java", "Trần Minh Quang", "12/04/2026"));
-        courseList.add(new AdminCourseSummary("3", "Cấu trúc dữ liệu & Giải thuật", "Lê Thị Hoa", "11/04/2026"));
-
-        // Thiết lập LayoutManager
+        lessonList = new ArrayList<>();
         rvCourseList.setLayoutManager(new LinearLayoutManager(this));
-
-        // Thiết lập Adapter
-        adapter = new AdminCourseSummaryAdapter(this, courseList);
+        adapter = new AdminCourseSummaryAdapter(this, lessonList);
         rvCourseList.setAdapter(adapter);
     }
 
+    private void fetchCoursesFromServer() {
+        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+        apiService.getAllLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+
+                    if (apiResponse.getCode() == 1000) {
+                        List<LessonResponse> remoteLessons = apiResponse.getResult();
+                        if (remoteLessons != null && !remoteLessons.isEmpty()) {
+                            lessonList.clear();
+                            lessonList.addAll(remoteLessons);
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            Toast.makeText(AdminManageCourse.this, "Không có bài học nào trên hệ thống!", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(AdminManageCourse.this, "Lỗi hệ thống: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    if (response.code() == 403) {
+                        Toast.makeText(AdminManageCourse.this, "Tài khoản không có quyền truy cập!", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(AdminManageCourse.this, "Lỗi kết nối mạng, mã: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
+                Log.e("API_ADMIN_LESSON", "Thất bại: " + t.getMessage());
+                Toast.makeText(AdminManageCourse.this, "Không thể kết nối đến máy chủ Backend!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     private void setupSearch() {
         View icFilter = findViewById(R.id.icFilter);
         if (icFilter != null) {
             icFilter.setOnClickListener(v -> {
-                String query = edtSearch.getText().toString();
+                String query = edtSearch.getText().toString().trim();
                 if (!query.isEmpty()) {
-                    Toast.makeText(this, "Đang tìm khóa học: " + query, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đang tìm kiếm online: " + query, Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Vui lòng nhập từ khóa tìm kiếm", Toast.LENGTH_SHORT).show();
+                    fetchCoursesFromServer();
                 }
             });
         }
     }
-
     private void setupBackPressed() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -88,7 +106,6 @@ public class AdminManageCourse extends AppCompatActivity {
                 if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
                     drawerLayout.closeDrawer(GravityCompat.END);
                 } else {
-                    // Nếu drawer đã đóng, cho phép thoát activity
                     setEnabled(false);
                     onBackPressed();
                 }

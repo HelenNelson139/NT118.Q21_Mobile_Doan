@@ -14,9 +14,11 @@ import java.util.List;
 public class AdminCourseSummaryAdapter extends RecyclerView.Adapter<AdminCourseSummaryAdapter.CourseViewHolder> {
 
     private Context context;
-    private List<AdminCourseSummary> courseList;
+    // ĐÃ ĐỔI: Chuyển kiểu dữ liệu danh sách sang LessonResponse từ Backend
+    private List<LessonResponse> courseList;
 
-    public AdminCourseSummaryAdapter(Context context, List<AdminCourseSummary> courseList) {
+    // Constructor nhận vào đúng List<LessonResponse> để hết lỗi ở AdminManageCourse
+    public AdminCourseSummaryAdapter(Context context, List<LessonResponse> courseList) {
         this.context = context;
         this.courseList = courseList;
     }
@@ -24,38 +26,48 @@ public class AdminCourseSummaryAdapter extends RecyclerView.Adapter<AdminCourseS
     @NonNull
     @Override
     public CourseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Sử dụng file summary bạn vừa đổi tên
         View view = LayoutInflater.from(context).inflate(R.layout.admin_course_summary, parent, false);
         return new CourseViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull CourseViewHolder holder, int position) {
-        AdminCourseSummary course = courseList.get(position);
+        // Lấy bài học (Lesson) thực tế từ danh sách mạng
+        LessonResponse course = courseList.get(position);
 
-        holder.txtTitle.setText(course.getTitle());
-        holder.txtLecturer.setText("Giảng viên: " + course.getLecturer());
-        holder.txtDate.setText("Ngày đăng: " + course.getPostDate());
+        // Đổ dữ liệu từ Backend vào đúng các biến txt gốc của bạn
+        holder.txtTitle.setText(course.getTitle()); // Tên bài học
+        holder.txtLecturer.setText("Trạng thái: " + (course.getStatus() != null ? course.getStatus() : "Chưa duyệt"));
+        holder.txtDate.setText("Mô tả: " + course.getDescription());
 
-        // CHỨC NĂNG XEM CHI TIẾT
+        // CHỨC NĂNG XEM CHI TIẾT ONLINE (Giữ nguyên cấu trúc Intent cũ của bạn)
         holder.btnDetails.setOnClickListener(v -> {
             Intent intent = new Intent(context, AdminCourseDetailActivity.class);
-            // Gửi dữ liệu qua trang chi tiết để hiển thị
-            intent.putExtra("COURSE_ID", course.getId());
+
+            // Ép kiểu ID về String để truyền đi nếu getId() ở BE trả về kiểu số (Integer/Long)
+            intent.putExtra("COURSE_ID", String.valueOf(course.getId()));
             intent.putExtra("COURSE_TITLE", course.getTitle());
             context.startActivity(intent);
         });
 
-        // Xử lý Duyệt / Từ chối (Bạn có thể thêm logic Database ở đây)
-        holder.btnApprove.setOnClickListener(v -> { /* Code Duyệt */ });
-        holder.btnReject.setOnClickListener(v -> { /* Code Từ chối */ });
+        // Xử lý nút Duyệt / Từ chối (Giữ nguyên nút bấm của bạn)
+        holder.btnApprove.setOnClickListener(v -> {
+            android.widget.Toast.makeText(context, "Phê duyệt bài học: " + course.getTitle(), android.widget.Toast.LENGTH_SHORT).show();
+            // Sau này gọi API Approve ở đây
+        });
+
+        holder.btnReject.setOnClickListener(v -> {
+            android.widget.Toast.makeText(context, "Từ chối bài học: " + course.getTitle(), android.widget.Toast.LENGTH_SHORT).show();
+            // Sau này gọi API Reject ở đây
+        });
     }
 
     @Override
     public int getItemCount() {
-        return courseList.size();
+        return courseList == null ? 0 : courseList.size();
     }
 
+    // GIỮ NGUYÊN 100% tên Class ViewHolder và các ID View gốc khít với XML của bạn
     public static class CourseViewHolder extends RecyclerView.ViewHolder {
         TextView txtTitle, txtLecturer, txtDate;
         MaterialButton btnDetails, btnApprove, btnReject;
