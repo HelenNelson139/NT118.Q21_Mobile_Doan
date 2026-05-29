@@ -26,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @AllArgsConstructor
 public class TeacherService extends IUserService<CreateUserRequest, UpdateTeacherRequest>{
-    @Autowired
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserResponsitory userResponsitory;

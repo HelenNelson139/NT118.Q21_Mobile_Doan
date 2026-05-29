@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class SupabaseStorageService {
     @Value("${supabase.url}")
     private String supabaseUrl;
-    @Value("${supabase.key}")
+    @Value("${supabase.secret-key}")
     private String supabaseKey;
     @Value("${supabase.bucket}")
     private String supabaseBucket;
@@ -38,7 +38,11 @@ public class SupabaseStorageService {
                     + filePath;
 
             HttpHeaders headers = new HttpHeaders();
+//            headers.setBearerAuth(supabaseKey);
+            headers.set("apikey", supabaseKey);
             headers.setBearerAuth(supabaseKey);
+
+
             headers.setContentType(MediaType.parseMediaType(file.getContentType()));
             headers.set("x-upsert", "true");
 

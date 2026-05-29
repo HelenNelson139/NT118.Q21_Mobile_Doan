@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +48,7 @@ public class LessonService {
         if(thumbnail != null && !thumbnail.isEmpty()){
             String thumbnail_url = supabaseStorageService.uploadFile(
                     thumbnail,
-                    "users/" + lesson.getId()
+                    "lessons/" + lesson.getId()
             );
             lesson.setThumbnail_url(thumbnail_url);
         }

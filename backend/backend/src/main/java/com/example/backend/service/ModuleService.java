@@ -45,7 +45,7 @@ public class ModuleService {
         if(image != null && !image.isEmpty()){
             String image_url = supabaseStorageService.uploadFile(
                     image,
-                    "users/" + module.getId()
+                    "modules/" + module.getId()
             );
             module.setImage_example_url(image_url);
         }
