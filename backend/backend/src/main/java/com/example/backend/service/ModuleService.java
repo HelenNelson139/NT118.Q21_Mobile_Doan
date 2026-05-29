@@ -37,10 +37,8 @@ public class ModuleService {
         }
 
         Module module = moduleMapper.toModule(request);
-
         module.setLesson(lesson);
         module.setStatus(Status.PENDING);
-
         MultipartFile image = request.getImage();
         if(image != null && !image.isEmpty()){
             String image_url = supabaseStorageService.uploadFile(
@@ -70,7 +68,6 @@ public class ModuleService {
     public ModuleResponse getModuleById(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!"));
-
         boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_TEACHER"));
 
@@ -80,7 +77,6 @@ public class ModuleService {
         return moduleMapper.toModuleResponse(module);
     }
 
-
     @Transactional
     public void deleteModule(Integer id) {
         Module module = moduleRepository.findById(id)
@@ -88,7 +84,6 @@ public class ModuleService {
         module.setStatus(Status.PENDING);
         moduleRepository.save(module);
     }
-
 
     @Transactional
     public Module approveModule(Integer id) {
