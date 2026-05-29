@@ -26,7 +26,7 @@ public class LessonController {
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
-    public ApiResponse<Lesson> createLesson(@RequestBody LessonCreationRequest request){
+    public ApiResponse<Lesson> createLesson(@ModelAttribute LessonCreationRequest request){
         return ApiResponse.<Lesson>builder()
                 .code(1000)
                 .message("Create Successful")

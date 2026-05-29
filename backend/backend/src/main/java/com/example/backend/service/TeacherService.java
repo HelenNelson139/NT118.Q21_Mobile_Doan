@@ -18,25 +18,29 @@ import com.example.backend.respository.TeacherResponsitory;
 import com.example.backend.respository.UserResponsitory;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @AllArgsConstructor
 public class TeacherService extends IUserService<CreateUserRequest, UpdateTeacherRequest>{
-
+    @Autowired
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserResponsitory userResponsitory;
     private final TeacherResponsitory teacherResponsitory;
     private final TeacherMapper teacherMapper;
     private final UserService userService;
+    private final SupabaseStorageService supabaseStorageService;
 
     @Override
     @Transactional
     public void register(CreateUserRequest createUserRequest){
+        User user = new User();
         if(userService.checkUserExist(createUserRequest)){
-            User user = userMapper.toCreate(createUserRequest);
+            user = userMapper.toCreate(createUserRequest);
             user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
             userResponsitory.save(user);
             if(createUserRequest instanceof TeacherCreationRequest teacherCreationRequest){
@@ -44,6 +48,15 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateTeache
                 teacher.setUser(user);
                 teacherResponsitory.save(teacher);
             }
+        }
+        MultipartFile avatar = createUserRequest.getAvatar();
+        if(avatar != null && !avatar.isEmpty()){
+            String avatarUrl = supabaseStorageService.uploadFile(
+                    avatar,
+                    "users/" + user.getId()
+            );
+            user.setAvatar_url(avatarUrl);
+            userResponsitory.save(user);
         }
     }
 

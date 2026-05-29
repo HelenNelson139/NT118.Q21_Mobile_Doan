@@ -13,6 +13,7 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "created_at", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "avatar_url", ignore = true)
     User toCreate(CreateUserRequest createUserRequest);
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(UpdateUserRequest request, @MappingTarget User user);

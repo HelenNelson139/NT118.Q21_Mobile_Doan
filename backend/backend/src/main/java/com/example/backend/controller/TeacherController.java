@@ -19,7 +19,7 @@ public class TeacherController {
     @Autowired
     private TeacherService teacherService;
     @PostMapping("/register")
-    public ApiResponse<String> createTeacher(@RequestBody TeacherCreationRequest teacherCreationRequest){
+    public ApiResponse<String> createTeacher(@ModelAttribute TeacherCreationRequest teacherCreationRequest){
         teacherService.register(teacherCreationRequest);
         return ApiResponse.<String>builder()
                 .code(1000)
@@ -27,6 +27,7 @@ public class TeacherController {
                 .result("Dữ liệu đã được lưu cho mã: " + teacherCreationRequest.getTeacher_code())
                 .build();
            }
+
 
     @PatchMapping("/update")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")

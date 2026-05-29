@@ -23,7 +23,7 @@ public class ModuleController {
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
-    public ApiResponse<Module> createModule(@RequestBody ModuleCreationRequest request) {
+    public ApiResponse<Module> createModule(@ModelAttribute ModuleCreationRequest request) {
         return ApiResponse.<Module>builder()
                 .code(1000)
                 .message("Create Module Successful")

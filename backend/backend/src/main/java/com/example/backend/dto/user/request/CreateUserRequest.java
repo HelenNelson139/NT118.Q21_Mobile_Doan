@@ -1,6 +1,7 @@
 package com.example.backend.dto.user.request;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Timestamp;
 import java.time.LocalDateTime;
@@ -18,5 +19,5 @@ public class CreateUserRequest {
     String full_name;
     String role;
     String status;
-    String avatar_url;
+    MultipartFile avatar;
 }

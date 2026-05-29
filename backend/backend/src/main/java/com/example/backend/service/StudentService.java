@@ -21,6 +21,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @AllArgsConstructor
@@ -31,13 +32,13 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateStuden
     private final StudentResponsitory studentResponsitory;
     private final StudentMapper studentMapper;
     private final UserService userService;
-    private final TeacherMapper teacherMapper;
-
+    private final SupabaseStorageService supabaseStorageService;
     @Override
     @Transactional
     public void register(CreateUserRequest createUserRequest){
+        User user = new User();
         if(userService.checkUserExist(createUserRequest)){
-            User user = userMapper.toCreate(createUserRequest);
+            user = userMapper.toCreate(createUserRequest);
             user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
             userResponsitory.save(user);
             if(createUserRequest instanceof CreateStudentRequest createStudentRequest){
@@ -47,7 +48,17 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateStuden
             }
         }
 
+        MultipartFile avatar = createUserRequest.getAvatar();
+        if(avatar != null && !avatar.isEmpty()){
+            String avatarUrl = supabaseStorageService.uploadFile(
+                    avatar,
+                    "users/" + user.getId()
+            );
+            user.setAvatar_url(avatarUrl);
+            userResponsitory.save(user);
+        }
     }
+
     @Override
     public void update(Integer userId, UpdateStudentRequest request){
             User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));

@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.entity.Module;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class ModuleService {
     ModuleRepository moduleRepository;
     LessonRepository lessonRepository;
     ModuleMapper moduleMapper;
+    SupabaseStorageService supabaseStorageService;
 
     @Transactional
     public Module createModule(ModuleCreationRequest request) {
@@ -39,6 +41,14 @@ public class ModuleService {
         module.setLesson(lesson);
         module.setStatus(Status.PENDING);
 
+        MultipartFile image = request.getImage();
+        if(image != null && !image.isEmpty()){
+            String image_url = supabaseStorageService.uploadFile(
+                    image,
+                    "users/" + module.getId()
+            );
+            module.setImage_example_url(image_url);
+        }
         return moduleRepository.save(module);
     }
 

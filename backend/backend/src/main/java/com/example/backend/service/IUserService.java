@@ -4,6 +4,7 @@ package com.example.backend.service;
 import com.example.backend.dto.user.request.CreateUserRequest;
 import com.example.backend.dto.user.request.UpdateUserRequest;
 import com.example.backend.dto.user.response.UserResponseProfile;
+import org.springframework.web.multipart.MultipartFile;
 
 
 public abstract class IUserService<T, U> {

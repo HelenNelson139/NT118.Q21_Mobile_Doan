@@ -18,7 +18,7 @@ public class Teacher {
      Integer id;
      @OneToOne
      @MapsId
-     @JoinColumn(name = "user_id")
+     @JoinColumn(name = "user_id")  // chứa cả user nên có thể map entity
      User user;
      String teacher_code;
      String department;

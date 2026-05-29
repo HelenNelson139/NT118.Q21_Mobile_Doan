@@ -4,6 +4,7 @@ import com.example.backend.entity.Teacher;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
@@ -13,6 +14,6 @@ public class LessonCreationRequest {
     String description;
     String what_you_learn;
     String skill_learned;
-    String thumbnail_url;
+    MultipartFile thumbnail;
     Integer teacherId;
 }

@@ -7,11 +7,13 @@ import com.example.backend.entity.User;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
 import com.example.backend.respository.UserResponsitory;
+import com.google.common.collect.Multimap;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @AllArgsConstructor //cần phải khởi tạo biến private final liền sau đó không thay đổi biến này nữa nên dùng
@@ -21,6 +23,8 @@ public class UserService {
     private UserResponsitory userResponsitory;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private SupabaseStorageService supabaseStorageService;
     public boolean checkUserExist(CreateUserRequest createUserRequest) {
         if (userResponsitory.findByUsername(createUserRequest.getUsername()).isPresent()) {
             throw new RuntimeException("User already exist");
@@ -31,6 +35,18 @@ public class UserService {
         }else{
             return true;
         }
+    }
+
+    public void updateAvatar(Integer userId, MultipartFile avatar){
+        User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        String avatarUrl = supabaseStorageService.uploadFile(
+                avatar,
+                "users/" + userId
+        );
+
+        user.setAvatar_url(avatarUrl);
+        userResponsitory.save(user);
     }
 
     @Transactional

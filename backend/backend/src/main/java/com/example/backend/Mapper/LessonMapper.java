@@ -11,6 +11,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface LessonMapper {
     @Mapping(target = "teacher", ignore = true)
+    @Mapping(target = "thumbnail_url", ignore = true)
     Lesson toLesson(LessonCreationRequest request);
     LessonResponse toLessonResponse(Lesson lesson);
     List<LessonResponse> toLessonResponseList(List<Lesson> lessons);

@@ -13,4 +13,5 @@ public interface UserResponsitory extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
     public User findByEmail(String email);
     public User findByPhone(String phone);
+
 }

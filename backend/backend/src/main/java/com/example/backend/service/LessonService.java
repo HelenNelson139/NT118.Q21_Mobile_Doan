@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class LessonService {
     LessonRepository lessonRepository;
     TeacherResponsitory teacherResponsitory;
     LessonMapper lessonMapper;
+    SupabaseStorageService supabaseStorageService;
 
     public Lesson createLesson(LessonCreationRequest request){
         var context = SecurityContextHolder.getContext();
@@ -40,6 +42,15 @@ public class LessonService {
         Lesson lesson = lessonMapper.toLesson(request);
         lesson.setTeacher(teacher);
         lesson.setStatus(Status.PENDING);
+
+        MultipartFile thumbnail = request.getThumbnail();
+        if(thumbnail != null && !thumbnail.isEmpty()){
+            String thumbnail_url = supabaseStorageService.uploadFile(
+                    thumbnail,
+                    "users/" + lesson.getId()
+            );
+            lesson.setThumbnail_url(thumbnail_url);
+        }
 
         return lessonRepository.save(lesson);
     }

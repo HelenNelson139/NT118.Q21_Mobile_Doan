@@ -15,7 +15,7 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
     @PostMapping("/register")
-    public ApiResponse<String> registerStudent(@RequestBody CreateStudentRequest createStudentRequest){
+    public ApiResponse<String> registerStudent(@ModelAttribute CreateStudentRequest createStudentRequest){
         studentService.register(createStudentRequest);
         return ApiResponse.<String>builder()
                 .code(1000)
