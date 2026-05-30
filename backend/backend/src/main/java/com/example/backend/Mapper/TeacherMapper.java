@@ -11,6 +11,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface TeacherMapper {
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "teacher_code", ignore = true)
     Teacher toCreate(TeacherCreationRequest teacherCreationRequest);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

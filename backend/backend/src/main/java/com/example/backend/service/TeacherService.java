@@ -46,6 +46,7 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateTeache
             if(createUserRequest instanceof TeacherCreationRequest teacherCreationRequest){
                 Teacher teacher = teacherMapper.toCreate(teacherCreationRequest);
                 teacher.setUser(user);
+                teacher.setTeacher_code(generateTeacherCode());
                 teacherResponsitory.save(teacher);
             }
         }
@@ -58,6 +59,23 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateTeache
             user.setAvatar_url(avatarUrl);
             userResponsitory.save(user);
         }
+    }
+
+    private String generateTeacherCode() {
+        int year = java.time.LocalDate.now().getYear();
+
+        String prefix = "TC_" + year + "_";
+
+        String latestCode = teacherResponsitory.findLatestTeacherCode(prefix);
+
+        int nextNumber = 1;
+
+        if (latestCode != null && !latestCode.isBlank()) {
+            String numberPart = latestCode.substring(prefix.length());
+            nextNumber = Integer.parseInt(numberPart) + 1;
+        }
+
+        return prefix + String.format("%03d", nextNumber);
     }
 
     @Override

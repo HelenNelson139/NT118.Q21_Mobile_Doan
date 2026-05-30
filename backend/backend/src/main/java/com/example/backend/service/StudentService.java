@@ -44,6 +44,7 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateStuden
             if(createUserRequest instanceof CreateStudentRequest createStudentRequest){
                 Student student = studentMapper.toCreate(createStudentRequest);
                 student.setUser(user);
+                student.setStudent_code(generateStudentCode());
                 studentResponsitory.save(student);
             }
         }
@@ -57,6 +58,23 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateStuden
             user.setAvatar_url(avatarUrl);
             userResponsitory.save(user);
         }
+    }
+
+    private String generateStudentCode() {
+        int year = java.time.LocalDate.now().getYear();
+
+        String prefix = "ST_" + year + "_";
+
+        String latestCode = studentResponsitory.findLatestStudentCode(prefix);
+
+        int nextNumber = 1;
+
+        if (latestCode != null && !latestCode.isBlank()) {
+            String numberPart = latestCode.substring(prefix.length());
+            nextNumber = Integer.parseInt(numberPart) + 1;
+        }
+
+        return prefix + String.format("%03d", nextNumber);
     }
 
     @Override
