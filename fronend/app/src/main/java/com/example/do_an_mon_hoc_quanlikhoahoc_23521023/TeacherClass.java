@@ -86,64 +86,7 @@ public class TeacherClass extends AppCompatActivity {
     }
 
     private void showAddDialog() {
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_course, null);
 
-        EditText edtTitle = view.findViewById(R.id.edtCourseTitle);
-        TabLayout tabLayout = view.findViewById(R.id.tabLayout);
-        LinearLayout containerIntro = view.findViewById(R.id.containerIntro);
-        LinearLayout containerCurriculum = view.findViewById(R.id.containerCurriculum);
-        ImageView imgCourseCover = view.findViewById(R.id.imgCourseCover);
-        MaterialButton btnUploadImage = view.findViewById(R.id.btnUploadImage);
-        LinearLayout lessonContainer = view.findViewById(R.id.lessonContainer);
-        MaterialButton btnAddLesson = view.findViewById(R.id.btnAddLesson);
-        MaterialButton btnSave = view.findViewById(R.id.btnSaveCourse);
-        MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
-
-        selectedImageUri = null;
-        lessonViews.clear();
-        imgPreview = imgCourseCover;
-        imgCourseCover.setImageResource(android.R.drawable.ic_menu_camera);
-
-        Dialog dialog = new Dialog(this, R.style.CustomDialogTheme);
-        dialog.setContentView(view);
-
-        Window window = dialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            window.setGravity(Gravity.CENTER);
-            window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-        }
-
-        setupTabs(tabLayout, containerIntro, containerCurriculum);
-
-        btnUploadImage.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
-        btnAddLesson.setOnClickListener(v -> addLesson(lessonContainer));
-
-        btnSave.setOnClickListener(v -> {
-            String title = edtTitle.getText().toString().trim();
-
-            if (title.isEmpty()) {
-                edtTitle.setError("Nhập tên khóa học");
-                return;
-            }
-
-            TeacherCourse course = new TeacherCourse(
-                    title,
-                    R.drawable.course_python,
-                    "Khóa học mới được tạo",
-                    "Nguyễn Văn A"
-            );
-
-            filteredList.add(course);
-            adapter.notifyItemInserted(filteredList.size() - 1);
-
-            Toast.makeText(this, "Đã thêm khóa học", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
     }
 
     private void showEditDialog(int position) {
