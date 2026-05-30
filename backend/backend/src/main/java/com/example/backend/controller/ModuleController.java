@@ -23,8 +23,8 @@ public class ModuleController {
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
-    public ApiResponse<Module> createModule(@ModelAttribute ModuleCreationRequest request) {
-        return ApiResponse.<Module>builder()
+    public ApiResponse<ModuleResponse> createModule(@ModelAttribute ModuleCreationRequest request) {
+        return ApiResponse.<ModuleResponse>builder()
                 .code(1000)
                 .message("Create Module Successful")
                 .result(moduleService.createModule(request))
@@ -64,8 +64,8 @@ public class ModuleController {
 
     @PutMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Module> approveModule(@PathVariable Integer id) {
-        return ApiResponse.<Module>builder()
+    public ApiResponse<ModuleResponse> approveModule(@PathVariable Integer id) {
+        return ApiResponse.<ModuleResponse>builder()
                 .code(1000)
                 .message("Module approved successfully")
                 .result(moduleService.approveModule(id))
@@ -74,8 +74,8 @@ public class ModuleController {
 
     @PutMapping("/{id}/approve-delete")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Module> approveDeleteModule(@PathVariable Integer id) {
-        return ApiResponse.<Module>builder()
+    public ApiResponse<ModuleResponse> approveDeleteModule(@PathVariable Integer id) {
+        return ApiResponse.<ModuleResponse>builder()
                 .code(1000)
                 .message("Admin approved module deletion successfully")
                 .result(moduleService.approveDeleteModule(id))

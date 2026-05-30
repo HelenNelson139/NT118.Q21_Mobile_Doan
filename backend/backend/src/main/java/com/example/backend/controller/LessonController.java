@@ -27,8 +27,8 @@ public class LessonController {
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
-    public ApiResponse<Lesson> createLesson(@ModelAttribute LessonCreationRequest request){
-        return ApiResponse.<Lesson>builder()
+    public ApiResponse<LessonResponse> createLesson(@ModelAttribute LessonCreationRequest request){
+        return ApiResponse.<LessonResponse>builder()
                 .code(1000)
                 .message("Create Successful")
                 .result(lessonService.createLesson(request))
@@ -58,8 +58,8 @@ public class LessonController {
 
     @PutMapping("/{id}/approve-delete")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Lesson> approveDeleteLesson(@PathVariable Integer id) {
-        return ApiResponse.<Lesson>builder()
+    public ApiResponse<LessonResponse> approveDeleteLesson(@PathVariable Integer id) {
+        return ApiResponse.<LessonResponse>builder()
                 .code(1000)
                 .message("Admin approved deletion successfully")
                 .result(lessonService.approveDeleteLesson(id))
@@ -78,8 +78,8 @@ public class LessonController {
 
     @PutMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Lesson> approveLesson(@PathVariable Integer id) {
-        return ApiResponse.<Lesson>builder()
+    public ApiResponse<LessonResponse> approveLesson(@PathVariable Integer id) {
+        return ApiResponse.<LessonResponse>builder()
                 .code(1000)
                 .message("Lesson Approved Successfully")
                 .result(lessonService.approveLesson(id))
@@ -87,8 +87,8 @@ public class LessonController {
     }
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    public ApiResponse<List<Lesson>> getAllLessons() {
-        return ApiResponse.<List<Lesson>>builder()
+    public ApiResponse<List<LessonResponse>> getAllLessons() {
+        return ApiResponse.<List<LessonResponse>>builder()
                 .code(1000)
                 .message("Get All of Lessons")
                 .result(lessonService.findAllLesson())

@@ -5,26 +5,31 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
+import android.util.Log;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
+
 import java.util.List;
+import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LessonActivity extends AppCompatActivity {
-
     TextView txtLessonTitle, txtObjective, txtContent, txtExample;
     ImageView imgExample;
     ImageButton btnBack, btnNext;
-
     int currentIndex;
-    List<Lesson> lessonList;
+    List<LessonResponse> lessonList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
 
-        // ánh xạ view
         txtLessonTitle = findViewById(R.id.txtLessonTitle);
         txtObjective = findViewById(R.id.txtObjective);
         txtContent = findViewById(R.id.txtContent);
@@ -34,19 +39,13 @@ public class LessonActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnNext = findViewById(R.id.btnNext);
 
-        // dữ liệu
-        lessonList = LessonData.getAllLessons();
-
         currentIndex = getIntent().getIntExtra("index", 0);
 
-        // tránh crash nếu index sai
-        if (currentIndex < 0 || currentIndex >= lessonList.size()) {
-            currentIndex = 0;
-        }
+        btnBack.setVisibility(View.INVISIBLE);
+        btnNext.setVisibility(View.INVISIBLE);
 
-        loadLesson();
+        fetchLessonsFromServer();
 
-        // NEXT
         btnNext.setOnClickListener(v -> {
             if (currentIndex < lessonList.size() - 1) {
                 currentIndex++;
@@ -54,7 +53,6 @@ public class LessonActivity extends AppCompatActivity {
             }
         });
 
-        // BACK
         btnBack.setOnClickListener(v -> {
             if (currentIndex == 0) {
                 finish();
@@ -66,37 +64,66 @@ public class LessonActivity extends AppCompatActivity {
     }
 
     void loadLesson() {
+        if (lessonList == null || lessonList.isEmpty()) return;
 
-        Lesson lesson = lessonList.get(currentIndex);
+        LessonResponse lesson = lessonList.get(currentIndex);
+        txtLessonTitle.setText((currentIndex + 1) + "/" + lessonList.size() + " - " + lesson.getTitle());
+        txtObjective.setText(lesson.getWhatYouLearn());
+        txtContent.setText(lesson.getDescription());
+        txtExample.setText(lesson.getSkillLearned());
 
-        // tiêu đề + progress
-        txtLessonTitle.setText(
-                (currentIndex + 1) + "/" + lessonList.size() + " - "
-                        + lesson.getLesson() + ": " + lesson.getTitle()
-        );
+        if (lesson.getThumbnailUrl() != null && !lesson.getThumbnailUrl().isEmpty()) {
+            Glide.with(this)
+                    .load(lesson.getThumbnailUrl())
+                    .into(imgExample);
+        }
 
-        txtObjective.setText(lesson.getObjective());
-        txtContent.setText(lesson.getContent());
-        txtExample.setText(lesson.getExample());
-
-        imgExample.setImageResource(lesson.getImage());
-
-        // animation nhẹ
         imgExample.setAlpha(0f);
         imgExample.animate().alpha(1f).setDuration(300);
 
-        // BACK button
         if (currentIndex == 0) {
             btnBack.setVisibility(View.INVISIBLE);
         } else {
             btnBack.setVisibility(View.VISIBLE);
         }
-
-        // NEXT button
         if (currentIndex == lessonList.size() - 1) {
             btnNext.setVisibility(View.INVISIBLE);
         } else {
             btnNext.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void fetchLessonsFromServer() {
+        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+
+        apiService.getAllLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+                    if (apiResponse.getCode() == 1000) {
+                        lessonList = apiResponse.getResult();
+                        if (lessonList != null && !lessonList.isEmpty()) {
+                            if (currentIndex < 0 || currentIndex >= lessonList.size()) {
+                                currentIndex = 0;
+                            }
+                            loadLesson();
+                        } else {
+                            Toast.makeText(LessonActivity.this, "Không có bài học nào trên hệ thống!", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(LessonActivity.this, "Lỗi hệ thống: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(LessonActivity.this, "Lỗi kết nối mạng, mã: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
+                Log.e("API_LOG", "Thất bại: " + t.getMessage());
+                Toast.makeText(LessonActivity.this, "Không thể kết nối đến máy chủ!", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

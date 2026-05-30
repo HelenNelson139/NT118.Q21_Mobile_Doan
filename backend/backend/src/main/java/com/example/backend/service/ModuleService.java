@@ -28,7 +28,7 @@ public class ModuleService {
     SupabaseStorageService supabaseStorageService;
 
     @Transactional
-    public Module createModule(ModuleCreationRequest request) {
+    public ModuleResponse createModule(ModuleCreationRequest request) {
         Lesson lesson = lessonRepository.findById(request.getLessonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học tương ứng!"));
 
@@ -37,10 +37,8 @@ public class ModuleService {
         }
 
         Module module = moduleMapper.toModule(request);
-
         module.setLesson(lesson);
         module.setStatus(Status.PENDING);
-
         MultipartFile image = request.getImage();
         if(image != null && !image.isEmpty()){
             String image_url = supabaseStorageService.uploadFile(
@@ -49,7 +47,8 @@ public class ModuleService {
             );
             module.setImage_example_url(image_url);
         }
-        return moduleRepository.save(module);
+        Module savedModule = moduleRepository.save(module);
+        return moduleMapper.toModuleResponse(savedModule);
     }
 
 
@@ -70,7 +69,6 @@ public class ModuleService {
     public ModuleResponse getModuleById(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!"));
-
         boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_TEACHER"));
 
@@ -80,7 +78,6 @@ public class ModuleService {
         return moduleMapper.toModuleResponse(module);
     }
 
-
     @Transactional
     public void deleteModule(Integer id) {
         Module module = moduleRepository.findById(id)
@@ -89,17 +86,17 @@ public class ModuleService {
         moduleRepository.save(module);
     }
 
-
     @Transactional
-    public Module approveModule(Integer id) {
+    public ModuleResponse approveModule(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
         module.setStatus(Status.ACTIVE);
-        return moduleRepository.save(module);
+        Module savedModule = moduleRepository.save(module);
+        return moduleMapper.toModuleResponse(savedModule);
     }
 
     @Transactional
-    public Module approveDeleteModule(Integer id) {
+    public ModuleResponse approveDeleteModule(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
 
@@ -108,7 +105,8 @@ public class ModuleService {
         }
 
         module.setStatus(Status.REJECTED);
-        return moduleRepository.save(module);
+        Module savedModule = moduleRepository.save(module);
+        return moduleMapper.toModuleResponse(savedModule);
     }
 }
 
