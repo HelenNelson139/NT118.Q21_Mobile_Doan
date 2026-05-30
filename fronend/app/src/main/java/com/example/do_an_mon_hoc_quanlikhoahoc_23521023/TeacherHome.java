@@ -2,6 +2,7 @@ package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -32,6 +33,13 @@ public class TeacherHome extends AppCompatActivity {
     private TextView txtTotalStudents, txtTotalCourses, txtWelcome, txtTeacherName;
     private CombinedChart combinedChart;
 
+    private static final String PREF_NAME = "APP_PREFS";
+    private static final String KEY_FULL_NAME = "FULL_NAME";
+    private static final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
+    private static final String KEY_ROLE = "ROLE";
+    private static final String KEY_USERNAME = "USERNAME";
+    private static final String KEY_IS_LOGGED_IN = "IS_LOGGED_IN";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,8 +48,8 @@ public class TeacherHome extends AppCompatActivity {
         btnMenuCard = findViewById(R.id.btnMenuCard);
         txtTotalStudents = findViewById(R.id.txtTotalStudents);
         txtTotalCourses = findViewById(R.id.txtTotalCourses);
-        txtWelcome = findViewById(R.id.txtWelcome);  // Chào giảng viên
-        txtTeacherName = findViewById(R.id.txtTeacherName);  // Tên giảng viên
+        txtWelcome = findViewById(R.id.txtWelcome);
+        txtTeacherName = findViewById(R.id.txtTeacherName);
         combinedChart = findViewById(R.id.combinedChart);
 
         loadStats();
@@ -54,9 +62,18 @@ public class TeacherHome extends AppCompatActivity {
         txtTotalStudents.setText("120");
         txtTotalCourses.setText("6");
 
-        // Set TextView for welcome message
         txtWelcome.setText("Chào giảng viên,");
-        txtTeacherName.setText("Nguyễn Văn A"); // Set the name of the teacher
+
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        String fullName = sharedPreferences.getString(KEY_FULL_NAME, "");
+
+        if (fullName == null || fullName.trim().isEmpty()) {
+            fullName = "Giảng viên";
+        }
+
+        txtTeacherName.setText(fullName);
     }
 
     private void setupChart() {
@@ -112,19 +129,28 @@ public class TeacherHome extends AppCompatActivity {
 
         Window window = dialog.getWindow();
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            window.setLayout(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.setGravity(Gravity.END);
         }
 
         MaterialCardView btnCloseMenu = dialog.findViewById(R.id.btnCloseMenu);
-        LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
+
+        LinearLayout menuHome = dialog.findViewById(R.id.menuHome);
         LinearLayout menuMyClasses = dialog.findViewById(R.id.menuMyClasses);
+        LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
+
+        TextView txtLogout = dialog.findViewById(R.id.txtLogout);
 
         btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
 
-        menuProfile.setOnClickListener(v -> {
-            startActivity(new Intent(this, TeacherProfileActivity.class));
+        menuHome.setOnClickListener(v -> {
+            Intent intent = new Intent(this, TeacherHome.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
             dialog.dismiss();
         });
 
@@ -133,15 +159,34 @@ public class TeacherHome extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        TextView txtLogout = dialog.findViewById(R.id.txtLogout);
+        menuProfile.setOnClickListener(v -> {
+            startActivity(new Intent(this, TeacherProfileActivity.class));
+            dialog.dismiss();
+        });
 
         txtLogout.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+            logout();
             dialog.dismiss();
         });
 
         dialog.show();
+    }
+
+    private void logout() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(KEY_ACCESS_TOKEN);
+        editor.remove(KEY_ROLE);
+        editor.remove(KEY_USERNAME);
+        editor.remove(KEY_FULL_NAME);
+        editor.remove(KEY_IS_LOGGED_IN);
+        editor.apply();
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

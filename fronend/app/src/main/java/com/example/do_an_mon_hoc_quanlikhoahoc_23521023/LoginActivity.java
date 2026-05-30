@@ -22,13 +22,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText editEmail, editPassword;
     private Button buttonLogin;
 
-    // Android Emulator gọi backend trên máy tính thì dùng 10.0.2.2
     private static final String LOGIN_URL =
             "http://10.0.2.2:8080/NT118/api/auth/login";
-
-    // Nếu dùng điện thoại thật cùng WiFi thì đổi thành IP máy tính, ví dụ:
-    // private static final String LOGIN_URL =
-    //         "http://192.168.1.10:8080/NT118/api/auth/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,15 +71,16 @@ public class LoginActivity extends AppCompatActivity {
                                 JSONObject result = response.getJSONObject("result");
 
                                 boolean authenticated = result.getBoolean("authenticated");
-                                String accessToken = result.getString("accessToken");
                                 String role = result.getString("role");
+                                String accessToken = result.getString("accessToken");
+                                String fullName = result.getString("full_name");
+                                int userId = result.getInt("id");
 
                                 if (authenticated) {
-                                    saveLoginData(accessToken, role, username);
-
+                                    saveLoginData(accessToken, role, username, fullName, userId);
                                     Toast.makeText(
                                             this,
-                                            "Đăng nhập thành công: " + role,
+                                            "Đăng nhập thành công",
                                             Toast.LENGTH_SHORT
                                     ).show();
 
@@ -133,7 +129,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void saveLoginData(String accessToken, String role, String username) {
+    private void saveLoginData(String accessToken, String role, String username, String fullName, int userId) {
         SharedPreferences sharedPreferences =
                 getSharedPreferences("APP_PREFS", MODE_PRIVATE);
 
@@ -141,6 +137,8 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString("ACCESS_TOKEN", accessToken);
         editor.putString("ROLE", role);
         editor.putString("USERNAME", username);
+        editor.putString("FULL_NAME", fullName);
+        editor.putInt("USER_ID", userId);
         editor.putBoolean("IS_LOGGED_IN", true);
         editor.apply();
     }

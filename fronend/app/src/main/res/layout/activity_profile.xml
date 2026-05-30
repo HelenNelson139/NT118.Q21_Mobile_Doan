@@ -10,30 +10,68 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <LinearLayout
+        <!-- HEADER CÓ NÚT MENU -->
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="260dp"
             android:background="@drawable/bg_header_profile"
-            android:gravity="center"
-            android:orientation="vertical"
             android:paddingTop="24dp">
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnMenuCard"
+                android:layout_width="55dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="24dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="#2A528A"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#567EBB"
+                app:strokeWidth="2dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="10dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_menu"
+                    app:tint="#F9F7F7" />
+
+            </com.google.android.material.card.MaterialCardView>
+
             <TextView
+                android:id="@+id/txtProfileHeaderTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"
                 android:textColor="@color/dark_blue"
                 android:textSize="26sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@id/txtProfileHeaderSubTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="packed" />
 
             <TextView
+                android:id="@+id/txtProfileHeaderSubTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/profile_title"
                 android:textColor="@color/dark_blue"
-                android:textSize="14sp" />
-        </LinearLayout>
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtProfileHeaderTitle" />
 
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- AVATAR + NAME + EMAIL -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -55,7 +93,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="@string/user_name"
+                android:text="Nguyễn Văn A"
                 android:textColor="@color/dark_blue"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -64,11 +102,12 @@
                 android:id="@+id/txtEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/user_email"
+                android:text="email@example.com"
                 android:textColor="@color/blue"
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <!-- THÔNG TIN CÁ NHÂN -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -81,7 +120,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/personal_info_title"
+                android:text="Thông tin cá nhân"
                 android:textColor="@color/dark_blue"
                 android:textSize="17sp"
                 android:textStyle="bold"
@@ -90,7 +129,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/phone_label"
+                android:text="Số điện thoại"
                 android:textColor="@color/blue" />
 
             <TextView
@@ -98,47 +137,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/user_phone" />
+                android:text="Chưa cập nhật" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/dob_label"
+                android:text="Tên đăng nhập"
                 android:textColor="@color/blue" />
 
             <TextView
-                android:id="@+id/txtDOB"
+                android:id="@+id/txtUsername"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/user_dob" />
+                android:text="Chưa cập nhật" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/gender_label"
-                android:textColor="@color/blue" />
-
-            <TextView
-                android:id="@+id/txtGender"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="@string/user_gender" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/address_label"
+                android:text="Khoa / Địa chỉ"
                 android:textColor="@color/blue" />
 
             <TextView
                 android:id="@+id/txtAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/user_address" />
+                android:text="Chưa cập nhật" />
         </LinearLayout>
 
+        <!-- THÔNG TIN HỌC TẬP -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -151,7 +178,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/academic_title"
+                android:text="Thông tin học tập"
                 android:textColor="@color/dark_blue"
                 android:textSize="17sp"
                 android:textStyle="bold"
@@ -160,7 +187,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/role_label"
+                android:text="Vai trò"
                 android:textColor="@color/blue" />
 
             <TextView
@@ -168,12 +195,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/role_value" />
+                android:text="Giảng viên" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/courses_label"
+                android:text="Số khóa đã đăng ký"
                 android:textColor="@color/blue" />
 
             <TextView
@@ -181,19 +208,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/courses_value" />
+                android:text="0" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/status_label"
+                android:text="Trạng thái"
                 android:textColor="@color/blue" />
 
             <TextView
                 android:id="@+id/txtStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/status_value" />
+                android:text="Chưa cập nhật" />
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
