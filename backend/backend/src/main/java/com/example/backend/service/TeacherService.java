@@ -34,6 +34,7 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateTeache
     private final UserService userService;
     private final SupabaseStorageService supabaseStorageService;
 
+
     @Override
     @Transactional
     public void register(CreateUserRequest createUserRequest){
@@ -72,6 +73,7 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateTeache
     @Override
     public TeacherResponseProfile getUserProfile(Integer userId){
         User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        String password = user.getPassword();
         return teacherMapper.toProfileResponse(user);
     }
 }

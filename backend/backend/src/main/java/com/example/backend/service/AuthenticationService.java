@@ -63,6 +63,8 @@ public class AuthenticationService {
         var user = userResponsitory.findByUsername(authenticationRequest.getUsername())
                 .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
         String role = user.getRole().toString();
+        String full_name = user.getFull_name();
+        Integer id = user.getId();
         boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword());
 
         if(!authenticated){
@@ -71,7 +73,9 @@ public class AuthenticationService {
 
         var token = generateToken(user);
         return AuthenticationResponse.builder()
+                .id(id)
                 .role(role)
+                .full_name(full_name)
                 .accessToken(token)
                 .authenticated(true)
                 .build();

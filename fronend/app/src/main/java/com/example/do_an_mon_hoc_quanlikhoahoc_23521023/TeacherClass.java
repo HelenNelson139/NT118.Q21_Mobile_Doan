@@ -253,27 +253,44 @@ public class TeacherClass extends AppCompatActivity {
 
         Window window = dialog.getWindow();
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            window.setLayout(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.setGravity(Gravity.END);
         }
 
         MaterialCardView btnCloseMenu = dialog.findViewById(R.id.btnCloseMenu);
+
+        LinearLayout menuHome = dialog.findViewById(R.id.menuHome);
         LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
         LinearLayout menuMyClasses = dialog.findViewById(R.id.menuMyClasses);
+
         TextView txtLogout = dialog.findViewById(R.id.txtLogout);
 
         btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
 
+        menuHome.setOnClickListener(v -> {
+            Intent intent = new Intent(TeacherClass.this, TeacherHome.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            dialog.dismiss();
+            finish();
+        });
+
         menuProfile.setOnClickListener(v -> {
-            startActivity(new Intent(this, TeacherProfileActivity.class));
+            Intent intent = new Intent(TeacherClass.this, TeacherProfileActivity.class);
+            startActivity(intent);
             dialog.dismiss();
         });
 
-        menuMyClasses.setOnClickListener(v -> dialog.dismiss());
+        menuMyClasses.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
 
         txtLogout.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(TeacherClass.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             dialog.dismiss();

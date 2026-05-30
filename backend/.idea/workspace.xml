@@ -5,11 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0021f203-19bc-4e6a-838f-69eeec0d14e6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/VolleyMultipartRequest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/Authentication/response/AuthenticationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/Authentication/response/AuthenticationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/AuthenticationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/AuthenticationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/TeacherService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/TeacherService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/EditProfileActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/EditProfileActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LoginActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LoginActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/gradle/libs.versions.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/ProfileActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/ProfileActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherEditProfileActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherEditProfileActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherHome.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherHome.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherProfileActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherProfileActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_edit_profile.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_edit_profile.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_profile.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_profile.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,7 +121,7 @@
       <workItem from="1780022107235" duration="8653000" />
       <workItem from="1780038873113" duration="2404000" />
       <workItem from="1780048544201" duration="970000" />
-      <workItem from="1780107006817" duration="1924000" />
+      <workItem from="1780107006817" duration="8553000" />
     </task>
     <servers />
   </component>

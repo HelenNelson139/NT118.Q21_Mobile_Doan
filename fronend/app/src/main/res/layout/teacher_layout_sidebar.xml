@@ -40,7 +40,7 @@
                 app:tint="#F9F7F7" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- SEARCH (giữ layout nhưng ẩn) -->
+        <!-- SEARCH ẨN -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/searchContainer"
             android:layout_width="match_parent"
@@ -54,7 +54,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Tên người dùng -->
@@ -72,11 +72,39 @@
 
         <!-- MENU -->
         <LinearLayout
+            android:id="@+id/menuContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/tvUserName">
+
+            <!-- Trang chủ -->
+            <LinearLayout
+                android:id="@+id/menuHome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingVertical="15dp">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_home"
+                    app:tint="#FFFFFF" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:text="Trang chủ"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- Lớp học của tôi -->
             <LinearLayout
@@ -146,7 +174,7 @@
                 android:textColor="#FFD700"
                 android:textSize="18sp"
                 android:textStyle="italic"
-                android:gravity="end"/>
+                android:gravity="end" />
 
         </LinearLayout>
 
