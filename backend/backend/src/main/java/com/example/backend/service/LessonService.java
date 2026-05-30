@@ -12,7 +12,6 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -78,13 +77,13 @@ public class LessonService {
     }
 
     @Transactional
-    public LessonResponse approveDeleteLesson(Integer id) {
+    public LessonResponse approveDeleteLesson(Integer id, Status status) {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
         if (lesson.getStatus() != Status.PENDING) {
             throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu xóa!");
         }
-        lesson.setStatus(Status.REJECTED);
+        lesson.setStatus(status);
         Lesson savedLesson = lessonRepository.save(lesson);
         return lessonMapper.toLessonResponse(savedLesson);
     }

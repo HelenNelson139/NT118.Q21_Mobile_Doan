@@ -11,7 +11,6 @@ import java.util.Date;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateStudentRequest extends CreateUserRequest {
-    String student_code;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
     Date date_of_birth;
 

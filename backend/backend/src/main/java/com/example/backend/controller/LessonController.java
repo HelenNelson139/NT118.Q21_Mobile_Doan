@@ -58,11 +58,11 @@ public class LessonController {
 
     @PutMapping("/{id}/approve-delete")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<LessonResponse> approveDeleteLesson(@PathVariable Integer id) {
+    public ApiResponse<LessonResponse> approveDeleteLesson(@PathVariable Integer id, @RequestParam Status status) {
         return ApiResponse.<LessonResponse>builder()
                 .code(1000)
                 .message("Admin approved deletion successfully")
-                .result(lessonService.approveDeleteLesson(id))
+                .result(lessonService.approveDeleteLesson(id, status))
                 .build();
     }
 
