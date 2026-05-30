@@ -130,6 +130,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void saveLoginData(String accessToken, String role, String username, String fullName, int userId) {
+        RetrofitClient.authToken = accessToken;
         SharedPreferences sharedPreferences =
                 getSharedPreferences("APP_PREFS", MODE_PRIVATE);
 

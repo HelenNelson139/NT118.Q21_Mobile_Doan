@@ -37,7 +37,7 @@ public interface LessonApiService {
     Call<ApiResponse<LessonResponse>> approveLesson(
             @Path("id") Integer id
     );
-    @GET("api/lessons/all")
+    @GET("api/lessons/  all")
     Call<ApiResponse<List<LessonResponse>>> getAllLessons();
     @GET("api/lessons")
     Call<ApiResponse<PageResponse<Lesson>>> getLessons(

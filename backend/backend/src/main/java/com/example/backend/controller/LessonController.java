@@ -36,7 +36,7 @@ public class LessonController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'STUDENT')")
     public ApiResponse<List<LessonResponse>> searchLessons(@RequestParam String keyword) {
         return ApiResponse.<List<LessonResponse>>builder()
                 .code(1000)
@@ -85,7 +85,7 @@ public class LessonController {
                 .result(lessonService.approveLesson(id))
                 .build();
     }
-    @GetMapping("/all")
+    @GetMapping("/  all")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ApiResponse<List<LessonResponse>> getAllLessons() {
         return ApiResponse.<List<LessonResponse>>builder()

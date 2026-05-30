@@ -104,6 +104,9 @@ public class LessonService {
     public LessonResponse approveLesson(Integer id){
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy khóa học để thực hiện duyệt!"));
+        if (lesson.getStatus() != Status.PENDING) {
+            throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu xóa!");
+        }
         lesson.setStatus(Status.ACTIVE);
         Lesson savedLesson = lessonRepository.save(lesson);
         return lessonMapper.toLessonResponse(savedLesson);

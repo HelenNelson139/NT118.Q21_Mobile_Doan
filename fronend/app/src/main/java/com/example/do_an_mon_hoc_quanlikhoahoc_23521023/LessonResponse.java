@@ -21,4 +21,7 @@ public class LessonResponse {
     public String getThumbnailUrl() { return thumbnailUrl; }
     public String getStatus() { return status; }
     public String getCreatedAt() { return created_at; }
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

@@ -1,5 +1,7 @@
 package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -93,11 +95,48 @@ public class AdminManageCourse extends AppCompatActivity {
                 String query = edtSearch.getText().toString().trim();
                 if (!query.isEmpty()) {
                     Toast.makeText(this, "Đang tìm kiếm online: " + query, Toast.LENGTH_SHORT).show();
+                    searchCoursesFromServer(query);
                 } else {
+                    Toast.makeText(this, "Vui lòng nhập từ khóa tìm kiếm!", Toast.LENGTH_SHORT).show();
                     fetchCoursesFromServer();
                 }
             });
         }
+    }
+
+    private void searchCoursesFromServer(String query) {
+        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+        apiService.searchLessons(query).enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+
+                    if (apiResponse.getCode() == 1000) {
+                        List<LessonResponse> remoteLessons = apiResponse.getResult();
+                        lessonList.clear();
+
+                        if (remoteLessons != null && !remoteLessons.isEmpty()) {
+                            lessonList.addAll(remoteLessons);
+                        } else {
+                            Toast.makeText(AdminManageCourse.this, "Không tìm thấy bài học nào phù hợp!", Toast.LENGTH_SHORT).show();
+                        }
+                        adapter.notifyDataSetChanged();
+
+                    } else {
+                        Toast.makeText(AdminManageCourse.this, "Lỗi hệ thống: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(AdminManageCourse.this, "Lỗi kết nối mạng, mã: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
+                Log.e("API_ADMIN_SEARCH", "Thất bại: " + t.getMessage());
+                Toast.makeText(AdminManageCourse.this, "Không thể kết nối đến máy chủ", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
     private void setupBackPressed() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -112,4 +151,4 @@ public class AdminManageCourse extends AppCompatActivity {
             }
         });
     }
-}
+    }
