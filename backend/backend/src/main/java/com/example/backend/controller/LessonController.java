@@ -5,6 +5,7 @@ import com.example.backend.dto.lesson.request.LessonCreationRequest;
 import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.enums.Status;
+import com.example.backend.respository.UserResponsitory;
 import com.example.backend.service.LessonService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -24,6 +26,9 @@ import java.util.List;
 public class LessonController {
     LessonService lessonService;
     private final JsonMapper.Builder builder;
+    @Autowired
+    private UserResponsitory userRepository;
+
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
@@ -109,6 +114,20 @@ public class LessonController {
                 .code(1000)
                 .message("Get Lessons Successfully")
                 .result(lessonService.getLessons(status, teacherId, keyword, page, size))
+                .build();
+    }
+
+    @GetMapping("/my-lessons")
+    public ApiResponse<List<LessonResponse>> getMyLessons() {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        com.example.backend.entity.User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại!"));
+        Integer teacherId = user.getId();
+        List<LessonResponse> teacherLessons = lessonService.getLessonsByTeacherId(teacherId);
+        return ApiResponse.<List<LessonResponse>>builder()
+                .code(1000)
+                .message("Lấy danh sách bài học của giảng viên thành công")
+                .result(teacherLessons)
                 .build();
     }
 }

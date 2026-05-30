@@ -24,4 +24,7 @@ public class LessonResponse {
     public void setStatus(String status) {
         this.status = status;
     }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 }

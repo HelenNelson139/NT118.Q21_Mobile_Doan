@@ -47,4 +47,6 @@ public interface LessonApiService {
             @Query("page") int page,
             @Query("size") int size
     );
+    @GET("api/lessons/my-lessons")
+    Call<ApiResponse<List<LessonResponse>>> getMyLessons();
 }

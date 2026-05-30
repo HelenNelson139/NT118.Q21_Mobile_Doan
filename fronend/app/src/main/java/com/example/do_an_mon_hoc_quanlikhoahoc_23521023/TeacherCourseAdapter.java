@@ -15,16 +15,13 @@ import com.google.android.material.button.MaterialButton;
 import java.util.List;
 
 public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdapter.CourseViewHolder> {
-
     public interface OnCourseActionListener {
         void onEditClick(int position);
         void onDeleteClick(int position);
     }
-
-    private final List<TeacherCourse> courseList;
+    private final List<LessonResponse> courseList;
     private final OnCourseActionListener listener;
-
-    public TeacherCourseAdapter(List<TeacherCourse> courseList, OnCourseActionListener listener) {
+    public TeacherCourseAdapter(List<LessonResponse> courseList, OnCourseActionListener listener) {
         this.courseList = courseList;
         this.listener = listener;
     }
@@ -39,12 +36,12 @@ public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdap
 
     @Override
     public void onBindViewHolder(@NonNull CourseViewHolder holder, int position) {
-        TeacherCourse course = courseList.get(position);
-
-        holder.imgCourse.setImageResource(course.getImageResource());
+        LessonResponse course = courseList.get(position);
         holder.tvTitle.setText(course.getTitle());
         holder.tvDescription.setText("Mô tả: " + course.getDescription());
-        holder.tvTeacherName.setText("Giảng viên: " + course.getTeacher());
+        String status = course.getStatus() != null ? course.getStatus() : "PENDING";
+        holder.tvTeacherName.setText("Trạng thái: " + status);
+        holder.imgCourse.setImageResource(R.drawable.course_python);
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), CourseActivity.class);
@@ -67,9 +64,8 @@ public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdap
 
     @Override
     public int getItemCount() {
-        return courseList.size();
+        return courseList == null ? 0 : courseList.size();
     }
-
     static class CourseViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCourse;
         TextView tvTitle, tvDescription, tvTeacherName;

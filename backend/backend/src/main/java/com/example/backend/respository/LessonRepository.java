@@ -26,4 +26,6 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    List<com.example.backend.entity.Lesson> findByTeacherId(Integer teacherId);
 }

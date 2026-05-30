@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -120,5 +121,15 @@ public class LessonService {
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         return lessonRepository.searchLessons(status, teacherId, keyword, pageable);
+    }
+
+    public List<LessonResponse> getLessonsByTeacherId(Integer teacherId) {
+        // Tìm danh sách thực thể Lesson theo trường teacherId
+        List<com.example.backend.entity.Lesson> lessons = lessonRepository.findByTeacherId(teacherId);
+
+        // Chuyển đổi List<Lesson> thành List<LessonResponse> thông qua maper của bạn
+        return lessons.stream()
+                .map(lessonMapper::toLessonResponse)
+                .collect(Collectors.toList());
     }
 }

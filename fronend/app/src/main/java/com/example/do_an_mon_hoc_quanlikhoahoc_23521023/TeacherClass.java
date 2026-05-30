@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,13 +32,17 @@ import com.google.android.material.tabs.TabLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TeacherClass extends AppCompatActivity {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
+public class TeacherClass extends AppCompatActivity {
     private RecyclerView rvCourseList;
-    private List<TeacherCourse> filteredList;
+    private List<LessonResponse> filteredList;
     private TeacherCourseAdapter adapter;
     private MaterialCardView btnMenuCard;
     private View btnAddCourse;
+    private EditText edtSearchCourse;
 
     private Uri selectedImageUri;
     private ImageView imgPreview;
@@ -52,11 +57,10 @@ public class TeacherClass extends AppCompatActivity {
 
         btnMenuCard = findViewById(R.id.btnMenuCard);
         btnAddCourse = findViewById(R.id.btnAddCourse);
+        edtSearchCourse = findViewById(R.id.edtSearch);
         rvCourseList = findViewById(R.id.rvCourseList);
-
         rvCourseList.setLayoutManager(new LinearLayoutManager(this));
-
-        loadData();
+        filteredList = new ArrayList<>();
 
         adapter = new TeacherCourseAdapter(filteredList, new TeacherCourseAdapter.OnCourseActionListener() {
             @Override
@@ -83,6 +87,87 @@ public class TeacherClass extends AppCompatActivity {
 
         btnMenuCard.setOnClickListener(v -> showSidebarMenu());
         btnAddCourse.setOnClickListener(v -> showAddDialog());
+        fetchTeacherLessonsFromServer();
+
+        if (edtSearchCourse != null) {
+            edtSearchCourse.addTextChangedListener(new android.text.TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String query = s.toString().trim();
+                    if (!query.isEmpty()) {
+                        searchTeacherLessonsFromServer(query);
+                    } else {
+                        fetchTeacherLessonsFromServer();
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(android.text.Editable s) {}
+            });
+        }
+    }
+    private void fetchTeacherLessonsFromServer() {
+        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+
+        apiService.getMyLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+
+                    if (apiResponse.getCode() == 1000) {
+                        List<LessonResponse> remoteLessons = apiResponse.getResult();
+
+                        filteredList.clear();
+                        if (remoteLessons != null && !remoteLessons.isEmpty()) {
+                            filteredList.addAll(remoteLessons);
+                        } else {
+                            Toast.makeText(TeacherClass.this, "Bạn chưa đăng tải bài học nào!", Toast.LENGTH_SHORT).show();
+                        }
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(TeacherClass.this, "Lỗi Server: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(TeacherClass.this, "Lỗi kết nối, mã: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
+                Log.e("TEACHER_GET_LESSON", "Thất bại: " + t.getMessage());
+                Toast.makeText(TeacherClass.this, "Không thể kết nối đến máy chủ!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void searchTeacherLessonsFromServer(String keyword) {
+        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+        apiService.searchLessons(keyword).enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+
+                    if (apiResponse.getCode() == 1000) {
+                        List<LessonResponse> searchResults = apiResponse.getResult();
+
+                        filteredList.clear();
+                        if (searchResults != null && !searchResults.isEmpty()) {
+                            filteredList.addAll(searchResults);
+                        }
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
+                Log.e("SEARCH_LESSON_ERROR", "Thất bại: " + t.getMessage());
+            }
+        });
     }
 
     private void showAddDialog() {
@@ -90,7 +175,7 @@ public class TeacherClass extends AppCompatActivity {
     }
 
     private void showEditDialog(int position) {
-        TeacherCourse oldCourse = filteredList.get(position);
+        LessonResponse oldCourse = filteredList.get(position);
 
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_course, null);
 
@@ -110,7 +195,7 @@ public class TeacherClass extends AppCompatActivity {
         selectedImageUri = null;
         lessonViews.clear();
         imgPreview = imgCourseCover;
-        imgCourseCover.setImageResource(oldCourse.getImageResource());
+        imgCourseCover.setImageResource(R.drawable.course_python);
 
         btnSave.setText("Cập nhật");
 
@@ -136,15 +221,9 @@ public class TeacherClass extends AppCompatActivity {
                 edtTitle.setError("Nhập tên khóa học");
                 return;
             }
+            oldCourse.setTitle(newTitle);
 
-            TeacherCourse updatedCourse = new TeacherCourse(
-                    newTitle,
-                    oldCourse.getImageResource(),
-                    oldCourse.getDescription(),
-                    oldCourse.getTeacher()
-            );
-
-            filteredList.set(position, updatedCourse);
+            filteredList.set(position, oldCourse);
             adapter.notifyItemChanged(position);
 
             Toast.makeText(this, "Đã cập nhật khóa học", Toast.LENGTH_SHORT).show();
@@ -231,19 +310,6 @@ public class TeacherClass extends AppCompatActivity {
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
-    }
-
-    private void loadData() {
-        filteredList = new ArrayList<>();
-
-        for (int i = 0; i < 5; i++) {
-            filteredList.add(new TeacherCourse(
-                    "Phân tích dữ liệu với Python và Machine Learning",
-                    R.drawable.course_python,
-                    "Khóa học dành cho người mới bắt đầu",
-                    "Nguyễn Văn A"
-            ));
-        }
     }
 
     private void showSidebarMenu() {
