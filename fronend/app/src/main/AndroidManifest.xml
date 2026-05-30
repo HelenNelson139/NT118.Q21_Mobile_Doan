@@ -14,6 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Do_an_mon_hoc_quanlikhoahoc_23521023"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
         <activity
@@ -51,5 +52,4 @@
         <activity android:name=".TeacherProfileActivity" android:exported="false"/>
         <activity android:name=".TeacherEditProfileActivity" android:exported="false"/>
     </application>
-
 </manifest>
