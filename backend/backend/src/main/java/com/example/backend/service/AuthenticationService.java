@@ -62,7 +62,7 @@ public class AuthenticationService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         var user = userResponsitory.findByUsername(authenticationRequest.getUsername())
                 .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
-
+        String role = user.getRole().toString();
         boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword());
 
         if(!authenticated){
@@ -71,6 +71,7 @@ public class AuthenticationService {
 
         var token = generateToken(user);
         return AuthenticationResponse.builder()
+                .role(role)
                 .accessToken(token)
                 .authenticated(true)
                 .build();
