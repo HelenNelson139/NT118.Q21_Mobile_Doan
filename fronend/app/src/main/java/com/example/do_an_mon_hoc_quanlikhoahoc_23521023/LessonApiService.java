@@ -10,11 +10,11 @@ public interface LessonApiService {
     @Multipart
     @POST("api/lessons")
     Call<ApiResponse<LessonResponse>> createLesson(
-            @Part("title") RequestBody title,
-            @Part("description") RequestBody description,
-            @Part("what_you_learn") RequestBody whatYouLearn,
-            @Part("skill_learned") RequestBody skillLearned,
-            @Part("teacherId") RequestBody teacherId,
+            @Part MultipartBody.Part title,
+            @Part MultipartBody.Part description,
+            @Part MultipartBody.Part what_you_learn,
+            @Part MultipartBody.Part skill_learned,
+            @Part MultipartBody.Part teacherId,
             @Part MultipartBody.Part thumbnail
     );
     @GET("api/lessons/search")
