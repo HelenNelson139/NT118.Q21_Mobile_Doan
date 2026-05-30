@@ -49,4 +49,9 @@ public interface LessonApiService {
     );
     @GET("api/lessons/my-lessons")
     Call<ApiResponse<List<LessonResponse>>> getMyLessons();
+    @PATCH("api/lessons/update/{id}")
+    Call<ApiResponse<String>> updateLesson(
+            @Path("id") Integer id,
+            @Body LessonUpdateRequest request
+    );
 }

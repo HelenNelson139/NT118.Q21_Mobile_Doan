@@ -13,6 +13,7 @@ public class LessonResponse {
     private String thumbnailUrl;
     private String status;
     private String created_at;
+    private String teacher_name;
     public Integer getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -26,5 +27,12 @@ public class LessonResponse {
     }
     public void setTitle(String title) {
         this.title = title;
+    }
+    public String getTeacher_name() {
+        return teacher_name;
+    }
+
+    public void setTeacher_name(String teacher_name) {
+        this.teacher_name = teacher_name;
     }
 }

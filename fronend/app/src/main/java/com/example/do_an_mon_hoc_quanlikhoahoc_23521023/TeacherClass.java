@@ -286,13 +286,16 @@ public class TeacherClass extends AppCompatActivity {
 
     private void showEditDialog(int position) {
         LessonResponse oldCourse = filteredList.get(position);
-
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_course, null);
-
         EditText edtTitle = view.findViewById(R.id.edtCourseTitle);
         TabLayout tabLayout = view.findViewById(R.id.tabLayout);
         LinearLayout containerIntro = view.findViewById(R.id.containerIntro);
         LinearLayout containerCurriculum = view.findViewById(R.id.containerCurriculum);
+
+        EditText edtDescription = view.findViewById(R.id.edtDescription);
+        EditText edtWhatYouLearn = view.findViewById(R.id.edtWhatYouLearn);
+        EditText edtSkills = view.findViewById(R.id.edtSkills);
+
         ImageView imgCourseCover = view.findViewById(R.id.imgCourseCover);
         MaterialButton btnUploadImage = view.findViewById(R.id.btnUploadImage);
         LinearLayout lessonContainer = view.findViewById(R.id.lessonContainer);
@@ -301,10 +304,12 @@ public class TeacherClass extends AppCompatActivity {
         MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
 
         edtTitle.setText(oldCourse.getTitle());
-
-        selectedImageUri = null;
-        lessonViews.clear();
-        imgPreview = imgCourseCover;
+        if (edtDescription != null) edtDescription.setText(oldCourse.getDescription());
+        if (edtWhatYouLearn != null) edtWhatYouLearn.setText(oldCourse.getWhatYouLearn());
+        if (edtSkills != null) edtSkills.setText(oldCourse.getSkillLearned());
+        if (btnUploadImage != null) {
+            btnUploadImage.setVisibility(View.GONE);
+        }
         imgCourseCover.setImageResource(R.drawable.course_python);
 
         btnSave.setText("Cập nhật");
@@ -320,28 +325,48 @@ public class TeacherClass extends AppCompatActivity {
         }
 
         setupTabs(tabLayout, containerIntro, containerCurriculum);
-
-        btnUploadImage.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
         btnAddLesson.setOnClickListener(v -> addLesson(lessonContainer));
 
         btnSave.setOnClickListener(v -> {
             String newTitle = edtTitle.getText().toString().trim();
+            String newDescription = edtDescription != null ? edtDescription.getText().toString().trim() : "";
+            String newWhatYouLearn = edtWhatYouLearn != null ? edtWhatYouLearn.getText().toString().trim() : "";
+            String newSkills = edtSkills != null ? edtSkills.getText().toString().trim() : "";
 
             if (newTitle.isEmpty()) {
                 edtTitle.setError("Nhập tên khóa học");
                 return;
             }
-            oldCourse.setTitle(newTitle);
 
-            filteredList.set(position, oldCourse);
-            adapter.notifyItemChanged(position);
+            LessonUpdateRequest updateRequest = new LessonUpdateRequest(newTitle, newDescription, newWhatYouLearn, newSkills);
 
-            Toast.makeText(this, "Đã cập nhật khóa học", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
+            LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+            apiService.updateLesson(oldCourse.getId(), updateRequest).enqueue(new Callback<ApiResponse<String>>() {
+                @Override
+                public void onResponse(Call<ApiResponse<String>> call, Response<ApiResponse<String>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        ApiResponse<String> apiResponse = response.body();
+                        if (apiResponse.getCode() == 1000) {
+                            Toast.makeText(TeacherClass.this, "Đã cập nhật thông tin khóa học thành công!", Toast.LENGTH_SHORT).show();
+                            fetchTeacherLessonsFromServer();
+                            dialog.dismiss();
+                        } else {
+                            Toast.makeText(TeacherClass.this, "Lỗi cập nhật: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(TeacherClass.this, "Không thể cập nhật, mã phản hồi: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
+                    Log.e("UPDATE_LESSON_ERROR", "Thất bại: " + t.getMessage());
+                    Toast.makeText(TeacherClass.this, "Lỗi mạng, vui lòng thử lại sau!", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-
         dialog.show();
     }
 

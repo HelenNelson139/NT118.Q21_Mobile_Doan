@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.lesson.request.LessonCreationRequest;
+import com.example.backend.dto.lesson.request.LessonUpdateRequest;
 import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.enums.Status;
@@ -63,11 +64,11 @@ public class LessonController {
 
     @PutMapping("/{id}/approve-delete")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<LessonResponse> approveDeleteLesson(@PathVariable Integer id, @RequestParam Status status) {
+    public ApiResponse<LessonResponse> approveDeleteLesson(@PathVariable Integer id) {
         return ApiResponse.<LessonResponse>builder()
                 .code(1000)
                 .message("Admin approved deletion successfully")
-                .result(lessonService.approveDeleteLesson(id, status))
+                .result(lessonService.approveDeleteLesson(id))
                 .build();
     }
 
@@ -129,5 +130,20 @@ public class LessonController {
                 .message("Lấy danh sách bài học của giảng viên thành công")
                 .result(teacherLessons)
                 .build();
+    }
+
+    @PatchMapping("/update/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ApiResponse<String> updateLesson(
+            @PathVariable Integer id,
+            @RequestBody LessonUpdateRequest request) {
+
+        lessonService.UpdateLesson(id, request);
+
+        return ApiResponse.<String>builder()
+                .code(1000) //
+                .message("Đã cập nhật thông tin khóa học") //
+                .result("Mã khóa học được cập nhật: " + id) //
+                .build(); //
     }
 }

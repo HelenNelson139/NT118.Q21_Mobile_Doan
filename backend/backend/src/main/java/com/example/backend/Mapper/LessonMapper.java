@@ -13,6 +13,7 @@ public interface LessonMapper {
     @Mapping(target = "teacher", ignore = true)
     @Mapping(target = "thumbnail_url", ignore = true)
     Lesson toLesson(LessonCreationRequest request);
+    @Mapping(source = "teacher.user.full_name", target = "teacher_name")
     LessonResponse toLessonResponse(Lesson lesson);
     List<LessonResponse> toLessonResponseList(List<Lesson> lessons);
 }

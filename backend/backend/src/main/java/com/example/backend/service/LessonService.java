@@ -2,6 +2,7 @@ package com.example.backend.service;
 
 import com.example.backend.Mapper.LessonMapper;
 import com.example.backend.dto.lesson.request.LessonCreationRequest;
+import com.example.backend.dto.lesson.request.LessonUpdateRequest;
 import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.entity.Teacher;
@@ -58,7 +59,7 @@ public class LessonService {
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TEACHER"));
         if (isTeacher) {
             lessons = lessons.stream()
-                    .filter(lesson -> lesson.getStatus() != Status.REJECTED)
+                    .filter(lesson -> lesson.getStatus() != Status.REJECTED && lesson.getStatus() != Status.DELETED)
                     .toList();
         }
         return lessonMapper.toLessonResponseList(lessons);
@@ -78,13 +79,13 @@ public class LessonService {
     }
 
     @Transactional
-    public LessonResponse approveDeleteLesson(Integer id, Status status) {
+    public LessonResponse approveDeleteLesson(Integer id) {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
         if (lesson.getStatus() != Status.PENDING) {
             throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu xóa!");
         }
-        lesson.setStatus(status);
+        lesson.setStatus(Status.REJECTED);
         Lesson savedLesson = lessonRepository.save(lesson);
         return lessonMapper.toLessonResponse(savedLesson);
     }
@@ -94,7 +95,7 @@ public class LessonService {
                 .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!"));
         boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TEACHER"));
-        if (isTeacher && lesson.getStatus() == Status.REJECTED) {
+        if (isTeacher && lesson.getStatus() == Status.REJECTED || isTeacher && lesson.getStatus() == Status.DELETED) {
             throw new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!");
         }
         return lessonMapper.toLessonResponse(lesson);
@@ -105,7 +106,7 @@ public class LessonService {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy khóa học để thực hiện duyệt!"));
         if (lesson.getStatus() != Status.PENDING) {
-            throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu xóa!");
+            throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu !");
         }
         lesson.setStatus(Status.ACTIVE);
         Lesson savedLesson = lessonRepository.save(lesson);
@@ -128,7 +129,34 @@ public class LessonService {
 
         // Chuyển đổi List<Lesson> thành List<LessonResponse> thông qua maper của bạn
         return lessons.stream()
+                .filter(lesson -> lesson.getStatus() == Status.ACTIVE)
                 .map(lessonMapper::toLessonResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public LessonResponse UpdateLesson(Integer id, LessonUpdateRequest request) {
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!"));
+
+        if (request.getTitle() != null) {
+            lesson.setTitle(request.getTitle());
+        }
+
+        if (request.getDescription() != null) {
+            lesson.setDescription(request.getDescription());
+        }
+
+        if (request.getWhat_you_learn() != null) {
+            lesson.setWhat_you_learn(request.getWhat_you_learn());
+        }
+
+        if (request.getSkill_learned() != null) {
+            lesson.setSkill_learned(request.getSkill_learned());
+        }
+
+
+        Lesson updatedLesson = lessonRepository.save(lesson);
+        return lessonMapper.toLessonResponse(updatedLesson);
     }
 }
