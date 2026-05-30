@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +24,7 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.imageview.ShapeableImageView;
 
 import org.json.JSONObject;
 
@@ -35,7 +35,7 @@ public class TeacherProfileActivity extends AppCompatActivity {
 
     private TextView txtName, txtEmail, txtPhone, txtUsername, txtAddress;
     private TextView txtRole, txtCourses, txtStatus;
-    private ImageView imgAvatar;
+    private ShapeableImageView imgAvatar;
     private MaterialButton btnEdit;
     private MaterialCardView btnMenuCard;
 
@@ -189,6 +189,7 @@ public class TeacherProfileActivity extends AppCompatActivity {
         } else {
             Glide.with(this)
                     .load(avatarUrl)
+                    .circleCrop()
                     .placeholder(R.drawable.ic_profile)
                     .error(R.drawable.ic_profile)
                     .into(imgAvatar);

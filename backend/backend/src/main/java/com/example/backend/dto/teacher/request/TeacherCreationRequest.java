@@ -8,6 +8,5 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 public class TeacherCreationRequest extends CreateUserRequest {
-     String teacher_code;
      String department;
 }

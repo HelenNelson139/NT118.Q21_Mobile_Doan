@@ -20,7 +20,6 @@ public class StudentController {
         return ApiResponse.<String>builder()
                 .code(1000)
                 .message("Đăng ký học viên thành công")
-                .result("Dữ liệu đã được lưu cho mã: " + createStudentRequest.getStudent_code())
                 .build();
     }
 

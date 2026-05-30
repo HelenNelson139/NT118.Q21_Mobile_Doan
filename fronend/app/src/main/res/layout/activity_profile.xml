@@ -25,11 +25,11 @@
                 android:layout_marginEnd="24dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#2A528A"
+                app:cardBackgroundColor="#9FCBF0"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="4dp"
-                app:strokeColor="#567EBB"
-                app:strokeWidth="2dp"
+                app:strokeColor="#7FB6E3"
+                app:strokeWidth="1dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
@@ -39,7 +39,7 @@
                     android:padding="10dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_menu"
-                    app:tint="#F9F7F7" />
+                    app:tint="@color/dark_blue" />
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -79,14 +79,16 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <ImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imgAvatar"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
-                android:background="@drawable/bg_profile_avatar"
                 android:elevation="10dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_profile" />
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_profile"
+                app:shapeAppearanceOverlay="@style/CircleImageView"
+                app:strokeColor="@color/dark_blue"
+                app:strokeWidth="5dp" />
 
             <TextView
                 android:id="@+id/txtName"

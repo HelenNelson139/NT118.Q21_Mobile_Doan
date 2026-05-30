@@ -24,7 +24,6 @@ public class TeacherController {
         return ApiResponse.<String>builder()
                 .code(1000)
                 .message("Đăng ký giáo viên thành công")
-                .result("Dữ liệu đã được lưu cho mã: " + teacherCreationRequest.getTeacher_code())
                 .build();
            }
 
