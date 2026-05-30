@@ -61,7 +61,7 @@ public class AdminCourseSummaryAdapter extends RecyclerView.Adapter<AdminCourseS
         }
         holder.btnDetails.setOnClickListener(v -> {
             Intent intent = new Intent(context, AdminCourseDetailActivity.class);
-            intent.putExtra("COURSE_ID", String.valueOf(course.getId()));
+            intent.putExtra("COURSE_ID", course.getId());
             intent.putExtra("COURSE_TITLE", course.getTitle());
             context.startActivity(intent);
         });

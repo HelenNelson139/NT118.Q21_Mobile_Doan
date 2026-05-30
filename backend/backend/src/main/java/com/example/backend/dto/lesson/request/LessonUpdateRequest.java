@@ -1,23 +1,17 @@
-package com.example.backend.dto.lesson.response;
+package com.example.backend.dto.lesson.request;
 
-import com.example.backend.enums.Status;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import java.util.Date;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LessonResponse {
-    Integer id;
+public class LessonUpdateRequest {
     String title;
     String description;
     String what_you_learn;
     String skill_learned;
-    String thumbnail_url;
-    Status status;
-    Date created_at;
-    String teacher_name;
 }
