@@ -42,7 +42,7 @@ public class ModuleController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'STUDENT')")
     public ApiResponse<ModuleResponse> getModuleById(@PathVariable Integer id) {
         return ApiResponse.<ModuleResponse>builder()
                 .code(1000)

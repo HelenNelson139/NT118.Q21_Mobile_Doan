@@ -96,6 +96,7 @@ public class TeacherClass extends AppCompatActivity {
         btnMenuCard.setOnClickListener(v -> showSidebarMenu());
         btnAddCourse.setOnClickListener(v -> showAddDialog());
         fetchTeacherLessonsFromServer();
+        setupSearch();
 
         if (edtSearchCourse != null) {
             edtSearchCourse.addTextChangedListener(new android.text.TextWatcher() {
@@ -151,6 +152,21 @@ public class TeacherClass extends AppCompatActivity {
                 Toast.makeText(TeacherClass.this, "Không thể kết nối đến máy chủ!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    private void setupSearch() {
+        View icFilter = findViewById(R.id.icFilter);
+        if (icFilter != null) {
+            icFilter.setOnClickListener(v -> {
+                String query = edtSearchCourse.getText().toString().trim();
+                if (!query.isEmpty()) {
+                    Toast.makeText(this, "Đang tìm kiếm online: " + query, Toast.LENGTH_SHORT).show();
+                    searchTeacherLessonsFromServer(query);
+                } else {
+                    Toast.makeText(this, "Vui lòng nhập từ khóa tìm kiếm!", Toast.LENGTH_SHORT).show();
+                    fetchTeacherLessonsFromServer();
+                }
+            });
+        }
     }
 
     private void searchTeacherLessonsFromServer(String keyword) {
