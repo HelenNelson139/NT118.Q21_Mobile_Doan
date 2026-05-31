@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.student.request.CreateStudentRequest;
+import com.example.backend.dto.student.request.EnrollmentRequest;
 import com.example.backend.dto.student.request.UpdateStudentRequest;
 import com.example.backend.dto.student.response.StudentResponseProfile;
 import com.example.backend.service.StudentService;
@@ -38,5 +39,16 @@ public class StudentController {
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
     public StudentResponseProfile getStudentProfile(@RequestParam Integer userId){
         return studentService.getUserProfile(userId);
+    }
+
+    @PostMapping("/course")
+    @PreAuthorize("hasAnyRole('STUDENT')")
+    public ApiResponse<String> enrollCourse(@RequestBody EnrollmentRequest enrollmentRequest){
+        studentService.enrollLesson(enrollmentRequest);
+        return ApiResponse.<String>builder()
+                .code(1000)
+                .message("Đăng ký lớp học thành công")
+                .result("Sinh viên đăng ký lớp học thành công "+ enrollmentRequest.getLessonId())
+                .build();
     }
 }
