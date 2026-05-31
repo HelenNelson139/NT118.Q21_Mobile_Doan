@@ -82,7 +82,7 @@ public class ModuleService {
     public void deleteModule(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
-        module.setStatus(Status.PENDING);
+        module.setStatus(Status.REJECTED);
         moduleRepository.save(module);
     }
 
@@ -116,8 +116,9 @@ public class ModuleService {
         }
 
         List<Module> modules = moduleRepository.findByLessonId(lessonId);
-        
+
         return modules.stream()
+                .filter(module -> module.getStatus() != Status.REJECTED)
                 .map(moduleMapper::toModuleResponse)
                 .toList();
     }

@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -44,6 +45,11 @@ public class AdminCourseSummaryAdapter extends RecyclerView.Adapter<AdminCourseS
         if (status == null) status = "PENDING";
 
         holder.txtLecturer.setText("Trạng thái: " + status);
+        com.bumptech.glide.Glide.with(context)
+                .load(course.getThumbnailUrl())
+                .placeholder(R.drawable.python)
+                .error(R.drawable.python)
+                .into(holder.imgCourseThumbnail);
 
         if ("APPROVED".equalsIgnoreCase(status) || "ACTIVE".equalsIgnoreCase(status)) {
             holder.txtLecturer.setTextColor(Color.parseColor("#4CAF50"));
@@ -128,6 +134,7 @@ public class AdminCourseSummaryAdapter extends RecyclerView.Adapter<AdminCourseS
     public static class CourseViewHolder extends RecyclerView.ViewHolder {
         TextView txtTitle, txtLecturer, txtDate;
         MaterialButton btnDetails, btnApprove, btnReject;
+        ImageView imgCourseThumbnail;
         public CourseViewHolder(@NonNull View itemView) {
             super(itemView);
             txtTitle = itemView.findViewById(R.id.txtCourseTitle);
@@ -136,6 +143,7 @@ public class AdminCourseSummaryAdapter extends RecyclerView.Adapter<AdminCourseS
             btnDetails = itemView.findViewById(R.id.btnDetails);
             btnApprove = itemView.findViewById(R.id.btnApprove);
             btnReject = itemView.findViewById(R.id.btnReject);
+            imgCourseThumbnail = itemView.findViewById(R.id.imgCourseThumbnail);
         }
     }
 }

@@ -309,14 +309,28 @@ public class TeacherClass extends AppCompatActivity {
         MaterialButton btnSave = view.findViewById(R.id.btnSaveCourse);
         MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
 
+        // Reset danh sách view chứa các module mới cho lần mở dialog này
+        lessonViews.clear();
+        selectedImageUri = null;
+
+        // Đổ dữ liệu cũ của khóa học vào các ô nhập liệu
         edtTitle.setText(oldCourse.getTitle());
         if (edtDescription != null) edtDescription.setText(oldCourse.getDescription());
         if (edtWhatYouLearn != null) edtWhatYouLearn.setText(oldCourse.getWhatYouLearn());
         if (edtSkills != null) edtSkills.setText(oldCourse.getSkillLearned());
+
         if (btnUploadImage != null) {
-            btnUploadImage.setVisibility(View.GONE);
+            btnUploadImage.setVisibility(View.GONE); // Giữ nguyên logic ẩn nút chọn ảnh bìa từ code cũ của bạn
         }
-        imgCourseCover.setImageResource(R.drawable.course_python);
+
+        // LẤY IMAGE CỦA LESSON COVER: Sử dụng Glide để load URL ảnh từ object oldCourse
+        // Nếu getThumbnail() null/rỗng hoặc lỗi, Glide sẽ tự fallback về course_python làm mặc định
+        String thumbnailUrl = oldCourse.getThumbnailUrl();
+        com.bumptech.glide.Glide.with(this)
+                .load(thumbnailUrl)
+                .placeholder(R.drawable.course_python) // Ảnh hiển thị trong lúc đợi tải
+                .error(R.drawable.course_python)       // Ảnh hiển thị nếu đường dẫn lỗi hoặc trống
+                .into(imgCourseCover);
 
         btnSave.setText("Cập nhật");
 
@@ -330,7 +344,10 @@ public class TeacherClass extends AppCompatActivity {
             window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         }
 
+        // Thiết lập sự kiện chuyển đổi qua lại giữa tab Giới thiệu / Giáo trình
         setupTabs(tabLayout, containerIntro, containerCurriculum);
+
+        // Sự kiện click thêm bài học mới (Module) vào container giáo trình
         btnAddLesson.setOnClickListener(v -> addLesson(lessonContainer));
 
         btnSave.setOnClickListener(v -> {
@@ -353,11 +370,11 @@ public class TeacherClass extends AppCompatActivity {
                     if (response.isSuccessful() && response.body() != null) {
                         ApiResponse<String> apiResponse = response.body();
                         if (apiResponse.getCode() == 1000) {
-                            Toast.makeText(TeacherClass.this, "Đã cập nhật thông tin khóa học thành công!", Toast.LENGTH_SHORT).show();
-                            fetchTeacherLessonsFromServer();
-                            dialog.dismiss();
+                            // Thực hiện gọi uploadModules để create các module của bài học (Lesson) đang edit này
+                            int currentLessonId = oldCourse.getId();
+                            uploadModules(currentLessonId, dialog);
                         } else {
-                            Toast.makeText(TeacherClass.this, "Lỗi cập nhật: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TeacherClass.this, "Lỗi cập nhật thông tin: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Toast.makeText(TeacherClass.this, "Không thể cập nhật, mã phản hồi: " + response.code(), Toast.LENGTH_SHORT).show();
@@ -370,8 +387,7 @@ public class TeacherClass extends AppCompatActivity {
                     Toast.makeText(TeacherClass.this, "Lỗi mạng, vui lòng thử lại sau!", Toast.LENGTH_SHORT).show();
                 }
             });
-        })  ;
-
+        });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         dialog.show();

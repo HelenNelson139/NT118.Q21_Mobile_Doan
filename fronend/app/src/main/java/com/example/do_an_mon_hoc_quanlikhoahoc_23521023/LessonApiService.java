@@ -54,4 +54,6 @@ public interface LessonApiService {
             @Path("id") Integer id,
             @Body LessonUpdateRequest request
     );
+    @GET("api/lessons/  allActive")
+    Call<ApiResponse<List<LessonResponse>>> getAllLessonsActive();
 }

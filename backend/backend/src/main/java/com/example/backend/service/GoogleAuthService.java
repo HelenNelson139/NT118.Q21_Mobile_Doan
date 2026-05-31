@@ -33,7 +33,7 @@ public class GoogleAuthService {
         String email = (String) response.get("email");
         String name = (String) response.get("name");
 
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email).orElse(null);
 
         if (user == null) {
             user = new User();

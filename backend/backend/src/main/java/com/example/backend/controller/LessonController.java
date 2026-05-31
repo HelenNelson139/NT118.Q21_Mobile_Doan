@@ -101,6 +101,16 @@ public class LessonController {
                 .build();
     }
 
+    @GetMapping("/  allActive")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    public ApiResponse<List<LessonResponse>> getAllLessonsActive() {
+        return ApiResponse.<List<LessonResponse>>builder()
+                .code(1000)
+                .message("Get All of Lessons")
+                .result(lessonService.findAllLessonActive())
+                .build();
+    }
+
     //pagination testing
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
