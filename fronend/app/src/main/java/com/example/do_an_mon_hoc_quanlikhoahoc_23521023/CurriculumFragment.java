@@ -23,7 +23,9 @@ import retrofit2.Response;
 public class CurriculumFragment extends Fragment {
     RecyclerView rvChapters;
     LessonAdapter adapter;
-    List<LessonResponse> lessonList = new ArrayList<>();
+    List<ModuleResponse> moduleList = new ArrayList<>();
+    private int courseId = -1;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -32,29 +34,44 @@ public class CurriculumFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_curriculum_fragment, container, false);
 
+        if (getActivity() != null && getActivity().getIntent() != null) {
+            courseId = getActivity().getIntent().getIntExtra("course_id", -1);
+        }
+
         rvChapters = view.findViewById(R.id.rvChapters);
-        rvChapters.setLayoutManager(new LinearLayoutManager(getActivity()));
-        adapter = new LessonAdapter(getActivity(), lessonList);
+        rvChapters.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        adapter = new LessonAdapter(moduleList);
         rvChapters.setAdapter(adapter);
-        fetchLessonsFromServer();
+
+        if (courseId != -1) {
+            fetchModulesFromServer(courseId);
+        } else {
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Không tìm thấy ID khóa học hợp lệ!", Toast.LENGTH_SHORT).show();
+            }
+        }
+
         return view;
     }
 
-    private void fetchLessonsFromServer() {
-        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
-        apiService.getAllLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+    private void fetchModulesFromServer(int id) {
+        ModuleApiService apiService = RetrofitClient.getClient().create(ModuleApiService.class);
+
+        apiService.getModulesByLessonId(id).enqueue(new Callback<ApiResponse<List<ModuleResponse>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+            public void onResponse(Call<ApiResponse<List<ModuleResponse>>> call, Response<ApiResponse<List<ModuleResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+                    ApiResponse<List<ModuleResponse>> apiResponse = response.body();
 
                     if (apiResponse.getCode() == 1000) {
-                        List<LessonResponse> serverList = apiResponse.getResult();
+                        List<ModuleResponse> serverList = apiResponse.getResult();
+
                         if (serverList != null && !serverList.isEmpty()) {
                             adapter.updateData(serverList);
                         } else {
                             if (getContext() != null) {
-                                Toast.makeText(getContext(), "Không có bài học nào!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), "Khóa học này chưa có giáo trình!", Toast.LENGTH_SHORT).show();
                             }
                         }
                     } else {
@@ -70,7 +87,7 @@ public class CurriculumFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<List<ModuleResponse>>> call, Throwable t) {
                 Log.e("API_FRAG_LOG", "Thất bại: " + t.getMessage());
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Không thể kết nối đến máy chủ!", Toast.LENGTH_SHORT).show();
