@@ -6,6 +6,7 @@ import com.example.backend.dto.lesson.request.LessonUpdateRequest;
 import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.entity.Teacher;
+import com.example.backend.entity.User;
 import com.example.backend.enums.Status;
 import com.example.backend.respository.LessonRepository;
 import com.example.backend.respository.TeacherResponsitory;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,11 +57,23 @@ public class LessonService {
 
     public List<LessonResponse> searchLessons(String keyword){
         List<Lesson> lessons = lessonRepository.findByTitleContainingIgnoreCase(keyword);
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TEACHER"));
-        if (isTeacher) {
+        boolean isStudent = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_STUDENT"));
+            if (isTeacher) {
+                Jwt jwt = (Jwt) authentication.getPrincipal();
+                String currentTeacherUsername = jwt.getSubject();
+                lessons = lessons.stream()
+                        .filter(lesson -> lesson.getTeacher() != null
+                                && lesson.getTeacher().getUser().getUsername() != null
+                                && lesson.getTeacher().getUser().getUsername().equals(currentTeacherUsername))
+                        .filter(lesson -> lesson.getStatus() != Status.REJECTED && lesson.getStatus() != Status.DELETED)
+                        .toList();
+            } else if (isStudent) {
             lessons = lessons.stream()
-                    .filter(lesson -> lesson.getStatus() != Status.REJECTED && lesson.getStatus() != Status.DELETED)
+                    .filter(lesson -> lesson.getStatus() != Status.PENDING && lesson.getStatus() != Status.REJECTED)
                     .toList();
         }
         return lessonMapper.toLessonResponseList(lessons);

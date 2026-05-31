@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
-import com.google.android.material.button.MaterialButton;
 import java.util.List;
 
 public class StudentLessonAdapter extends RecyclerView.Adapter<StudentLessonAdapter.StudentViewHolder> {
@@ -26,7 +25,8 @@ public class StudentLessonAdapter extends RecyclerView.Adapter<StudentLessonAdap
     @NonNull
     @Override
     public StudentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_lesson, parent, false);
+        // ĐÃ SỬA: Bơm đúng layout item_course_list.xml bạn vừa gửi
+        View view = LayoutInflater.from(context).inflate(R.layout.item_course_list, parent, false);
         return new StudentViewHolder(view);
     }
 
@@ -34,14 +34,13 @@ public class StudentLessonAdapter extends RecyclerView.Adapter<StudentLessonAdap
     public void onBindViewHolder(@NonNull StudentViewHolder holder, int position) {
         LessonResponse lesson = lessonList.get(position);
 
-        // 1. Đổ dữ liệu chuẩn lên giao diện (có check null an toàn)
-        if (holder.tvTitle != null) {
-            holder.tvTitle.setText(lesson.getTitle());
-        }
+        // 1. Đổ dữ liệu chữ (Gộp cả Tiêu đề và Mô tả vào chung 1 TextView theo thiết kế XML của bạn)
         if (holder.tvDescription != null) {
-            holder.tvDescription.setText(lesson.getDescription());
+            String fullInfo = "Khóa học: " + lesson.getTitle() + "\nMô tả: " + lesson.getDescription();
+            holder.tvDescription.setText(fullInfo);
         }
 
+        // 2. Tải ảnh khóa học lên ShapeableImageView
         if (holder.imgThumbnail != null) {
             Glide.with(context)
                     .load(lesson.getThumbnailUrl())
@@ -50,13 +49,7 @@ public class StudentLessonAdapter extends RecyclerView.Adapter<StudentLessonAdap
                     .into(holder.imgThumbnail);
         }
 
-        // 2. ẨN TOÀN BỘ CÁC NÚT VÀ TRẠNG THÁI (Chỉ giữ lại thông tin cốt lõi cho Student)
-        if (holder.tvStatus != null) holder.tvStatus.setVisibility(View.GONE);      // Ẩn Trạng thái
-        if (holder.btnApprove != null) holder.btnApprove.setVisibility(View.GONE);  // Ẩn nút Duyệt
-        if (holder.btnDelete != null) holder.btnDelete.setVisibility(View.GONE);    // Ẩn nút Xóa
-        if (holder.btnAction != null) holder.btnAction.setVisibility(View.GONE);    // ĐÃ ĐỔI: Ẩn luôn nút hành động (Tham gia)
-
-        // 3. Xử lý click vào item để chuyển tiếp sang màn hình chi tiết CourseActivity
+        // 3. Xử lý click vào thẻ để chuyển sang màn hình chi tiết khóa học (CourseActivity)
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, CourseActivity.class);
             intent.putExtra("course_id", lesson.getId());
@@ -72,20 +65,14 @@ public class StudentLessonAdapter extends RecyclerView.Adapter<StudentLessonAdap
     }
 
     public static class StudentViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvDescription, tvStatus;
+
         ImageView imgThumbnail;
-        MaterialButton btnApprove, btnDelete, btnAction;
+        TextView tvDescription;
 
         public StudentViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.txtCourseTitle);
+            imgThumbnail = itemView.findViewById(R.id.imgCourseThumbnail);
             tvDescription = itemView.findViewById(R.id.txtCourseDescription);
-            imgThumbnail = itemView.findViewById(R.id.imgCourse);
-
-            tvStatus = itemView.findViewById(R.id.txtStatus);
-            btnApprove = itemView.findViewById(R.id.btnApprove);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
- //           btnAction = itemView.findViewById(R.id.btnAction);
         }
     }
 }

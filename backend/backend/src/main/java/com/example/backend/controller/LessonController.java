@@ -73,7 +73,7 @@ public class LessonController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'STUDENT')")
     public ApiResponse<LessonResponse> getLessonById(@PathVariable Integer id) {
         return ApiResponse.<LessonResponse>builder()
                 .code(1000)
