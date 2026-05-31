@@ -11,50 +11,58 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+
 public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.ViewHolder> {
-    Context context;
-    List<LessonResponse> lessonList;
-    public LessonAdapter(Context context, List<LessonResponse> lessonList) {
-        this.context = context;
-        this.lessonList = lessonList;
+    private List<ModuleResponse> moduleList;
+    public LessonAdapter(List<ModuleResponse> moduleList) {
+        this.moduleList = moduleList;
     }
 
-    public void updateData(List<LessonResponse> newList) {
-        this.lessonList = newList;
+    public void updateData(List<ModuleResponse> newList) {
+        this.moduleList = newList;
         notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context)
+        // CHỈNH SỬA 2: Lấy trực tiếp context từ biến "parent" cực kỳ tiện lợi
+        View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_lesson_card, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        LessonResponse lesson = lessonList.get(position);
+        ModuleResponse module = moduleList.get(position);
 
         holder.txtLesson.setText("Bài " + (position + 1));
-        holder.txtTitle.setText(lesson.getTitle());
+        holder.txtTitle.setText(module.getTitle());
 
         holder.itemView.setOnClickListener(v -> {
             int currentPosition = holder.getAdapterPosition();
             if (currentPosition == RecyclerView.NO_POSITION) return;
+
+            Context context = v.getContext();
             Intent intent = new Intent(context, LessonActivity.class);
-            intent.putExtra("index", currentPosition);
+            intent.putExtra("MODULE_TITLE", module.getTitle());
+            intent.putExtra("MODULE_OBJECT", module.getObjective());
+            intent.putExtra("MODULE_CONTENT", module.getContent());
+            intent.putExtra("MODULE_EXAMPLE", module.getExample());
+
             context.startActivity(intent);
         });
     }
 
     @Override
     public int getItemCount() {
-        return lessonList == null ? 0 : lessonList.size();
+        return moduleList == null ? 0 : moduleList.size();
     }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txtLesson;
         TextView txtTitle;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             txtLesson = itemView.findViewById(R.id.txtChapterLesson);
