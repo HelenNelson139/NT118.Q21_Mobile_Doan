@@ -4,23 +4,25 @@ import com.example.backend.Mapper.StudentMapper;
 import com.example.backend.Mapper.TeacherMapper;
 import com.example.backend.Mapper.UserMapper;
 import com.example.backend.dto.student.request.CreateStudentRequest;
+import com.example.backend.dto.student.request.EnrollmentRequest;
 import com.example.backend.dto.student.request.UpdateStudentRequest;
 import com.example.backend.dto.student.response.StudentResponseProfile;
 import com.example.backend.dto.teacher.request.UpdateTeacherRequest;
 import com.example.backend.dto.user.request.CreateUserRequest;
 import com.example.backend.dto.user.request.UpdateUserRequest;
 import com.example.backend.dto.user.response.UserResponseProfile;
-import com.example.backend.entity.Student;
-import com.example.backend.entity.Teacher;
-import com.example.backend.entity.User;
+import com.example.backend.entity.*;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
+import com.example.backend.respository.EnrollmentRepository;
+import com.example.backend.respository.LessonRepository;
 import com.example.backend.respository.StudentResponsitory;
 import com.example.backend.respository.UserResponsitory;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -33,6 +35,9 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateStuden
     private final StudentMapper studentMapper;
     private final UserService userService;
     private final SupabaseStorageService supabaseStorageService;
+    private final EnrollmentRepository enrollmentRepository;
+    private final LessonRepository lessonRepository;
+
     @Override
     @Transactional
     public void register(CreateUserRequest createUserRequest){
@@ -93,6 +98,16 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateStuden
         return studentMapper.toProfileResponse(user);
     }
 
-
+    public void enrollLesson(EnrollmentRequest enrollmentRequest){
+        Enrollment enrollment = new Enrollment();
+        Integer lessonId = enrollmentRequest.getLessonId();
+        Integer userId = enrollmentRequest.getUserId();
+        User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+        enrollment.setId(new EnrollmentId(enrollmentRequest.getUserId(), enrollmentRequest.getLessonId()));
+        enrollment.setLesson(lesson);
+        enrollment.setUser(user);
+        enrollmentRepository.save(enrollment);
+    }
 
 }

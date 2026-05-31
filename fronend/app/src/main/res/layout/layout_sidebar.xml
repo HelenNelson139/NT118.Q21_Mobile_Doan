@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         android:padding="24dp">
 
-        <!--  Logo menu  -->
+        <!-- NÚT ĐÓNG MENU -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnCloseMenu"
             android:layout_width="55dp"
@@ -41,7 +41,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Searching tool -->
+        <!-- SEARCH -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/searchContainer"
             android:layout_width="match_parent"
@@ -86,26 +86,56 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Others view -->
+        <!-- USER NAME -->
         <TextView
             android:id="@+id/tvUserName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="User name"
+            android:text="Học viên"
             android:textColor="#FFD700"
             android:textSize="22sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/searchContainer" />
 
+        <!-- MENU -->
         <LinearLayout
+            android:id="@+id/menuContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/tvUserName">
 
+            <!-- TRANG CHỦ -->
+            <LinearLayout
+                android:id="@+id/menuHome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingVertical="15dp">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_home"
+                    app:tint="#FFFFFF" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:text="Trang chủ"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- KHÓA HỌC -->
             <LinearLayout
                 android:id="@+id/menuCourses"
                 android:layout_width="match_parent"
@@ -115,11 +145,13 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:paddingVertical="15dp">
+
                 <ImageView
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:src="@drawable/ic_book"
                     app:tint="#FFFFFF" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -130,6 +162,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- HỌC TẬP -->
             <LinearLayout
                 android:id="@+id/menuLearning"
                 android:layout_width="match_parent"
@@ -139,11 +172,13 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:paddingVertical="15dp">
+
                 <ImageView
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:src="@drawable/ic_study"
                     app:tint="#FFFFFF" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -154,6 +189,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- HỒ SƠ -->
             <LinearLayout
                 android:id="@+id/menuProfile"
                 android:layout_width="match_parent"
@@ -163,12 +199,14 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:paddingVertical="15dp">
+
                 <ImageView
                     android:id="@+id/imgProfileIcon"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:src="@drawable/ic_profile"
                     app:tint="#FFFFFF" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -179,6 +217,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- ĐĂNG XUẤT -->
             <TextView
                 android:id="@+id/txtLogout"
                 android:layout_width="match_parent"
@@ -192,7 +231,7 @@
                 android:textColor="#FFD700"
                 android:textSize="18sp"
                 android:textStyle="italic"
-                android:gravity="end"/>
+                android:gravity="end" />
 
         </LinearLayout>
 
