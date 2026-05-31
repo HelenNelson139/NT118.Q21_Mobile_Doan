@@ -28,9 +28,9 @@ public class UserService {
     public boolean checkUserExist(CreateUserRequest createUserRequest) {
         if (userResponsitory.findByUsername(createUserRequest.getUsername()).isPresent()) {
             throw new RuntimeException("User already exist");
-        }else if (userResponsitory.findByEmail(createUserRequest.getEmail()) != null) {
+        }else if (userResponsitory.findByEmail(createUserRequest.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exist");
-        }else if (userResponsitory.findByPhone(createUserRequest.getPhone()) != null) {
+        }else if (userResponsitory.findByPhone(createUserRequest.getPhone()).isPresent()) {
             throw new RuntimeException("Phone already exist");
         }else{
             return true;

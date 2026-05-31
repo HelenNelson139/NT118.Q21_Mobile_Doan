@@ -70,6 +70,14 @@ public class LessonService {
         return lessonMapper.toLessonResponseList(listLessonFound);
     }
 
+    public List<LessonResponse> findAllLessonActive(){
+        List<Lesson> listLessonFound = lessonRepository.findAll();
+        return listLessonFound.stream()
+                .filter(lesson -> lesson.getStatus() == Status.ACTIVE )
+                .map(lessonMapper::toLessonResponse)
+                .toList();
+    }
+
     @Transactional
     public void deleteLesson(Integer id){
         Lesson lesson = lessonRepository.findById(id)

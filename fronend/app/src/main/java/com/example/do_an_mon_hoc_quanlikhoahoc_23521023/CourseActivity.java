@@ -40,7 +40,12 @@ public class CourseActivity extends AppCompatActivity {
         String name = getIntent().getStringExtra("course_name");
         TextView tv = findViewById(R.id.txtCourseTitle);
         tv.setText(name);
-
-
+        ImageView imgCourse = findViewById(R.id.imgCourse);
+        String thumbnailUrl = getIntent().getStringExtra("course_thumbnail");
+        com.bumptech.glide.Glide.with(this)
+                .load(thumbnailUrl)
+                .placeholder(R.drawable.course_python)
+                .error(R.drawable.course_python)
+                .into(imgCourse);
     }
 }

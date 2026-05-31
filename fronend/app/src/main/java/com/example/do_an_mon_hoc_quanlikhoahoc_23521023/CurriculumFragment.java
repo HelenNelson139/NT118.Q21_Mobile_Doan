@@ -26,6 +26,10 @@ public class CurriculumFragment extends Fragment {
     List<ModuleResponse> moduleList = new ArrayList<>();
     private int courseId = -1;
 
+    // --- THÊM MỚI: 2 biến lưu thông tin Lesson nhận từ Intent của Activity ---
+    private String lessonDescription = "";
+    private String lessonThumbnailUrl = "";
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -34,14 +38,24 @@ public class CurriculumFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_curriculum_fragment, container, false);
 
+        // Hứng dữ liệu được truyền từ Activity cha vào đây
         if (getActivity() != null && getActivity().getIntent() != null) {
             courseId = getActivity().getIntent().getIntExtra("course_id", -1);
+            // --- THÊM MỚI: Nhận thêm mô tả và ảnh bìa ---
+            lessonDescription = getActivity().getIntent().getStringExtra("course_description");
+            lessonThumbnailUrl = getActivity().getIntent().getStringExtra("course_thumbnail");
         }
 
         rvChapters = view.findViewById(R.id.rvChapters);
         rvChapters.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        adapter = new LessonAdapter(moduleList);
+        adapter = new LessonAdapter(moduleList, new LessonAdapter.OnModuleActionListener() {
+            @Override
+            public void onDeleteClick(int position, ModuleResponse module) {
+                // Gọi hàm hiển thị Dialog xác nhận trước khi gọi API xóa
+                showConfirmDeleteModuleDialog(position, module);
+            }
+        });
         rvChapters.setAdapter(adapter);
 
         if (courseId != -1) {
@@ -68,7 +82,8 @@ public class CurriculumFragment extends Fragment {
                         List<ModuleResponse> serverList = apiResponse.getResult();
 
                         if (serverList != null && !serverList.isEmpty()) {
-                            adapter.updateData(serverList);
+                            // --- CẬP NHẬT: Truyền thêm mô tả và ảnh bìa vào hàm updateData của adapter ---
+                            adapter.updateData(serverList, lessonDescription, lessonThumbnailUrl);
                         } else {
                             if (getContext() != null) {
                                 Toast.makeText(getContext(), "Khóa học này chưa có giáo trình!", Toast.LENGTH_SHORT).show();
@@ -94,5 +109,42 @@ public class CurriculumFragment extends Fragment {
                 }
             }
         });
+    }
+    private void showConfirmDeleteModuleDialog(int position, ModuleResponse module) {
+        if (getContext() == null) return;
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Xóa bài học nhỏ")
+                .setMessage("Bạn có chắc chắn muốn xóa bài học '" + module.getTitle() + "' không?")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    ModuleApiService apiService = RetrofitClient.getClient().create(ModuleApiService.class);
+                    apiService.deleteModule(module.getId()).enqueue(new retrofit2.Callback<ApiResponse<String>>() {
+                        @Override
+                        public void onResponse(Call<ApiResponse<String>> call, Response<ApiResponse<String>> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                ApiResponse<String> apiResponse = response.body();
+                                if (apiResponse.getCode() == 1000) {
+                                    Toast.makeText(getContext(), "Xóa module thành công!", Toast.LENGTH_SHORT).show();
+                                    if (moduleList != null && position < moduleList.size()) {
+                                        moduleList.remove(position);
+                                        adapter.notifyItemRemoved(position);
+                                        adapter.notifyItemRangeChanged(position, moduleList.size());
+                                    }
+                                } else {
+                                    Toast.makeText(getContext(), "Lỗi: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(getContext(), "Lỗi từ máy chủ, mã: " + response.code(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
+                            Toast.makeText(getContext(), "Lỗi kết nối mạng khi xóa!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                })
+                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 }
