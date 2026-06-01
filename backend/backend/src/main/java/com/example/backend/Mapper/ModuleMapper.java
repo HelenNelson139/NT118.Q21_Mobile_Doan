@@ -12,7 +12,7 @@ import java.util.List;
 public interface ModuleMapper {
     @Mapping(target = "lesson", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "image_example_url", ignore = true)
+    @Mapping(target = "file_example_url", ignore = true)
     Module toModule(ModuleCreationRequest request);
     @Mapping(source = "lesson.id", target = "lessonId")
     ModuleResponse toModuleResponse(Module module);

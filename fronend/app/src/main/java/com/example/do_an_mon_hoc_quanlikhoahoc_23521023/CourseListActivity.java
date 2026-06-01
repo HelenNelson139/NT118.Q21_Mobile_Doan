@@ -90,22 +90,51 @@ public class CourseListActivity extends AppCompatActivity {
 
     // Hàm lấy danh sách bài học ban đầu
     private void fetchActiveLessons() {
-        lessonApiService.getAllLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+        lessonApiService.getAllActiveLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+            public void onResponse(
+                    Call<ApiResponse<List<LessonResponse>>> call,
+                    Response<ApiResponse<List<LessonResponse>>> response
+            ) {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<List<LessonResponse>> apiResponse = response.body();
+
                     if (apiResponse.getCode() == 1000 && apiResponse.getResult() != null) {
                         activeLessonsList.clear();
                         activeLessonsList.addAll(apiResponse.getResult());
                         studentAdapter.notifyDataSetChanged();
+
+                        if (activeLessonsList.isEmpty()) {
+                            Toast.makeText(
+                                    CourseListActivity.this,
+                                    "Chưa có khóa học ACTIVE nào",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    } else {
+                        Toast.makeText(
+                                CourseListActivity.this,
+                                "Lỗi server: " + apiResponse.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
+                } else {
+                    Toast.makeText(
+                            CourseListActivity.this,
+                            "Lỗi tải khóa học, mã: " + response.code(),
+                            Toast.LENGTH_SHORT
+                    ).show();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
-                Log.e("API_ERROR", "Lỗi tải danh sách bài học: " + t.getMessage());
+                Log.e("API_ACTIVE_LESSON", "Lỗi tải danh sách khóa học: " + t.getMessage());
+                Toast.makeText(
+                        CourseListActivity.this,
+                        "Không thể kết nối đến máy chủ",
+                        Toast.LENGTH_SHORT
+                ).show();
             }
         });
     }

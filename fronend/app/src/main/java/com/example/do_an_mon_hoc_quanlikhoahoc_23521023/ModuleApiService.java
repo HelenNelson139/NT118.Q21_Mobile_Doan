@@ -2,7 +2,6 @@ package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
 import java.util.List;
 
-import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.DELETE;
@@ -15,6 +14,7 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface ModuleApiService {
+
     @Multipart
     @POST("api/modules")
     Call<ApiResponse<ModuleResponse>> createModule(
@@ -23,29 +23,36 @@ public interface ModuleApiService {
             @Part("objective") RequestBody objective,
             @Part("content") RequestBody content,
             @Part("example") RequestBody example,
-            @Part("order_index") RequestBody orderIndex,
-            @Part MultipartBody.Part image
+            @Part("order_index") RequestBody orderIndex
     );
+
     @GET("api/modules/search")
     Call<ApiResponse<List<ModuleResponse>>> searchModules(
             @Query("keyword") String keyword
     );
+
     @GET("api/modules/{id}")
     Call<ApiResponse<ModuleResponse>> getModuleById(
             @Path("id") Integer id
     );
+
     @DELETE("api/modules/{id}")
     Call<ApiResponse<String>> deleteModule(
             @Path("id") Integer id
     );
+
     @PUT("api/modules/{id}/approve")
     Call<ApiResponse<ModuleResponse>> approveModule(
             @Path("id") Integer id
     );
+
     @PUT("api/modules/{id}/approve-delete")
     Call<ApiResponse<ModuleResponse>> approveDeleteModule(
             @Path("id") Integer id
     );
+
     @GET("api/modules/lesson/{id}")
-    Call<ApiResponse<List<ModuleResponse>>> getModulesByLessonId(@Path("id") int lessonId);
+    Call<ApiResponse<List<ModuleResponse>>> getModulesByLessonId(
+            @Path("id") int lessonId
+    );
 }

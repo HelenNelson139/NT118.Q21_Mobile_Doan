@@ -1,6 +1,5 @@
 package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,17 +9,21 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
-public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdapter.CourseViewHolder> {
+public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdapter.TeacherCourseViewHolder> {
+
+    private final List<LessonResponse> courseList;
+    private final OnCourseActionListener listener;
+
     public interface OnCourseActionListener {
         void onEditClick(int position);
         void onDeleteClick(int position);
     }
-    private final List<LessonResponse> courseList;
-    private final OnCourseActionListener listener;
+
     public TeacherCourseAdapter(List<LessonResponse> courseList, OnCourseActionListener listener) {
         this.courseList = courseList;
         this.listener = listener;
@@ -28,37 +31,46 @@ public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdap
 
     @NonNull
     @Override
-    public CourseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public TeacherCourseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_teacher_course_list, parent, false);
-        return new CourseViewHolder(view);
+
+        return new TeacherCourseViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CourseViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull TeacherCourseViewHolder holder, int position) {
         LessonResponse course = courseList.get(position);
-        holder.tvTitle.setText(course.getTitle());
-        holder.tvDescription.setText("Mô tả: " + course.getDescription());
-        String status = course.getStatus() != null ? course.getStatus() : "PENDING";
-        holder.tvTeacherName.setText("Trạng thái: " + status);
-        com.bumptech.glide.Glide.with(holder.itemView.getContext())
-                .load(course.getThumbnailUrl())
-                .placeholder(R.drawable.course_python)
-                .error(R.drawable.course_python)
-                .into(holder.imgCourse);
 
+        holder.txtCourseTitle.setText(safe(course.getTitle()));
+        holder.txtDescription.setText("Mô tả: " + safe(course.getDescription()));
+        holder.txtStatus.setText("Trạng thái: " + safe(course.getStatus()));
 
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), CourseActivity.class);
-            intent.putExtra("course_name", course.getTitle());
-            intent.putExtra("course_id", course.getId());
-            intent.putExtra("course_thumbnail", course.getThumbnailUrl());
-            v.getContext().startActivity(intent);
+        String thumbnailUrl = course.getThumbnailUrl();
+
+        if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(thumbnailUrl)
+                    .placeholder(R.drawable.course_python)
+                    .error(R.drawable.course_python)
+                    .into(holder.imgCourse);
+        } else {
+            holder.imgCourse.setImageResource(R.drawable.course_python);
+        }
+
+        holder.btnEdit.setOnClickListener(v -> {
+            int adapterPosition = holder.getAdapterPosition();
+
+            if (adapterPosition != RecyclerView.NO_POSITION && listener != null) {
+                listener.onEditClick(adapterPosition);
+            }
         });
 
-        holder.btnDeleteCourse.setOnClickListener(v -> {
-            if (listener != null && holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
-                listener.onDeleteClick(holder.getAdapterPosition());
+        holder.btnDelete.setOnClickListener(v -> {
+            int adapterPosition = holder.getAdapterPosition();
+
+            if (adapterPosition != RecyclerView.NO_POSITION && listener != null) {
+                listener.onDeleteClick(adapterPosition);
             }
         });
     }
@@ -67,19 +79,33 @@ public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdap
     public int getItemCount() {
         return courseList == null ? 0 : courseList.size();
     }
-    static class CourseViewHolder extends RecyclerView.ViewHolder {
-        ImageView imgCourse;
-        TextView tvTitle, tvDescription, tvTeacherName;
-        MaterialButton btnEditCourse, btnDeleteCourse;
 
-        public CourseViewHolder(@NonNull View itemView) {
+    static class TeacherCourseViewHolder extends RecyclerView.ViewHolder {
+
+        ImageView imgCourse;
+        TextView txtCourseTitle;
+        TextView txtDescription;
+        TextView txtStatus;
+        MaterialButton btnEdit;
+        MaterialButton btnDelete;
+
+        public TeacherCourseViewHolder(@NonNull View itemView) {
             super(itemView);
-            imgCourse = itemView.findViewById(R.id.imgCourseThumbnail);
-            tvTitle = itemView.findViewById(R.id.txtCourseTitle);
-            tvDescription = itemView.findViewById(R.id.txtCourseDescription);
-            tvTeacherName = itemView.findViewById(R.id.txtTeacherName);
-            btnEditCourse = itemView.findViewById(R.id.btnEditCourse);
-            btnDeleteCourse = itemView.findViewById(R.id.btnDeleteCourse);
+
+            imgCourse = itemView.findViewById(R.id.imgCourse);
+            txtCourseTitle = itemView.findViewById(R.id.txtCourseTitle);
+            txtDescription = itemView.findViewById(R.id.txtDescription);
+            txtStatus = itemView.findViewById(R.id.txtStatus);
+            btnEdit = itemView.findViewById(R.id.btnEdit);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
+    }
+
+    private static String safe(String value) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
+            return "";
+        }
+
+        return value.trim();
     }
 }

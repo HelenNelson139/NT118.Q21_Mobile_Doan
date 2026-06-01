@@ -14,102 +14,92 @@
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/imgCourseThumbnail"
+        <ImageView
+            android:id="@+id/imgCourse"
             android:layout_width="140dp"
-            android:layout_height="90dp"
+            android:layout_height="88dp"
             android:scaleType="centerCrop"
             android:src="@drawable/course_python"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/RoundedCornerImage" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/txtCourseTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:text="Phân tích dữ liệu với Python"
-            android:textColor="#F9F7F7"
-            android:textSize="16sp"
+            android:text="Tên khóa học"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
             android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/imgCourse"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/imgCourseThumbnail"
-            app:layout_constraintTop_toTopOf="@id/imgCourseThumbnail" />
+            app:layout_constraintTop_toTopOf="@id/imgCourse" />
 
         <TextView
-            android:id="@+id/txtCourseDescription"
+            android:id="@+id/txtDescription"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
+            android:maxLines="2"
             android:ellipsize="end"
-            android:maxLines="3"
-            android:text="Mô tả khóa học: C++ cho người mới bắt đầu - Nền tảng lập trình vững chắc."
+            android:text="Mô tả khóa học"
             android:textColor="#F9F7F7"
-            android:textSize="13sp"
-            android:lineSpacingExtra="4dp"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@id/imgCourse"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/imgCourseThumbnail"
             app:layout_constraintTop_toBottomOf="@id/txtCourseTitle" />
 
         <TextView
-            android:id="@+id/txtTeacherName"
+            android:id="@+id/txtStatus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="8dp"
-            android:text="Giảng viên: Nguyễn Văn A"
-            android:textColor="#DBE2EF"
-            android:textSize="12sp"
+            android:layout_marginTop="6dp"
+            android:text="Trạng thái: ACTIVE"
+            android:textColor="#F9F7F7"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@id/imgCourse"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/imgCourseThumbnail"
-            app:layout_constraintTop_toBottomOf="@id/txtCourseDescription" />
+            app:layout_constraintTop_toBottomOf="@id/txtDescription" />
 
-        <LinearLayout
-            android:id="@+id/actionContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEdit"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
             android:layout_marginTop="12dp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtTeacherName">
+            android:layout_marginEnd="8dp"
+            android:text="Sửa"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            app:backgroundTint="#1687D9"
+            app:cornerRadius="18dp"
+            app:icon="@android:drawable/ic_menu_edit"
+            app:iconTint="#FFFFFF"
+            app:layout_constraintTop_toBottomOf="@id/imgCourse"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnDelete" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEditCourse"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
-                android:text="Sửa"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="#1976D2"
-                app:cornerRadius="20dp"
-                app:icon="@android:drawable/ic_menu_edit"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:iconTint="@android:color/white" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDeleteCourse"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="Xóa"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="#D32F2F"
-                app:cornerRadius="20dp"
-                app:icon="@android:drawable/ic_menu_delete"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:iconTint="@android:color/white" />
-        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDelete"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginStart="8dp"
+            android:text="Xóa"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            app:backgroundTint="#E53935"
+            app:cornerRadius="18dp"
+            app:icon="@android:drawable/ic_menu_delete"
+            app:iconTint="#FFFFFF"
+            app:layout_constraintTop_toBottomOf="@id/imgCourse"
+            app:layout_constraintStart_toEndOf="@id/btnEdit"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </com.google.android.material.card.MaterialCardView>

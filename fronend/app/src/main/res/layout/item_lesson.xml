@@ -1,4 +1,6 @@
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -12,7 +14,8 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -31,13 +34,12 @@
             android:textSize="18sp"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:layout_marginTop="4dp"
-            android:hint="Nhập tên bài học..."/>
+            android:hint="Nhập tên bài học..." />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/aim"
+            android:text="Mục tiêu"
             android:textStyle="bold"
             android:textSize="18sp"
             android:textColor="@color/dark_blue"
@@ -51,13 +53,12 @@
             android:textSize="18sp"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:layout_marginTop="4dp"
-            android:hint="@string/aim"/>
+            android:hint="Mục tiêu" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/content"
+            android:text="Nội dung"
             android:textStyle="bold"
             android:textSize="18sp"
             android:textColor="@color/dark_blue"
@@ -71,13 +72,12 @@
             android:textSize="18sp"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:layout_marginTop="4dp"
-            android:hint="@string/content"/>
+            android:hint="Nội dung" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/example"
+            android:text="Ví dụ"
             android:textStyle="bold"
             android:textSize="18sp"
             android:textColor="@color/dark_blue"
@@ -95,40 +95,43 @@
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
             android:layout_marginTop="6dp"
-            android:hint="@string/example"/>
+            android:hint="Ví dụ" />
 
-        <LinearLayout
-            android:orientation="vertical"
+        <VideoView
+            android:id="@+id/videoPreview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="18dp"
+            android:background="#EEEEEE" />
+
+        <TextView
+            android:id="@+id/txtSelectedFile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:layout_marginTop="16dp">
+            android:text="Chưa chọn video/file"
+            android:textColor="@color/dark_blue"
+            android:textSize="14sp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="8dp" />
 
-            <ImageView
-                android:id="@+id/imgCourseCover"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="25dp"
-                android:contentDescription="@string/course_cover_image"
-                android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_camera" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnUploadImage"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="20dp"
-                android:backgroundTint="@color/light_blue"
-                android:text="@string/upload_img"
-                android:textSize="16dp"
-                android:textColor="@color/bright_blue"
-                app:cornerRadius="12dp"
-                app:strokeColor="@color/bright_blue"
-                app:strokeWidth="2dp" />
-        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUploadVideo"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="@color/light_blue"
+            android:text="Tải video/file bài học"
+            android:textSize="16sp"
+            android:textColor="@color/bright_blue"
+            app:cornerRadius="12dp"
+            app:strokeColor="@color/bright_blue"
+            app:strokeWidth="2dp" />
 
     </LinearLayout>
+
 </com.google.android.material.card.MaterialCardView>

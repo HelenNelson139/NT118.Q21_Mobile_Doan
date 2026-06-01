@@ -2,10 +2,15 @@ package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,8 +20,10 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -29,20 +36,25 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.tabs.TabLayout;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import okhttp3.MediaType;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class TeacherClass extends AppCompatActivity {
+
     private RecyclerView rvCourseList;
     private List<LessonResponse> filteredList;
     private TeacherCourseAdapter adapter;
+
     private MaterialCardView btnMenuCard;
     private View btnAddCourse;
     private EditText edtSearchCourse;
@@ -51,7 +63,13 @@ public class TeacherClass extends AppCompatActivity {
     private ImageView imgPreview;
     private ActivityResultLauncher<String> imagePickerLauncher;
 
+    private ActivityResultLauncher<String> moduleFilePickerLauncher;
+    private View currentModuleFileView;
+
     private final List<View> lessonViews = new ArrayList<>();
+
+    private static final String PREF_NAME = "APP_PREFS";
+    private static final String KEY_USER_ID = "USER_ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +80,10 @@ public class TeacherClass extends AppCompatActivity {
         btnAddCourse = findViewById(R.id.btnAddCourse);
         edtSearchCourse = findViewById(R.id.edtSearch);
         rvCourseList = findViewById(R.id.rvCourseList);
-        rvCourseList.setLayoutManager(new LinearLayoutManager(this));
+
         filteredList = new ArrayList<>();
+
+        rvCourseList.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new TeacherCourseAdapter(filteredList, new TeacherCourseAdapter.OnCourseActionListener() {
             @Override
@@ -76,18 +96,54 @@ public class TeacherClass extends AppCompatActivity {
                 showDeleteDialog(position);
             }
         });
+
         rvCourseList.setAdapter(adapter);
 
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-
                     if (uri != null && imgPreview != null) {
                         imgPreview.setImageURI(uri);
                         imgPreview.setTag(uri);
 
-                        if (imgPreview.getId() == R.id.imgCourseCover && lessonViews.isEmpty()) {
+                        if (imgPreview.getId() == R.id.imgCourseCover) {
                             selectedImageUri = uri;
+                        }
+                    }
+                }
+        );
+
+        moduleFilePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null && currentModuleFileView != null) {
+                        TextView txtSelectedFile =
+                                currentModuleFileView.findViewById(R.id.txtSelectedFile);
+
+                        VideoView videoPreview =
+                                currentModuleFileView.findViewById(R.id.videoPreview);
+
+                        currentModuleFileView.setTag(uri);
+
+                        String fileName = getFileNameFromUri(uri);
+
+                        if (txtSelectedFile != null) {
+                            txtSelectedFile.setText("Đã chọn: " + fileName);
+                        }
+
+                        String mimeType = getContentResolver().getType(uri);
+
+                        if (mimeType != null && mimeType.startsWith("video/") && videoPreview != null) {
+                            videoPreview.setVisibility(View.VISIBLE);
+                            videoPreview.setVideoURI(uri);
+
+                            MediaController mediaController = new MediaController(this);
+                            mediaController.setAnchorView(videoPreview);
+                            videoPreview.setMediaController(mediaController);
+
+                            videoPreview.seekTo(1);
+                        } else if (videoPreview != null) {
+                            videoPreview.setVisibility(View.GONE);
                         }
                     }
                 }
@@ -95,17 +151,87 @@ public class TeacherClass extends AppCompatActivity {
 
         btnMenuCard.setOnClickListener(v -> showSidebarMenu());
         btnAddCourse.setOnClickListener(v -> showAddDialog());
+
         fetchTeacherLessonsFromServer();
         setupSearch();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fetchTeacherLessonsFromServer();
+    }
+
+    private void fetchTeacherLessonsFromServer() {
+        LessonApiService apiService =
+                RetrofitClient.getClient().create(LessonApiService.class);
+
+        apiService.getMyLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+            @Override
+            public void onResponse(
+                    Call<ApiResponse<List<LessonResponse>>> call,
+                    Response<ApiResponse<List<LessonResponse>>> response
+            ) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+
+                    if (apiResponse.getCode() == 1000) {
+                        List<LessonResponse> remoteLessons = apiResponse.getResult();
+
+                        filteredList.clear();
+
+                        if (remoteLessons != null && !remoteLessons.isEmpty()) {
+                            filteredList.addAll(remoteLessons);
+                        } else {
+                            Toast.makeText(
+                                    TeacherClass.this,
+                                    "Bạn chưa đăng tải khóa học nào!",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+
+                        adapter.notifyDataSetChanged();
+
+                    } else {
+                        Toast.makeText(
+                                TeacherClass.this,
+                                "Lỗi Server: " + apiResponse.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                } else {
+                    Toast.makeText(
+                            TeacherClass.this,
+                            "Lỗi kết nối, mã: " + response.code(),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
+                Log.e("TEACHER_GET_LESSON", "Thất bại: " + t.getMessage());
+
+                Toast.makeText(
+                        TeacherClass.this,
+                        "Không thể kết nối đến máy chủ!",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+    }
+
+    private void setupSearch() {
         if (edtSearchCourse != null) {
-            edtSearchCourse.addTextChangedListener(new android.text.TextWatcher() {
+            edtSearchCourse.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
                     String query = s.toString().trim();
+
                     if (!query.isEmpty()) {
                         searchTeacherLessonsFromServer(query);
                     } else {
@@ -114,55 +240,21 @@ public class TeacherClass extends AppCompatActivity {
                 }
 
                 @Override
-                public void afterTextChanged(android.text.Editable s) {}
+                public void afterTextChanged(Editable s) {
+                }
             });
         }
-    }
 
-    private void fetchTeacherLessonsFromServer() {
-        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
-
-        apiService.getMyLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
-
-                    if (apiResponse.getCode() == 1000) {
-                        List<LessonResponse> remoteLessons = apiResponse.getResult();
-
-                        filteredList.clear();
-                        if (remoteLessons != null && !remoteLessons.isEmpty()) {
-                            filteredList.addAll(remoteLessons);
-                        } else {
-                            Toast.makeText(TeacherClass.this, "Bạn chưa đăng tải bài học nào!", Toast.LENGTH_SHORT).show();
-                        }
-                        adapter.notifyDataSetChanged();
-                    } else {
-                        Toast.makeText(TeacherClass.this, "Lỗi Server: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(TeacherClass.this, "Lỗi kết nối, mã: " + response.code(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
-                Log.e("TEACHER_GET_LESSON", "Thất bại: " + t.getMessage());
-                Toast.makeText(TeacherClass.this, "Không thể kết nối đến máy chủ!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-    private void setupSearch() {
         View icFilter = findViewById(R.id.icFilter);
+
         if (icFilter != null) {
             icFilter.setOnClickListener(v -> {
                 String query = edtSearchCourse.getText().toString().trim();
+
                 if (!query.isEmpty()) {
-                    Toast.makeText(this, "Đang tìm kiếm online: " + query, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đang tìm kiếm: " + query, Toast.LENGTH_SHORT).show();
                     searchTeacherLessonsFromServer(query);
                 } else {
-                    Toast.makeText(this, "Vui lòng nhập từ khóa tìm kiếm!", Toast.LENGTH_SHORT).show();
                     fetchTeacherLessonsFromServer();
                 }
             });
@@ -170,10 +262,15 @@ public class TeacherClass extends AppCompatActivity {
     }
 
     private void searchTeacherLessonsFromServer(String keyword) {
-        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+        LessonApiService apiService =
+                RetrofitClient.getClient().create(LessonApiService.class);
+
         apiService.searchLessons(keyword).enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+            public void onResponse(
+                    Call<ApiResponse<List<LessonResponse>>> call,
+                    Response<ApiResponse<List<LessonResponse>>> response
+            ) {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<List<LessonResponse>> apiResponse = response.body();
 
@@ -181,9 +278,11 @@ public class TeacherClass extends AppCompatActivity {
                         List<LessonResponse> searchResults = apiResponse.getResult();
 
                         filteredList.clear();
+
                         if (searchResults != null && !searchResults.isEmpty()) {
                             filteredList.addAll(searchResults);
                         }
+
                         adapter.notifyDataSetChanged();
                     }
                 }
@@ -198,17 +297,20 @@ public class TeacherClass extends AppCompatActivity {
 
     private void showAddDialog() {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_course, null);
+
         EditText edtTitle = view.findViewById(R.id.edtCourseTitle);
         TabLayout tabLayout = view.findViewById(R.id.tabLayout);
+
         LinearLayout containerIntro = view.findViewById(R.id.containerIntro);
         LinearLayout containerCurriculum = view.findViewById(R.id.containerCurriculum);
 
         EditText edtDescription = view.findViewById(R.id.edtDescription);
         EditText edtWhatYouLearn = view.findViewById(R.id.edtWhatYouLearn);
         EditText edtSkills = view.findViewById(R.id.edtSkills);
-        ImageView imgCourseCover = view.findViewById(R.id.imgCourseCover);
 
+        ImageView imgCourseCover = view.findViewById(R.id.imgCourseCover);
         MaterialButton btnUploadImage = view.findViewById(R.id.btnUploadImage);
+
         LinearLayout lessonContainer = view.findViewById(R.id.lessonContainer);
         MaterialButton btnAddLesson = view.findViewById(R.id.btnAddLesson);
         MaterialButton btnSave = view.findViewById(R.id.btnSaveCourse);
@@ -230,6 +332,7 @@ public class TeacherClass extends AppCompatActivity {
         }
 
         setupTabs(tabLayout, containerIntro, containerCurriculum);
+
         btnUploadImage.setOnClickListener(v -> {
             imgPreview = imgCourseCover;
             imagePickerLauncher.launch("image/*");
@@ -237,9 +340,18 @@ public class TeacherClass extends AppCompatActivity {
 
         btnAddLesson.setOnClickListener(v -> addLesson(lessonContainer));
         btnCancel.setOnClickListener(v -> dialog.dismiss());
+
         btnSave.setOnClickListener(v -> {
-            android.content.SharedPreferences sharedPreferences = getSharedPreferences("APP_PREFS", MODE_PRIVATE);
-            int currentUserId = sharedPreferences.getInt("USER_ID", 1);
+            SharedPreferences sharedPreferences =
+                    getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+            int currentUserId = sharedPreferences.getInt(KEY_USER_ID, -1);
+
+            if (currentUserId == -1) {
+                Toast.makeText(this, "Không tìm thấy teacherId", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             String teacherIdStr = String.valueOf(currentUserId);
 
             String title = edtTitle.getText().toString().trim();
@@ -247,70 +359,161 @@ public class TeacherClass extends AppCompatActivity {
             String whatYouLearn = edtWhatYouLearn.getText().toString().trim();
             String skills = edtSkills.getText().toString().trim();
 
-            if (title.isEmpty() || description.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show();
+            if (title.isEmpty()) {
+                edtTitle.setError("Nhập tên khóa học");
+                edtTitle.requestFocus();
                 return;
             }
 
-            MultipartBody.Part titlePart = MultipartBody.Part.createFormData("title", title);
-            MultipartBody.Part descriptionPart = MultipartBody.Part.createFormData("description", description);
-            MultipartBody.Part whatYouLearnPart = MultipartBody.Part.createFormData("what_you_learn", whatYouLearn);
-            MultipartBody.Part skillLearnedPart = MultipartBody.Part.createFormData("skill_learned", skills);
-            MultipartBody.Part teacherIdPart = MultipartBody.Part.createFormData("teacherId", teacherIdStr);
-            java.io.File file = getFileFromUri(selectedImageUri);
+            if (description.isEmpty()) {
+                edtDescription.setError("Nhập mô tả khóa học");
+                edtDescription.requestFocus();
+                return;
+            }
+
+            if (selectedImageUri == null) {
+                Toast.makeText(this, "Vui lòng chọn ảnh bìa khóa học!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            MultipartBody.Part titlePart =
+                    MultipartBody.Part.createFormData("title", title);
+
+            MultipartBody.Part descriptionPart =
+                    MultipartBody.Part.createFormData("description", description);
+
+            MultipartBody.Part whatYouLearnPart =
+                    MultipartBody.Part.createFormData("what_you_learn", whatYouLearn);
+
+            MultipartBody.Part skillLearnedPart =
+                    MultipartBody.Part.createFormData("skill_learned", skills);
+
+            MultipartBody.Part teacherIdPart =
+                    MultipartBody.Part.createFormData("teacherId", teacherIdStr);
+
+            File file = getFileFromUri(selectedImageUri);
+
             if (file == null) {
-                Toast.makeText(this, "Vui lòng chọn ảnh bìa!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Không đọc được ảnh bìa!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             String mimeType = getContentResolver().getType(selectedImageUri);
+
             if (mimeType == null) {
                 mimeType = "image/jpeg";
             }
 
-            RequestBody requestFile = RequestBody.create(okhttp3.MediaType.parse(mimeType), file);
-            MultipartBody.Part thumbnailPart = MultipartBody.Part.createFormData("thumbnail", file.getName(), requestFile);
+            RequestBody requestFile =
+                    RequestBody.create(MediaType.parse(mimeType), file);
 
-            LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
+            MultipartBody.Part thumbnailPart =
+                    MultipartBody.Part.createFormData(
+                            "thumbnail",
+                            file.getName(),
+                            requestFile
+                    );
 
-            apiService.createLesson(titlePart, descriptionPart, whatYouLearnPart, skillLearnedPart, teacherIdPart, thumbnailPart)
-                    .enqueue(new Callback<ApiResponse<LessonResponse>>() {
-                        @Override
-                        public void onResponse(Call<ApiResponse<LessonResponse>> call, Response<ApiResponse<LessonResponse>> response) {
-                            if (response.isSuccessful() && response.body() != null) {
-                                ApiResponse<LessonResponse> apiResponse = response.body();
-                                if (apiResponse.getCode() == 1000) {
-                                    Toast.makeText(TeacherClass.this, "Thêm khóa học thành công!", Toast.LENGTH_SHORT).show();
-                                    fetchTeacherLessonsFromServer();
-                                    int newLessonId = apiResponse.getResult().getId();
-                                    uploadModules(newLessonId, dialog);
-                                } else {
-                                    Toast.makeText(TeacherClass.this, "Lỗi: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
+            LessonApiService apiService =
+                    RetrofitClient.getClient().create(LessonApiService.class);
+
+            btnSave.setEnabled(false);
+            btnSave.setText("Đang lưu...");
+
+            apiService.createLesson(
+                    titlePart,
+                    descriptionPart,
+                    whatYouLearnPart,
+                    skillLearnedPart,
+                    teacherIdPart,
+                    thumbnailPart
+            ).enqueue(new Callback<ApiResponse<LessonResponse>>() {
+                @Override
+                public void onResponse(
+                        Call<ApiResponse<LessonResponse>> call,
+                        Response<ApiResponse<LessonResponse>> response
+                ) {
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Thêm khóa học");
+
+                    if (response.isSuccessful() && response.body() != null) {
+                        ApiResponse<LessonResponse> apiResponse = response.body();
+
+                        if (apiResponse.getCode() == 1000 && apiResponse.getResult() != null) {
+                            int newLessonId = apiResponse.getResult().getId();
+
+                            if (!lessonViews.isEmpty()) {
+                                uploadModules(newLessonId, dialog);
                             } else {
-                                try {
-                                    String errLog = response.errorBody() != null ? response.errorBody().string() : "Mã lỗi trống";
-                                    Log.e("SERVER_400_LOG", errLog);
-                                } catch (Exception e) { e.printStackTrace(); }
-                                Toast.makeText(TeacherClass.this, "Không thể lưu, mã phản hồi: " + response.code(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(
+                                        TeacherClass.this,
+                                        "Thêm khóa học thành công!",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                fetchTeacherLessonsFromServer();
+                                dialog.dismiss();
                             }
+
+                        } else {
+                            Toast.makeText(
+                                    TeacherClass.this,
+                                    "Lỗi: " + apiResponse.getMessage(),
+                                    Toast.LENGTH_SHORT
+                            ).show();
                         }
 
-                        @Override
-                        public void onFailure(Call<ApiResponse<LessonResponse>> call, Throwable t) {
-                            Toast.makeText(TeacherClass.this, "Lỗi kết nối mạng!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        try {
+                            String errLog = response.errorBody() != null
+                                    ? response.errorBody().string()
+                                    : "Mã lỗi trống";
+
+                            Log.e("CREATE_LESSON_ERROR", errLog);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    });
+
+                        Toast.makeText(
+                                TeacherClass.this,
+                                "Không thể lưu, mã phản hồi: " + response.code(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ApiResponse<LessonResponse>> call, Throwable t) {
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Thêm khóa học");
+
+                    Log.e("CREATE_LESSON_FAIL", String.valueOf(t.getMessage()));
+
+                    Toast.makeText(
+                            TeacherClass.this,
+                            "Lỗi kết nối mạng!",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            });
         });
 
         dialog.show();
     }
 
     private void showEditDialog(int position) {
+        if (position < 0 || position >= filteredList.size()) {
+            Toast.makeText(this, "Vị trí khóa học không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         LessonResponse oldCourse = filteredList.get(position);
+
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_course, null);
+
         EditText edtTitle = view.findViewById(R.id.edtCourseTitle);
         TabLayout tabLayout = view.findViewById(R.id.tabLayout);
+
         LinearLayout containerIntro = view.findViewById(R.id.containerIntro);
         LinearLayout containerCurriculum = view.findViewById(R.id.containerCurriculum);
 
@@ -320,33 +523,38 @@ public class TeacherClass extends AppCompatActivity {
 
         ImageView imgCourseCover = view.findViewById(R.id.imgCourseCover);
         MaterialButton btnUploadImage = view.findViewById(R.id.btnUploadImage);
+
         LinearLayout lessonContainer = view.findViewById(R.id.lessonContainer);
         MaterialButton btnAddLesson = view.findViewById(R.id.btnAddLesson);
         MaterialButton btnSave = view.findViewById(R.id.btnSaveCourse);
         MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
 
-        // Reset danh sách view chứa các module mới cho lần mở dialog này
         lessonViews.clear();
         selectedImageUri = null;
 
-        // Đổ dữ liệu cũ của khóa học vào các ô nhập liệu
-        edtTitle.setText(oldCourse.getTitle());
-        if (edtDescription != null) edtDescription.setText(oldCourse.getDescription());
-        if (edtWhatYouLearn != null) edtWhatYouLearn.setText(oldCourse.getWhatYouLearn());
-        if (edtSkills != null) edtSkills.setText(oldCourse.getSkillLearned());
+        edtTitle.setText(safe(oldCourse.getTitle()));
 
-        if (btnUploadImage != null) {
-            btnUploadImage.setVisibility(View.GONE); // Giữ nguyên logic ẩn nút chọn ảnh bìa từ code cũ của bạn
+        if (edtDescription != null) {
+            edtDescription.setText(safe(oldCourse.getDescription()));
         }
 
-        // LẤY IMAGE CỦA LESSON COVER: Sử dụng Glide để load URL ảnh từ object oldCourse
-        // Nếu getThumbnail() null/rỗng hoặc lỗi, Glide sẽ tự fallback về course_python làm mặc định
-        String thumbnailUrl = oldCourse.getThumbnailUrl();
+        if (edtWhatYouLearn != null) {
+            edtWhatYouLearn.setText(safe(oldCourse.getWhatYouLearn()));
+        }
+
+        if (edtSkills != null) {
+            edtSkills.setText(safe(oldCourse.getSkillLearned()));
+        }
+
         com.bumptech.glide.Glide.with(this)
-                .load(thumbnailUrl)
-                .placeholder(R.drawable.course_python) // Ảnh hiển thị trong lúc đợi tải
-                .error(R.drawable.course_python)       // Ảnh hiển thị nếu đường dẫn lỗi hoặc trống
+                .load(oldCourse.getThumbnailUrl())
+                .placeholder(R.drawable.course_python)
+                .error(R.drawable.course_python)
                 .into(imgCourseCover);
+
+        if (btnUploadImage != null) {
+            btnUploadImage.setVisibility(View.GONE);
+        }
 
         btnSave.setText("Cập nhật");
 
@@ -354,69 +562,140 @@ public class TeacherClass extends AppCompatActivity {
         dialog.setContentView(view);
 
         Window window = dialog.getWindow();
+
         if (window != null) {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             window.setGravity(Gravity.CENTER);
             window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         }
 
-        // Thiết lập sự kiện chuyển đổi qua lại giữa tab Giới thiệu / Giáo trình
         setupTabs(tabLayout, containerIntro, containerCurriculum);
 
-        // Sự kiện click thêm bài học mới (Module) vào container giáo trình
         btnAddLesson.setOnClickListener(v -> addLesson(lessonContainer));
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         btnSave.setOnClickListener(v -> {
             String newTitle = edtTitle.getText().toString().trim();
-            String newDescription = edtDescription != null ? edtDescription.getText().toString().trim() : "";
-            String newWhatYouLearn = edtWhatYouLearn != null ? edtWhatYouLearn.getText().toString().trim() : "";
-            String newSkills = edtSkills != null ? edtSkills.getText().toString().trim() : "";
+            String newDescription = edtDescription != null
+                    ? edtDescription.getText().toString().trim()
+                    : "";
+
+            String newWhatYouLearn = edtWhatYouLearn != null
+                    ? edtWhatYouLearn.getText().toString().trim()
+                    : "";
+
+            String newSkills = edtSkills != null
+                    ? edtSkills.getText().toString().trim()
+                    : "";
 
             if (newTitle.isEmpty()) {
                 edtTitle.setError("Nhập tên khóa học");
+                edtTitle.requestFocus();
                 return;
             }
 
-            LessonUpdateRequest updateRequest = new LessonUpdateRequest(newTitle, newDescription, newWhatYouLearn, newSkills);
+            LessonUpdateRequest updateRequest =
+                    new LessonUpdateRequest(
+                            newTitle,
+                            newDescription,
+                            newWhatYouLearn,
+                            newSkills
+                    );
 
-            LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
-            apiService.updateLesson(oldCourse.getId(), updateRequest).enqueue(new Callback<ApiResponse<String>>() {
-                @Override
-                public void onResponse(Call<ApiResponse<String>> call, Response<ApiResponse<String>> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        ApiResponse<String> apiResponse = response.body();
-                        if (apiResponse.getCode() == 1000) {
-                            // Thực hiện gọi uploadModules để create các module của bài học (Lesson) đang edit này
-                            int currentLessonId = oldCourse.getId();
-                            uploadModules(currentLessonId, dialog);
-                        } else {
-                            Toast.makeText(TeacherClass.this, "Lỗi cập nhật thông tin: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+            LessonApiService apiService =
+                    RetrofitClient.getClient().create(LessonApiService.class);
+
+            btnSave.setEnabled(false);
+            btnSave.setText("Đang cập nhật...");
+
+            apiService.updateLesson(oldCourse.getId(), updateRequest)
+                    .enqueue(new Callback<ApiResponse<String>>() {
+                        @Override
+                        public void onResponse(
+                                Call<ApiResponse<String>> call,
+                                Response<ApiResponse<String>> response
+                        ) {
+                            btnSave.setEnabled(true);
+                            btnSave.setText("Cập nhật");
+
+                            if (response.isSuccessful() && response.body() != null) {
+                                ApiResponse<String> apiResponse = response.body();
+
+                                if (apiResponse.getCode() == 1000) {
+                                    int currentLessonId = oldCourse.getId();
+
+                                    if (!lessonViews.isEmpty()) {
+                                        uploadModules(currentLessonId, dialog);
+                                    } else {
+                                        Toast.makeText(
+                                                TeacherClass.this,
+                                                "Cập nhật khóa học thành công!",
+                                                Toast.LENGTH_SHORT
+                                        ).show();
+
+                                        fetchTeacherLessonsFromServer();
+                                        dialog.dismiss();
+                                    }
+
+                                } else {
+                                    Toast.makeText(
+                                            TeacherClass.this,
+                                            "Lỗi cập nhật: " + apiResponse.getMessage(),
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                }
+
+                            } else {
+                                try {
+                                    String errorBody = response.errorBody() != null
+                                            ? response.errorBody().string()
+                                            : "Không có error body";
+
+                                    Log.e("UPDATE_LESSON_ERROR", errorBody);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
+                                Toast.makeText(
+                                        TeacherClass.this,
+                                        "Không thể cập nhật, mã phản hồi: " + response.code(),
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
                         }
-                    } else {
-                        Toast.makeText(TeacherClass.this, "Không thể cập nhật, mã phản hồi: " + response.code(), Toast.LENGTH_SHORT).show();
-                    }
-                }
 
-                @Override
-                public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
-                    Log.e("UPDATE_LESSON_ERROR", "Thất bại: " + t.getMessage());
-                    Toast.makeText(TeacherClass.this, "Lỗi mạng, vui lòng thử lại sau!", Toast.LENGTH_SHORT).show();
-                }
-            });
+                        @Override
+                        public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
+                            btnSave.setEnabled(true);
+                            btnSave.setText("Cập nhật");
+
+                            Log.e("UPDATE_LESSON_ERROR", "Thất bại: " + t.getMessage());
+
+                            Toast.makeText(
+                                    TeacherClass.this,
+                                    "Lỗi mạng, vui lòng thử lại sau!",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    });
         });
 
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
 
-    private void setupTabs(TabLayout tabLayout, LinearLayout containerIntro, LinearLayout containerCurriculum) {
+    private void setupTabs(
+            TabLayout tabLayout,
+            LinearLayout containerIntro,
+            LinearLayout containerCurriculum
+    ) {
         tabLayout.removeAllTabs();
         tabLayout.addTab(tabLayout.newTab().setText("Giới thiệu"));
         tabLayout.addTab(tabLayout.newTab().setText("Giáo trình"));
 
         for (int i = 0; i < tabLayout.getTabCount(); i++) {
-            TextView tabTextView = (TextView) LayoutInflater.from(this)
-                    .inflate(R.layout.tab_item_layout, null);
+            TextView tabTextView =
+                    (TextView) LayoutInflater.from(this)
+                            .inflate(R.layout.tab_item_layout, null);
 
             if (tabLayout.getTabAt(i) != null) {
                 tabTextView.setText(tabLayout.getTabAt(i).getText());
@@ -441,29 +720,36 @@ public class TeacherClass extends AppCompatActivity {
             }
 
             @Override
-            public void onTabUnselected(TabLayout.Tab tab) { }
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
 
             @Override
-            public void onTabReselected(TabLayout.Tab tab) { }
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
         });
     }
 
     private void addLesson(LinearLayout lessonContainer) {
-        View lessonView = LayoutInflater.from(this).inflate(R.layout.item_lesson, null);
+        View lessonView =
+                LayoutInflater.from(this).inflate(R.layout.item_lesson, null);
 
-        ImageView imgLesson = lessonView.findViewById(R.id.imgCourseCover);
-        MaterialButton btnPickImage = lessonView.findViewById(R.id.btnUploadImage);
+        MaterialButton btnUploadVideo =
+                lessonView.findViewById(R.id.btnUploadVideo);
 
-        btnPickImage.setOnClickListener(v -> {
-            imgPreview = imgLesson;
-            imagePickerLauncher.launch("image/*");
-        });
+        if (btnUploadVideo != null) {
+            btnUploadVideo.setOnClickListener(v -> {
+                currentModuleFileView = lessonView;
+                moduleFilePickerLauncher.launch("*/*");
+            });
+        }
 
         if (!lessonViews.isEmpty()) {
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
+            LinearLayout.LayoutParams params =
+                    new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+
             params.topMargin = 20;
             lessonView.setLayoutParams(params);
         }
@@ -472,19 +758,342 @@ public class TeacherClass extends AppCompatActivity {
         lessonViews.add(lessonView);
     }
 
+    private void uploadModules(int lessonId, Dialog dialog) {
+        if (lessonViews.isEmpty()) {
+            Toast.makeText(
+                    TeacherClass.this,
+                    "Lưu khóa học thành công!",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            fetchTeacherLessonsFromServer();
+            dialog.dismiss();
+            return;
+        }
+
+        ModuleApiService moduleApiService =
+                RetrofitClient.getClient().create(ModuleApiService.class);
+
+        int totalModules = lessonViews.size();
+        int[] completed = {0};
+        int[] failed = {0};
+
+        for (int i = 0; i < totalModules; i++) {
+            View lessonView = lessonViews.get(i);
+
+            EditText edtModuleTitle = lessonView.findViewById(R.id.txtModuleTitle);
+            EditText edtObjective = lessonView.findViewById(R.id.txtObjective);
+            EditText edtContent = lessonView.findViewById(R.id.txtContent);
+            EditText edtExample = lessonView.findViewById(R.id.txtExample);
+
+            String title =
+                    edtModuleTitle != null
+                            && !edtModuleTitle.getText().toString().trim().isEmpty()
+                            ? edtModuleTitle.getText().toString().trim()
+                            : "Module " + (i + 1);
+
+            String objective =
+                    edtObjective != null
+                            ? edtObjective.getText().toString().trim()
+                            : "";
+
+            String content =
+                    edtContent != null
+                            ? edtContent.getText().toString().trim()
+                            : "";
+
+            String example =
+                    edtExample != null
+                            ? edtExample.getText().toString().trim()
+                            : "";
+
+            Uri selectedModuleFileUri = null;
+
+            if (lessonView.getTag() instanceof Uri) {
+                selectedModuleFileUri = (Uri) lessonView.getTag();
+            }
+
+            RequestBody lessonIdBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            String.valueOf(lessonId)
+                    );
+
+            RequestBody titleBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            title
+                    );
+
+            RequestBody objectiveBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            objective
+                    );
+
+            RequestBody contentBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            content
+                    );
+
+            RequestBody exampleBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            example
+                    );
+
+            RequestBody orderIndexBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            String.valueOf(i + 1)
+                    );
+
+            Uri finalSelectedModuleFileUri = selectedModuleFileUri;
+
+            moduleApiService.createModule(
+                    lessonIdBody,
+                    titleBody,
+                    objectiveBody,
+                    contentBody,
+                    exampleBody,
+                    orderIndexBody
+            ).enqueue(new Callback<ApiResponse<ModuleResponse>>() {
+                @Override
+                public void onResponse(
+                        Call<ApiResponse<ModuleResponse>> call,
+                        Response<ApiResponse<ModuleResponse>> response
+                ) {
+                    if (response.isSuccessful()
+                            && response.body() != null
+                            && response.body().getCode() == 1000
+                            && response.body().getResult() != null) {
+
+                        Integer moduleId = response.body().getResult().getId();
+
+                        if (finalSelectedModuleFileUri != null) {
+                            uploadFileForModule(
+                                    moduleId,
+                                    finalSelectedModuleFileUri,
+                                    () -> {
+                                        completed[0]++;
+                                        checkAllModulesUploaded(
+                                                completed[0],
+                                                failed[0],
+                                                totalModules,
+                                                dialog
+                                        );
+                                    },
+                                    () -> {
+                                        completed[0]++;
+                                        failed[0]++;
+                                        checkAllModulesUploaded(
+                                                completed[0],
+                                                failed[0],
+                                                totalModules,
+                                                dialog
+                                        );
+                                    }
+                            );
+                        } else {
+                            completed[0]++;
+                            checkAllModulesUploaded(
+                                    completed[0],
+                                    failed[0],
+                                    totalModules,
+                                    dialog
+                            );
+                        }
+
+                    } else {
+                        failed[0]++;
+                        completed[0]++;
+
+                        try {
+                            String errorBody = response.errorBody() != null
+                                    ? response.errorBody().string()
+                                    : "Không có error body";
+
+                            Log.e("CREATE_MODULE_ERROR", errorBody);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        checkAllModulesUploaded(
+                                completed[0],
+                                failed[0],
+                                totalModules,
+                                dialog
+                        );
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ApiResponse<ModuleResponse>> call, Throwable t) {
+                    failed[0]++;
+                    completed[0]++;
+
+                    Log.e("CREATE_MODULE_FAIL", String.valueOf(t.getMessage()));
+
+                    checkAllModulesUploaded(
+                            completed[0],
+                            failed[0],
+                            totalModules,
+                            dialog
+                    );
+                }
+            });
+        }
+    }
+
+    private void uploadFileForModule(
+            Integer moduleId,
+            Uri fileUri,
+            Runnable onSuccess,
+            Runnable onError
+    ) {
+        if (moduleId == null || fileUri == null) {
+            onError.run();
+            return;
+        }
+
+        try {
+            File file = getFileFromUri(fileUri);
+
+            if (file == null) {
+                onError.run();
+                return;
+            }
+
+            String fileName = getFileNameFromUri(fileUri);
+
+            String mimeType = getContentResolver().getType(fileUri);
+
+            if (mimeType == null) {
+                mimeType = "application/octet-stream";
+            }
+
+            RequestBody moduleIdBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            String.valueOf(moduleId)
+                    );
+
+            RequestBody fileNameBody =
+                    RequestBody.create(
+                            MediaType.parse("text/plain"),
+                            fileName
+                    );
+
+            RequestBody requestFile =
+                    RequestBody.create(
+                            MediaType.parse(mimeType),
+                            file
+                    );
+
+            MultipartBody.Part filePart =
+                    MultipartBody.Part.createFormData(
+                            "file",
+                            fileName,
+                            requestFile
+                    );
+
+            FileApiService fileApiService =
+                    RetrofitClient.getClient().create(FileApiService.class);
+
+            fileApiService.uploadFile(
+                    moduleIdBody,
+                    fileNameBody,
+                    filePart
+            ).enqueue(new Callback<ApiResponse<String>>() {
+                @Override
+                public void onResponse(
+                        Call<ApiResponse<String>> call,
+                        Response<ApiResponse<String>> response
+                ) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        onSuccess.run();
+                    } else {
+                        try {
+                            String errorBody = response.errorBody() != null
+                                    ? response.errorBody().string()
+                                    : "Không có error body";
+
+                            Log.e("UPLOAD_MODULE_FILE_ERROR", errorBody);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        onError.run();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
+                    Log.e("UPLOAD_MODULE_FILE_FAIL", String.valueOf(t.getMessage()));
+                    onError.run();
+                }
+            });
+
+        } catch (Exception e) {
+            Log.e("UPLOAD_FILE_EXCEPTION", String.valueOf(e.getMessage()));
+            onError.run();
+        }
+    }
+
+    private void checkAllModulesUploaded(
+            int completedCount,
+            int failedCount,
+            int totalModules,
+            Dialog dialog
+    ) {
+        if (completedCount == totalModules) {
+            if (failedCount > 0) {
+                Toast.makeText(
+                        TeacherClass.this,
+                        "Đã lưu khóa học, nhưng có " + failedCount + " bài học/file bị lỗi!",
+                        Toast.LENGTH_LONG
+                ).show();
+            } else {
+                Toast.makeText(
+                        TeacherClass.this,
+                        "Lưu khóa học, giáo trình và file thành công!",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+
+            fetchTeacherLessonsFromServer();
+            dialog.dismiss();
+        }
+    }
+
     private void showDeleteDialog(int position) {
+        if (position < 0 || position >= filteredList.size()) {
+            Toast.makeText(this, "Vị trí khóa học không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         LessonResponse courseToDelete = filteredList.get(position);
         Integer lessonId = courseToDelete.getId();
+
+        if (lessonId == null) {
+            Toast.makeText(this, "Không tìm thấy lessonId", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         new AlertDialog.Builder(this)
                 .setTitle("Xóa khóa học")
                 .setMessage("Bạn có chắc muốn xóa khóa học này không?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
+                    LessonApiService apiService =
+                            RetrofitClient.getClient().create(LessonApiService.class);
 
-                    LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
                     apiService.deleteLesson(lessonId).enqueue(new Callback<ApiResponse<String>>() {
                         @Override
-                        public void onResponse(Call<ApiResponse<String>> call, Response<ApiResponse<String>> response) {
+                        public void onResponse(
+                                Call<ApiResponse<String>> call,
+                                Response<ApiResponse<String>> response
+                        ) {
                             if (response.isSuccessful() && response.body() != null) {
                                 ApiResponse<String> apiResponse = response.body();
 
@@ -493,24 +1102,130 @@ public class TeacherClass extends AppCompatActivity {
                                     adapter.notifyItemRemoved(position);
                                     adapter.notifyItemRangeChanged(position, filteredList.size());
 
-                                    Toast.makeText(TeacherClass.this, "Đã xóa khóa học thành công!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(
+                                            TeacherClass.this,
+                                            "Đã xóa khóa học thành công!",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+
                                 } else {
-                                    Toast.makeText(TeacherClass.this, "Lỗi Server: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(
+                                            TeacherClass.this,
+                                            "Lỗi Server: " + apiResponse.getMessage(),
+                                            Toast.LENGTH_SHORT
+                                    ).show();
                                 }
+
                             } else {
-                                Toast.makeText(TeacherClass.this, "Xóa thất bại, mã phản hồi: " + response.code(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(
+                                        TeacherClass.this,
+                                        "Xóa thất bại, mã phản hồi: " + response.code(),
+                                        Toast.LENGTH_SHORT
+                                ).show();
                             }
                         }
 
                         @Override
                         public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
                             Log.e("DELETE_LESSON_ERROR", "Lỗi: " + t.getMessage());
-                            Toast.makeText(TeacherClass.this, "Lỗi kết nối mạng!", Toast.LENGTH_SHORT).show();
+
+                            Toast.makeText(
+                                    TeacherClass.this,
+                                    "Lỗi kết nối mạng!",
+                                    Toast.LENGTH_SHORT
+                            ).show();
                         }
                     });
                 })
                 .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
                 .show();
+    }
+
+    private File getFileFromUri(Uri uri) {
+        if (uri == null) {
+            return null;
+        }
+
+        try {
+            String extension = ".tmp";
+            String mimeType = getContentResolver().getType(uri);
+
+            if (mimeType != null) {
+                if (mimeType.contains("jpeg") || mimeType.contains("jpg")) {
+                    extension = ".jpg";
+                } else if (mimeType.contains("png")) {
+                    extension = ".png";
+                } else if (mimeType.contains("webp")) {
+                    extension = ".webp";
+                } else if (mimeType.contains("mp4")) {
+                    extension = ".mp4";
+                } else if (mimeType.contains("pdf")) {
+                    extension = ".pdf";
+                }
+            }
+
+            InputStream inputStream =
+                    getContentResolver().openInputStream(uri);
+
+            if (inputStream == null) {
+                return null;
+            }
+
+            File tempFile =
+                    File.createTempFile(
+                            "upload_",
+                            extension,
+                            getCacheDir()
+                    );
+
+            FileOutputStream outputStream =
+                    new FileOutputStream(tempFile);
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
+
+            return tempFile;
+
+        } catch (Exception e) {
+            Log.e("URI_CONVERT_ERROR", "Không thể chuyển đổi URI sang File: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private String getFileNameFromUri(Uri uri) {
+        String result = "module_file";
+
+        if (uri == null) {
+            return result;
+        }
+
+        try {
+            Cursor cursor =
+                    getContentResolver().query(uri, null, null, null, null);
+
+            if (cursor != null) {
+                int nameIndex =
+                        cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+
+                if (nameIndex >= 0 && cursor.moveToFirst()) {
+                    result = cursor.getString(nameIndex);
+                }
+
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e("GET_FILE_NAME", String.valueOf(e.getMessage()));
+        }
+
+        return result;
     }
 
     private void showSidebarMenu() {
@@ -519,11 +1234,13 @@ public class TeacherClass extends AppCompatActivity {
         dialog.setContentView(R.layout.teacher_layout_sidebar);
 
         Window window = dialog.getWindow();
+
         if (window != null) {
             window.setLayout(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
             );
+
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.setGravity(Gravity.END);
         }
@@ -552,9 +1269,7 @@ public class TeacherClass extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        menuMyClasses.setOnClickListener(v -> {
-            dialog.dismiss();
-        });
+        menuMyClasses.setOnClickListener(v -> dialog.dismiss());
 
         txtLogout.setOnClickListener(v -> {
             Intent intent = new Intent(TeacherClass.this, MainActivity.class);
@@ -567,128 +1282,11 @@ public class TeacherClass extends AppCompatActivity {
         dialog.show();
     }
 
-    private java.io.File getFileFromUri(Uri uri) {
-        if (uri == null) return null;
-        try {
-            String extension = ".jpg";
-            String mimeType = getContentResolver().getType(uri);
-            if (mimeType != null) {
-                if (mimeType.contains("png")) extension = ".png";
-                else if (mimeType.contains("webp")) extension = ".webp";
-            }
-
-            java.io.InputStream inputStream = getContentResolver().openInputStream(uri);
-            if (inputStream == null) return null;
-
-            java.io.File tempFile = java.io.File.createTempFile("upload_", extension, getCacheDir());
-            java.io.FileOutputStream outputStream = new java.io.FileOutputStream(tempFile);
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
-            outputStream.flush();
-            outputStream.close();
-            inputStream.close();
-
-            return tempFile;
-        } catch (Exception e) {
-            Log.e("URI_CONVERT_ERROR", "Không thể chuyển đổi URI sang File: " + e.getMessage());
-            return null;
-        }
-    }
-
-    private void uploadModules(int newLessonId, Dialog dialog) {
-        if (lessonViews.isEmpty()) {
-            Toast.makeText(TeacherClass.this, "Thêm khóa học thành công!", Toast.LENGTH_SHORT).show();
-            fetchTeacherLessonsFromServer();
-            dialog.dismiss();
-            return;
+    private String safe(String value) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
+            return "";
         }
 
-        ModuleApiService moduleApiService = RetrofitClient.getClient().create(ModuleApiService.class);
-        int totalModules = lessonViews.size();
-        int[] completed = {0};
-        int[] failed = {0}; // Thêm biến đếm số module bị lỗi
-
-        for (int i = 0; i < totalModules; i++) {
-            View lessonView = lessonViews.get(i);
-
-            EditText edtModuleTitle = lessonView.findViewById(R.id.txtModuleTitle);
-            EditText edtObjective = lessonView.findViewById(R.id.txtObjective);
-            EditText edtContent = lessonView.findViewById(R.id.txtContent);
-            EditText edtExample = lessonView.findViewById(R.id.txtExample);
-            ImageView imgLesson = lessonView.findViewById(R.id.imgCourseCover);
-
-            String title = edtModuleTitle != null && !edtModuleTitle.getText().toString().isEmpty()
-                    ? edtModuleTitle.getText().toString().trim() : "Module " + (i + 1);
-            String objective = edtObjective != null ? edtObjective.getText().toString().trim() : "";
-            String content = edtContent != null ? edtContent.getText().toString().trim() : "";
-            String example = edtExample != null ? edtExample.getText().toString().trim() : "";
-
-            Uri moduleImageUri = (Uri) imgLesson.getTag();
-
-            RequestBody lessonIdBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(newLessonId));
-            RequestBody titleBody = RequestBody.create(MediaType.parse("text/plain"), title);
-            RequestBody objectiveBody = RequestBody.create(MediaType.parse("text/plain"), objective);
-            RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), content);
-            RequestBody exampleBody = RequestBody.create(MediaType.parse("text/plain"), example);
-            RequestBody orderIndexBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(i + 1));
-
-            MultipartBody.Part imagePart = null;
-            if (moduleImageUri != null) {
-                java.io.File file = getFileFromUri(moduleImageUri);
-                if (file != null) {
-                    String mimeType = getContentResolver().getType(moduleImageUri);
-                    if (mimeType == null) mimeType = "image/jpeg";
-                    RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), file);
-                    imagePart = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
-                }
-            }
-
-            moduleApiService.createModule(lessonIdBody, titleBody, objectiveBody, contentBody, exampleBody, orderIndexBody, imagePart)
-                    .enqueue(new Callback<ApiResponse<ModuleResponse>>() {
-                        @Override
-                        public void onResponse(Call<ApiResponse<ModuleResponse>> call, Response<ApiResponse<ModuleResponse>> response) {
-                            completed[0]++;
-                            if (response.isSuccessful() && response.body() != null) {
-                                // Thành công thật sự
-                                Log.d("MODULE_UPLOAD", "Upload thành công module: " + response.body().getMessage());
-                            } else {
-                                // Server báo lỗi (Ví dụ 400 Bad Request)
-                                failed[0]++;
-                                try {
-                                    String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
-                                    Log.e("SERVER_MODULE_ERROR", "Lỗi Server từ chối Module: " + errorBody);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            checkAllModulesUploaded(completed[0], failed[0], totalModules, dialog);
-                        }
-
-                        @Override
-                        public void onFailure(Call<ApiResponse<ModuleResponse>> call, Throwable t) {
-                            completed[0]++;
-                            failed[0]++;
-                            Log.e("MODULE_UPLOAD", "Lỗi mạng khi upload module: " + t.getMessage());
-                            checkAllModulesUploaded(completed[0], failed[0], totalModules, dialog);
-                        }
-                    });
-        }
-    }
-
-    private void checkAllModulesUploaded(int completedCount, int failedCount, int totalModules, Dialog dialog) {
-        if (completedCount == totalModules) {
-            if (failedCount > 0) {
-                Toast.makeText(TeacherClass.this, "Đã thêm khóa học, nhưng có " + failedCount + " bài học bị lỗi không lưu được!", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(TeacherClass.this, "Thêm khóa học và giáo trình thành công!", Toast.LENGTH_SHORT).show();
-            }
-            fetchTeacherLessonsFromServer();
-            dialog.dismiss();
-        }
+        return value.trim();
     }
 }

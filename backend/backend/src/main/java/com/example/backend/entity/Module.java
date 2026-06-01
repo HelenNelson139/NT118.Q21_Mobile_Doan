@@ -22,7 +22,7 @@ public class Module {
     String objective;
     String content;
     String example;
-    String image_example_url;
+    String file_example_url;
     Integer order_index;
     Status status;
 }
