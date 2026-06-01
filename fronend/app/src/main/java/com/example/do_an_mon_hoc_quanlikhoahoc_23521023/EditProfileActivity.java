@@ -2,12 +2,17 @@ package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Patterns;
+import android.provider.OpenableColumns;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -15,28 +20,30 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class EditProfileActivity extends AppCompatActivity {
 
     private EditText edtName, edtEmail, edtUsername, edtPhone, edtAddress;
-    private MaterialButton btnSave;
-
+    private Button btnSave;
     private ImageView imgAvatar;
     private MaterialCardView avatarCard;
+
+    private Uri selectedAvatarUri = null;
 
     private String oldName = "";
     private String oldEmail = "";
     private String oldUsername = "";
     private String oldPhone = "";
     private String oldDateOfBirth = "";
-    private String currentAvatarUrl = "";
+    private String oldAvatarUrl = "";
 
     private static final String PREF_NAME = "APP_PREFS";
     private static final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
@@ -44,11 +51,11 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private static final String BASE_URL = "http://10.0.2.2:8080/NT118";
 
+    private ActivityResultLauncher<String> imagePickerLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Đúng layout chỉnh sửa student
         setContentView(R.layout.activity_edit_student_profile);
 
         imgAvatar = findViewById(R.id.imgAvatar);
@@ -58,17 +65,33 @@ public class EditProfileActivity extends AppCompatActivity {
         edtEmail = findViewById(R.id.edtEmail);
         edtUsername = findViewById(R.id.edtUsername);
         edtPhone = findViewById(R.id.edtPhone);
+
+        // Với student, edtAddress dùng để nhập ngày sinh yyyy-MM-dd
         edtAddress = findViewById(R.id.edtAddress);
 
         btnSave = findViewById(R.id.btnSave);
 
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        selectedAvatarUri = uri;
+
+                        Glide.with(this)
+                                .load(uri)
+                                .circleCrop()
+                                .placeholder(R.drawable.ic_profile)
+                                .error(R.drawable.ic_profile)
+                                .into(imgAvatar);
+                    }
+                }
+        );
+
+        avatarCard.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
+
         loadDataFromIntent();
 
-        avatarCard.setOnClickListener(v -> {
-            Toast.makeText(this, "Chức năng đổi ảnh sẽ xử lý sau", Toast.LENGTH_SHORT).show();
-        });
-
-        btnSave.setOnClickListener(v -> updateChangedStudentFields());
+        btnSave.setOnClickListener(v -> saveProfile());
     }
 
     private void loadDataFromIntent() {
@@ -83,7 +106,7 @@ public class EditProfileActivity extends AppCompatActivity {
         oldUsername = safeString(intent.getStringExtra("username"));
         oldPhone = safeString(intent.getStringExtra("phone"));
         oldDateOfBirth = safeString(intent.getStringExtra("date_of_birth"));
-        currentAvatarUrl = safeString(intent.getStringExtra("avatar_url"));
+        oldAvatarUrl = safeString(intent.getStringExtra("avatar_url"));
 
         edtName.setText(oldName);
         edtEmail.setText(oldEmail);
@@ -93,24 +116,19 @@ public class EditProfileActivity extends AppCompatActivity {
 
         edtUsername.setEnabled(false);
 
-        loadAvatar(currentAvatarUrl);
-    }
-
-    private void loadAvatar(String avatarUrl) {
-        if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+        if (!oldAvatarUrl.isEmpty()) {
+            Glide.with(this)
+                    .load(oldAvatarUrl)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_profile)
+                    .error(R.drawable.ic_profile)
+                    .into(imgAvatar);
+        } else {
             imgAvatar.setImageResource(R.drawable.ic_profile);
-            return;
         }
-
-        Glide.with(this)
-                .load(avatarUrl)
-                .circleCrop()
-                .placeholder(R.drawable.ic_profile)
-                .error(R.drawable.ic_profile)
-                .into(imgAvatar);
     }
 
-    private void updateChangedStudentFields() {
+    private void saveProfile() {
         SharedPreferences sharedPreferences =
                 getSharedPreferences(PREF_NAME, MODE_PRIVATE);
 
@@ -133,86 +151,148 @@ public class EditProfileActivity extends AppCompatActivity {
         String newDateOfBirth = edtAddress.getText().toString().trim();
 
         if (newName.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập họ tên", Toast.LENGTH_SHORT).show();
+            edtName.setError("Vui lòng nhập họ tên");
+            edtName.requestFocus();
             return;
         }
 
         if (newEmail.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập email", Toast.LENGTH_SHORT).show();
+            edtEmail.setError("Vui lòng nhập email");
+            edtEmail.requestFocus();
             return;
         }
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
-            Toast.makeText(this, "Email không hợp lệ", Toast.LENGTH_SHORT).show();
+        if (!newDateOfBirth.isEmpty() && !isValidDateFormat(newDateOfBirth)) {
+            edtAddress.setError("Ngày sinh phải có dạng yyyy-MM-dd");
+            edtAddress.requestFocus();
             return;
         }
 
-        if (newPhone.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập số điện thoại", Toast.LENGTH_SHORT).show();
+        btnSave.setEnabled(false);
+        btnSave.setText("Đang lưu...");
+
+        boolean profileChanged =
+                !newName.equals(oldName)
+                        || !newEmail.equals(oldEmail)
+                        || !newPhone.equals(oldPhone)
+                        || !newDateOfBirth.equals(oldDateOfBirth);
+
+        boolean avatarChanged = selectedAvatarUri != null;
+
+        if (!profileChanged && !avatarChanged) {
+            Toast.makeText(this, "Không có thay đổi nào", Toast.LENGTH_SHORT).show();
+            btnSave.setEnabled(true);
+            btnSave.setText("LƯU");
             return;
         }
 
-        if (newDateOfBirth.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập ngày sinh", Toast.LENGTH_SHORT).show();
-            return;
+        if (profileChanged) {
+            updateStudentProfile(
+                    userId,
+                    token,
+                    newName,
+                    newEmail,
+                    newPhone,
+                    newDateOfBirth,
+                    avatarChanged
+            );
+        } else {
+            uploadAvatar(userId, token);
         }
+    }
 
-        if (!isValidDateFormat(newDateOfBirth)) {
-            Toast.makeText(
-                    this,
-                    "Ngày sinh phải có dạng yyyy-MM-dd, ví dụ: 2005-05-20",
-                    Toast.LENGTH_LONG
-            ).show();
-            return;
-        }
-
-        JSONObject body = new JSONObject();
-
+    private void updateStudentProfile(
+            int userId,
+            String token,
+            String name,
+            String email,
+            String phone,
+            String dateOfBirth,
+            boolean uploadAvatarAfterProfile
+    ) {
         try {
-            if (!newName.equals(oldName)) {
-                body.put("full_name", newName);
+            JSONObject body = new JSONObject();
+
+            body.put("full_name", name);
+            body.put("email", email);
+            body.put("phone", phone);
+
+            if (!dateOfBirth.isEmpty()) {
+                body.put("date_of_birth", dateOfBirth);
             }
 
-            if (!newEmail.equals(oldEmail)) {
-                body.put("email", newEmail);
-            }
+            String url = BASE_URL + "/api/students/update?userId=" + userId;
 
-            if (!newPhone.equals(oldPhone)) {
-                body.put("phone", newPhone);
-            }
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.PATCH,
+                    url,
+                    body,
+                    response -> {
+                        if (uploadAvatarAfterProfile) {
+                            uploadAvatar(userId, token);
+                        } else {
+                            finishSuccess();
+                        }
+                    },
+                    error -> {
+                        btnSave.setEnabled(true);
+                        btnSave.setText("LƯU");
 
-            if (!newDateOfBirth.equals(oldDateOfBirth)) {
-                body.put("date_of_birth", newDateOfBirth);
-            }
+                        String message = "Cập nhật thông tin thất bại";
 
-            if (body.length() == 0) {
-                Toast.makeText(this, "Bạn chưa thay đổi thông tin nào", Toast.LENGTH_SHORT).show();
-                return;
-            }
+                        if (error.networkResponse != null) {
+                            message += " - Code: " + error.networkResponse.statusCode;
+                            try {
+                                String responseBody = new String(error.networkResponse.data);
+                                message += "\n" + responseBody;
+                            } catch (Exception ignored) {
+                            }
+                        } else {
+                            message += ": " + error.toString();
+                        }
+
+                        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                    }
+            ) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + token);
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+            };
+
+            RequestQueue queue = Volley.newRequestQueue(this);
+            queue.add(request);
 
         } catch (Exception e) {
-            Toast.makeText(this, "Lỗi tạo dữ liệu cập nhật", Toast.LENGTH_SHORT).show();
-            return;
+            btnSave.setEnabled(true);
+            btnSave.setText("LƯU");
+            Toast.makeText(this, "Lỗi dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
 
-        String url = BASE_URL + "/api/students/update?userId=" + userId;
+    private void uploadAvatar(int userId, String token) {
+        String url = BASE_URL + "/api/users/" + userId + "/avatar";
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        VolleyMultipartRequest request = new VolleyMultipartRequest(
                 Request.Method.PATCH,
                 url,
-                body,
-                response -> {
-                    Toast.makeText(this, "Cập nhật hồ sơ thành công", Toast.LENGTH_SHORT).show();
-
-                    Intent resultIntent = new Intent();
-                    setResult(RESULT_OK, resultIntent);
-                    finish();
-                },
+                response -> finishSuccess(),
                 error -> {
-                    String message = "Lỗi cập nhật hồ sơ";
+                    btnSave.setEnabled(true);
+                    btnSave.setText("LƯU");
+
+                    String message = "Thông tin đã lưu nhưng upload avatar thất bại";
 
                     if (error.networkResponse != null) {
-                        message += ": HTTP " + error.networkResponse.statusCode;
+                        message += " - Code: " + error.networkResponse.statusCode;
+                        try {
+                            String responseBody = new String(error.networkResponse.data);
+                            message += "\n" + responseBody;
+                        } catch (Exception ignored) {
+                        }
                     } else {
                         message += ": " + error.toString();
                     }
@@ -224,8 +304,32 @@ public class EditProfileActivity extends AppCompatActivity {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", "Bearer " + token);
-                headers.put("Content-Type", "application/json");
                 return headers;
+            }
+
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+
+                try {
+                    byte[] fileBytes = getBytesFromUri(selectedAvatarUri);
+                    String fileName = getFileNameFromUri(selectedAvatarUri);
+                    String mimeType = getContentResolver().getType(selectedAvatarUri);
+
+                    if (mimeType == null || mimeType.trim().isEmpty()) {
+                        mimeType = "image/jpeg";
+                    }
+
+                    params.put(
+                            "avatar",
+                            new DataPart(fileName, fileBytes, mimeType)
+                    );
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return params;
             }
         };
 
@@ -233,19 +337,66 @@ public class EditProfileActivity extends AppCompatActivity {
         queue.add(request);
     }
 
+    private void finishSuccess() {
+        Toast.makeText(this, "Cập nhật hồ sơ thành công", Toast.LENGTH_SHORT).show();
+
+        Intent resultIntent = new Intent();
+        setResult(RESULT_OK, resultIntent);
+
+        btnSave.setEnabled(true);
+        btnSave.setText("LƯU");
+
+        finish();
+    }
+
+    private byte[] getBytesFromUri(Uri uri) throws Exception {
+        InputStream inputStream = getContentResolver().openInputStream(uri);
+
+        if (inputStream == null) {
+            throw new RuntimeException("Không đọc được ảnh");
+        }
+
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+
+        byte[] buffer = new byte[1024];
+        int len;
+
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+
+        inputStream.close();
+
+        return byteBuffer.toByteArray();
+    }
+
+    private String getFileNameFromUri(Uri uri) {
+        String fileName = "avatar_" + System.currentTimeMillis() + ".jpg";
+
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+
+        if (cursor != null) {
+            int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+
+            if (cursor.moveToFirst() && nameIndex >= 0) {
+                fileName = cursor.getString(nameIndex);
+            }
+
+            cursor.close();
+        }
+
+        return fileName;
+    }
+
     private boolean isValidDateFormat(String date) {
         return date.matches("^\\d{4}-\\d{2}-\\d{2}$");
     }
 
     private String safeString(String value) {
-        if (value == null || value.equalsIgnoreCase("null")) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
             return "";
         }
 
-        if (value.contains("T")) {
-            return value.substring(0, value.indexOf("T"));
-        }
-
-        return value;
+        return value.trim();
     }
 }

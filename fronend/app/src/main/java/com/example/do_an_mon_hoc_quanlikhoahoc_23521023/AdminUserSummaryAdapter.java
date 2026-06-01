@@ -5,16 +5,19 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-import androidx.annotation.NonNull;
+
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.imageview.ShapeableImageView;
+
 import java.util.List;
 
 public class AdminUserSummaryAdapter extends RecyclerView.Adapter<AdminUserSummaryAdapter.UserViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<AdminUserSummary> userList;
 
     public AdminUserSummaryAdapter(Context context, List<AdminUserSummary> userList) {
@@ -22,59 +25,79 @@ public class AdminUserSummaryAdapter extends RecyclerView.Adapter<AdminUserSumma
         this.userList = userList;
     }
 
-    @NonNull
+    public void updateList(List<AdminUserSummary> newList) {
+        this.userList = newList;
+        notifyDataSetChanged();
+    }
+
     @Override
-    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Sử dụng file admin_user_summary.xml
+    public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.admin_user_summary, parent, false);
         return new UserViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
+    public void onBindViewHolder(UserViewHolder holder, int position) {
         AdminUserSummary user = userList.get(position);
 
-        // Đổ dữ liệu vào các View
-        holder.txtId.setText("ID User: " + user.getUserId());
-        holder.txtName.setText("Họ tên: " + user.getUserName());
-        holder.imgAvatar.setImageResource(user.getAvatarResource());
+        holder.txtUserId.setText("Mã User: " + safe(user.getUserCode()));
+        holder.txtUserName.setText("Họ tên: " + safe(user.getFullName()));
 
-        // CHỨC NĂNG XEM CHI TIẾT
-        holder.btnDetails.setOnClickListener(v -> {
-            // Giả định bạn sẽ có một Activity là AdminUserDetailActivity để xem chi tiết User
+        if (user.getAvatarUrl() != null && !user.getAvatarUrl().trim().isEmpty()) {
+            Glide.with(context)
+                    .load(user.getAvatarUrl())
+                    .placeholder(R.drawable.ic_profile)
+                    .error(R.drawable.ic_profile)
+                    .into(holder.imgUserAvatar);
+        } else {
+            holder.imgUserAvatar.setImageResource(R.drawable.ic_profile);
+        }
+
+        holder.btnDetail.setOnClickListener(v -> {
             Intent intent = new Intent(context, AdminUserDetailActivity.class);
 
-            // Gửi dữ liệu user sang trang chi tiết
-            intent.putExtra("USER_ID", user.getUserId());
-            intent.putExtra("USER_NAME", user.getUserName());
+            intent.putExtra("user_id", user.getUserId());
+            intent.putExtra("user_code", user.getUserCode());
+            intent.putExtra("username", user.getUsername());
+            intent.putExtra("full_name", user.getFullName());
+            intent.putExtra("email", user.getEmail());
+            intent.putExtra("phone", user.getPhone());
+            intent.putExtra("avatar_url", user.getAvatarUrl());
+            intent.putExtra("role", user.getRole());
+            intent.putExtra("status", user.getStatus());
+            intent.putExtra("date_of_birth", user.getDateOfBirth());
+            intent.putExtra("department", user.getDepartment());
+
             context.startActivity(intent);
         });
     }
 
     @Override
     public int getItemCount() {
-        return userList.size();
+        return userList == null ? 0 : userList.size();
     }
 
-    /**
-     * Hàm cập nhật danh sách dữ liệu (Dùng khi chuyển đổi Tab Giảng viên/Học sinh)
-     */
-    public void updateList(List<AdminUserSummary> newList) {
-        this.userList = newList;
-        notifyDataSetChanged();
+    private String safe(String value) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
+            return "";
+        }
+
+        return value.trim();
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
-        ShapeableImageView imgAvatar;
-        TextView txtId, txtName;
-        MaterialButton btnDetails;
 
-        public UserViewHolder(@NonNull View itemView) {
+        ImageView imgUserAvatar;
+        TextView txtUserId, txtUserName;
+        MaterialButton btnDetail;
+
+        public UserViewHolder(View itemView) {
             super(itemView);
-            imgAvatar = itemView.findViewById(R.id.imgUserAvatar);
-            txtId = itemView.findViewById(R.id.txtUserId);
-            txtName = itemView.findViewById(R.id.txtUserName);
-            btnDetails = itemView.findViewById(R.id.btnDetails);
+
+            imgUserAvatar = itemView.findViewById(R.id.imgUserAvatar);
+            txtUserId = itemView.findViewById(R.id.txtUserId);
+            txtUserName = itemView.findViewById(R.id.txtUserName);
+            btnDetail = itemView.findViewById(R.id.btnDetail);
         }
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static java.util.stream.DoubleStream.builder;
 
 @RestController
@@ -43,6 +45,28 @@ public class TeacherController {
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public TeacherResponseProfile getTeacherProfile(@RequestParam Integer userId){
         return teacherService.getUserProfile(userId);
+    }
+
+    @GetMapping("/{lessonId}/students")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ApiResponse<List<Integer>> getStudentLessons(
+            @PathVariable Integer lessonId
+    ) {
+        return ApiResponse.<List<Integer>>builder()
+                .code(1000)
+                .message("Get student by lesson ids successful")
+                .result(teacherService.getStudentIdsByLessonId(lessonId))
+                .build();
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    public ApiResponse<List<TeacherResponseProfile>> getAllTeachers() {
+        return ApiResponse.<List<TeacherResponseProfile>>builder()
+                .code(1000)
+                .message("Get all teachers successful")
+                .result(teacherService.getAllTeachers())
+                .build();
     }
 
 

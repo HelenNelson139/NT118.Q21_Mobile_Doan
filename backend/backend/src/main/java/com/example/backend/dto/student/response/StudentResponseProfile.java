@@ -11,4 +11,5 @@ import java.util.Date;
 @Data
 public class StudentResponseProfile extends UserResponseProfile {
     Date date_of_birth;
+    String student_code;
 }

@@ -7,5 +7,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 @Data
 public class TeacherResponseProfile extends UserResponseProfile {
+    String teacher_code;
     String department;
 }

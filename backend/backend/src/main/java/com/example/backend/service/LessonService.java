@@ -92,6 +92,14 @@ public class LessonService {
                 .toList();
     }
 
+    public List<LessonResponse> findAllLessonPending(){
+        List<Lesson> listLessonFound = lessonRepository.findAll();
+        return listLessonFound.stream()
+                .filter(lesson -> lesson.getStatus() == Status.PENDING )
+                .map(lessonMapper::toLessonResponse)
+                .toList();
+    }
+
     @Transactional
     public void deleteLesson(Integer id){
         Lesson lesson = lessonRepository.findById(id)
