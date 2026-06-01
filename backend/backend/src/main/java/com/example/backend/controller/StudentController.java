@@ -76,4 +76,16 @@ public class StudentController {
                 .result(studentService.getStudentlessonByStudentId(studentId))
                 .build();
     }
+
+    @GetMapping("/{studentId}/lessons_not_enroll")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    public ApiResponse<List<Integer>> getStudentLessonsNotEnroll(
+            @PathVariable Integer studentId
+    ){
+        return ApiResponse.<List<Integer>>builder()
+                .code(1000)
+                .message("Get student lesson not enroll ids successful")
+                .result(studentService.getUnenrolledLessonsByStudentId(studentId))
+                .build();
+    }
 }
