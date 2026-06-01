@@ -39,13 +39,13 @@ public class ModuleService {
         Module module = moduleMapper.toModule(request);
         module.setLesson(lesson);
         module.setStatus(Status.PENDING);
-        MultipartFile image = request.getImage();
-        if(image != null && !image.isEmpty()){
-            String image_url = supabaseStorageService.uploadFile(
-                    image,
+        MultipartFile file = request.getFile();
+        if(file != null && !file.isEmpty()){
+            String file_url = supabaseStorageService.uploadModuleFile(
+                    file,
                     "modules/" + module.getId()
             );
-            module.setImage_example_url(image_url);
+            module.setFile_example_url(file_url);
         }
         Module savedModule = moduleRepository.save(module);
         return moduleMapper.toModuleResponse(savedModule);

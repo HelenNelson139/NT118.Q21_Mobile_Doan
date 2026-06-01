@@ -15,6 +15,6 @@ public class ModuleCreationRequest {
     String objective;
     String content;
     String example;
-    MultipartFile image;
+    MultipartFile file;
     Integer order_index;
 }

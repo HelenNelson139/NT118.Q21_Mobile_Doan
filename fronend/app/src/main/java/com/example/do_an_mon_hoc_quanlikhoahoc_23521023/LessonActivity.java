@@ -1,77 +1,105 @@
 package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
+import android.app.DownloadManager;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.TextView;
-import android.util.Log;
 import android.widget.Toast;
+import android.widget.VideoView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LessonActivity extends AppCompatActivity {
-    TextView txtLessonTitle, txtObjective, txtContent, txtExample;
-    ImageView imgExample, imgCourse; // <--- THÊM MỚI: Khai báo thêm imgCourse ở trên đầu XML
-    ImageButton btnBack, btnNext;
 
-    int currentIndex;
-    List<LessonResponse> lessonList = new ArrayList<>();
+    private TextView txtLessonTitle, txtObjective, txtContent, txtExample;
+    private ImageView imgExample, imgCourse;
+    private ImageButton btnBack, btnNext;
 
-    // Các biến phục vụ cho phần Module độc lập
-    ArrayList<Integer> moduleIds = new ArrayList<>();
-    boolean isModuleMode = false;
-    String parentLessonThumbnail = ""; // Lưu ảnh bìa của Lesson truyền từ ngoài vào
+    private VideoView videoModule;
+    private LinearLayout layoutModuleFiles;
+
+    private int currentIndex = 0;
+
+    private List<LessonResponse> lessonList = new ArrayList<>();
+
+    private ArrayList<Integer> moduleIds = new ArrayList<>();
+    private boolean isModuleMode = false;
+    private String parentLessonThumbnail = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
 
-        // Ánh xạ toàn bộ UI từ XML
-        txtLessonTitle = findViewById(R.id.txtLessonTitle);
-        txtObjective = findViewById(R.id.txtObjective);
-        txtContent = findViewById(R.id.txtContent);
-        txtExample = findViewById(R.id.txtExample);
-        imgExample = findViewById(R.id.imgExample);
-        imgCourse = findViewById(R.id.imgCourse); // <--- THÊM MỚI: Ánh xạ ảnh lớn ở trên cùng
-
-        btnBack = findViewById(R.id.btnBack);
-        btnNext = findViewById(R.id.btnNext);
+        initViews();
 
         btnBack.setVisibility(View.INVISIBLE);
         btnNext.setVisibility(View.INVISIBLE);
 
-        // Kiểm tra chế độ hiển thị dựa trên Intent truyền vào
+        handleIntentData();
+        setupButtonEvents();
+    }
+
+    private void initViews() {
+        txtLessonTitle = findViewById(R.id.txtLessonTitle);
+        txtObjective = findViewById(R.id.txtObjective);
+        txtContent = findViewById(R.id.txtContent);
+        txtExample = findViewById(R.id.txtExample);
+
+        imgExample = findViewById(R.id.imgExample);
+        imgCourse = findViewById(R.id.imgCourse);
+
+        btnBack = findViewById(R.id.btnBack);
+        btnNext = findViewById(R.id.btnNext);
+
+        videoModule = findViewById(R.id.videoModule);
+        layoutModuleFiles = findViewById(R.id.layoutModuleFiles);
+    }
+
+    private void handleIntentData() {
         if (getIntent() != null && getIntent().hasExtra("MODULE_IDS")) {
             isModuleMode = true;
+
             moduleIds = getIntent().getIntegerArrayListExtra("MODULE_IDS");
             currentIndex = getIntent().getIntExtra("CURRENT_INDEX", 0);
-
-            // Nhận thêm đường dẫn ảnh mô tả/thumbnail của Lesson lớn từ danh sách truyền sang
             parentLessonThumbnail = getIntent().getStringExtra("PARENT_LESSON_THUMBNAIL");
 
-            // Hiển thị ngay ảnh bìa của Lesson lên đầu giao diện trước
-            if (parentLessonThumbnail != null && !parentLessonThumbnail.isEmpty()) {
-                Glide.with(this).load(parentLessonThumbnail).into(imgCourse);
+            if (parentLessonThumbnail != null && !parentLessonThumbnail.trim().isEmpty()) {
+                Glide.with(this)
+                        .load(parentLessonThumbnail)
+                        .placeholder(R.drawable.course_python)
+                        .error(R.drawable.course_python)
+                        .into(imgCourse);
             }
 
             fetchModuleFromServer();
         } else {
             isModuleMode = false;
             currentIndex = getIntent().getIntExtra("index", 0);
-            fetchLessonsFromServer();
+            fetchTeacherLessonsFromServer();
         }
+    }
 
-        // Sự kiện nút chuyển bài tiếp theo (Giữ nguyên logic cũ)
+    private void setupButtonEvents() {
         btnNext.setOnClickListener(v -> {
             if (isModuleMode) {
                 if (moduleIds != null && currentIndex < moduleIds.size() - 1) {
@@ -79,14 +107,13 @@ public class LessonActivity extends AppCompatActivity {
                     fetchModuleFromServer();
                 }
             } else {
-                if (currentIndex < lessonList.size() - 1) {
+                if (lessonList != null && currentIndex < lessonList.size() - 1) {
                     currentIndex++;
                     loadLesson();
                 }
             }
         });
 
-        // Sự kiện nút quay lại (Giữ nguyên logic cũ)
         btnBack.setOnClickListener(v -> {
             if (isModuleMode) {
                 if (currentIndex == 0) {
@@ -106,118 +133,374 @@ public class LessonActivity extends AppCompatActivity {
         });
     }
 
-    // --- ĐÃ CẬP NHẬT: Đưa ảnh Thumbnail của Lesson lên đúng vị trí imgCourse ---
-    void loadLesson() {
-        if (lessonList == null || lessonList.isEmpty()) return;
+    private void fetchTeacherLessonsFromServer() {
+        LessonApiService apiService =
+                RetrofitClient.getClient().create(LessonApiService.class);
 
-        LessonResponse lesson = lessonList.get(currentIndex);
-        txtLessonTitle.setText((currentIndex + 1) + "/" + lessonList.size() + " - " + lesson.getTitle());
-        txtObjective.setText(lesson.getWhatYouLearn());
-        txtContent.setText(lesson.getDescription());
-        txtExample.setText(lesson.getSkillLearned());
-
-        // Đổ ảnh mô tả/thumbnail của Lesson vào imgCourse (Ảnh lớn trên cùng)
-        if (lesson.getThumbnailUrl() != null && !lesson.getThumbnailUrl().isEmpty()) {
-            Glide.with(this)
-                    .load(lesson.getThumbnailUrl())
-                    .into(imgCourse); // Đưa lên banner đầu trang thay vì đè vào imgExample
-        }
-
-        imgExample.setAlpha(0f);
-        imgExample.animate().alpha(1f).setDuration(300);
-
-        if (currentIndex == 0) {
-            btnBack.setVisibility(View.INVISIBLE);
-        } else {
-            btnBack.setVisibility(View.VISIBLE);
-        }
-        if (currentIndex == lessonList.size() - 1) {
-            btnNext.setVisibility(View.INVISIBLE);
-        } else {
-            btnNext.setVisibility(View.VISIBLE);
-        }
-    }
-
-    // --- GIỮ NGUYÊN HOÀN TOÀN: Hàm gọi danh sách Lesson cũ ---
-    private void fetchLessonsFromServer() {
-        LessonApiService apiService = RetrofitClient.getClient().create(LessonApiService.class);
-        apiService.getAllLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+        apiService.getMyLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
+            public void onResponse(
+                    Call<ApiResponse<List<LessonResponse>>> call,
+                    Response<ApiResponse<List<LessonResponse>>> response
+            ) {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<List<LessonResponse>> apiResponse = response.body();
+
                     if (apiResponse.getCode() == 1000) {
                         lessonList = apiResponse.getResult();
+
                         if (lessonList != null && !lessonList.isEmpty()) {
                             if (currentIndex < 0 || currentIndex >= lessonList.size()) {
                                 currentIndex = 0;
                             }
+
                             loadLesson();
                         } else {
-                            Toast.makeText(LessonActivity.this, "Không có bài học nào!", Toast.LENGTH_SHORT).show();
+                            showEmptyLesson();
                         }
                     }
                 }
             }
+
             @Override
-            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
-                Log.e("API_LOG", "Thất bại: " + t.getMessage());
+            public void onFailure(
+                    Call<ApiResponse<List<LessonResponse>>> call,
+                    Throwable t
+            ) {
+                Log.e("TEACHER_LESSON_API", "Thất bại: " + t.getMessage());
             }
         });
     }
 
-    // --- GIỮ NGUYÊN HOÀN TOÀN: Hàm lấy Module chi tiết theo ID ---
+    private void loadLesson() {
+        if (lessonList == null || lessonList.isEmpty()) {
+            showEmptyLesson();
+            return;
+        }
+
+        LessonResponse lesson = lessonList.get(currentIndex);
+
+        txtLessonTitle.setText(
+                (currentIndex + 1) + "/" + lessonList.size() + " - " + safe(lesson.getTitle())
+        );
+
+        txtObjective.setText(safe(lesson.getWhatYouLearn()));
+        txtContent.setText(safe(lesson.getDescription()));
+        txtExample.setText(safe(lesson.getSkillLearned()));
+
+        String thumbnailUrl = lesson.getThumbnailUrl();
+
+        if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
+            Glide.with(this)
+                    .load(thumbnailUrl)
+                    .placeholder(R.drawable.course_python)
+                    .error(R.drawable.course_python)
+                    .into(imgCourse);
+        } else {
+            imgCourse.setImageResource(R.drawable.course_python);
+        }
+
+        updateNavigationButtonsForLessons();
+    }
+
     private void fetchModuleFromServer() {
-        if (moduleIds == null || moduleIds.isEmpty() || currentIndex < 0 || currentIndex >= moduleIds.size()) return;
+        if (moduleIds == null || moduleIds.isEmpty()) {
+            showEmptyModule();
+            return;
+        }
+
+        if (currentIndex < 0 || currentIndex >= moduleIds.size()) {
+            currentIndex = 0;
+        }
 
         int currentModuleId = moduleIds.get(currentIndex);
-        ModuleApiService apiService = RetrofitClient.getClient().create(ModuleApiService.class);
+
+        ModuleApiService apiService =
+                RetrofitClient.getClient().create(ModuleApiService.class);
 
         apiService.getModuleById(currentModuleId).enqueue(new Callback<ApiResponse<ModuleResponse>>() {
             @Override
-            public void onResponse(Call<ApiResponse<ModuleResponse>> call, Response<ApiResponse<ModuleResponse>> response) {
+            public void onResponse(
+                    Call<ApiResponse<ModuleResponse>> call,
+                    Response<ApiResponse<ModuleResponse>> response
+            ) {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<ModuleResponse> apiResponse = response.body();
+
                     if (apiResponse.getCode() == 1000 && apiResponse.getResult() != null) {
                         loadModule(apiResponse.getResult());
+                    } else {
+                        showEmptyModule();
                     }
+                } else {
+                    showEmptyModule();
                 }
             }
+
             @Override
-            public void onFailure(Call<ApiResponse<ModuleResponse>> call, Throwable t) {
+            public void onFailure(
+                    Call<ApiResponse<ModuleResponse>> call,
+                    Throwable t
+            ) {
                 Log.e("API_MODULE_LOG", "Thất bại: " + t.getMessage());
+                showEmptyModule();
             }
         });
     }
 
-    // --- GIỮ NGUYÊN HOÀN TOÀN: Hàm hiển thị dữ liệu Module ---
-    void loadModule(ModuleResponse module) {
-        if (module == null) return;
+    private void loadModule(ModuleResponse module) {
+        if (module == null) {
+            showEmptyModule();
+            return;
+        }
 
-        txtLessonTitle.setText((currentIndex + 1) + "/" + moduleIds.size() + " - " + module.getTitle());
-        txtObjective.setText(module.getObjective());
-        txtContent.setText(module.getContent());
-        txtExample.setText(module.getExample());
+        txtLessonTitle.setText(
+                (currentIndex + 1) + "/" + moduleIds.size() + " - " + safe(module.getTitle())
+        );
 
-        // Hiển thị ảnh minh họa cụ thể của riêng Module này (nếu có) vào imgExample phía dưới
-        if (module.getImageExampleUrl() != null && !module.getImageExampleUrl().isEmpty()) {
+        txtObjective.setText(safe(module.getObjective()));
+        txtContent.setText(safe(module.getContent()));
+        txtExample.setText(safe(module.getExample()));
+
+        if (module.getImageExampleUrl() != null && !module.getImageExampleUrl().trim().isEmpty()) {
             Glide.with(this)
                     .load(module.getImageExampleUrl())
+                    .placeholder(R.drawable.course_python)
+                    .error(R.drawable.course_python)
                     .into(imgExample);
+        } else {
+            imgExample.setImageResource(R.drawable.course_python);
         }
 
-        imgExample.setAlpha(0f);
-        imgExample.animate().alpha(1f).setDuration(300);
+        fetchFilesOfModule(module.getId());
+        updateNavigationButtonsForModules();
+    }
 
-        if (currentIndex == 0) {
-            btnBack.setVisibility(View.INVISIBLE);
-        } else {
-            btnBack.setVisibility(View.VISIBLE);
+    private void fetchFilesOfModule(Integer moduleId) {
+        if (moduleId == null) {
+            return;
         }
-        if (currentIndex == moduleIds.size() - 1) {
-            btnNext.setVisibility(View.INVISIBLE);
-        } else {
-            btnNext.setVisibility(View.VISIBLE);
+
+        FileApiService fileApiService =
+                RetrofitClient.getClient().create(FileApiService.class);
+
+        fileApiService.getFilesByModule(moduleId).enqueue(new Callback<List<FileResponse>>() {
+            @Override
+            public void onResponse(
+                    Call<List<FileResponse>> call,
+                    Response<List<FileResponse>> response
+            ) {
+                if (layoutModuleFiles != null) {
+                    layoutModuleFiles.removeAllViews();
+                }
+
+                if (videoModule != null) {
+                    videoModule.stopPlayback();
+                    videoModule.setVisibility(View.GONE);
+                }
+
+                if (response.isSuccessful() && response.body() != null) {
+                    List<FileResponse> files = response.body();
+
+                    for (FileResponse file : files) {
+                        if (file == null || file.getFileUrl() == null) {
+                            continue;
+                        }
+
+                        String url = file.getFileUrl();
+                        String name = file.getFileName();
+
+                        if (isVideoFile(url, name)) {
+                            showVideo(url);
+                        }
+
+                        addDownloadButton(name, url);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<FileResponse>> call, Throwable t) {
+                Log.e("GET_MODULE_FILES", "Lỗi lấy file module: " + t.getMessage());
+            }
+        });
+    }
+
+    private void showVideo(String videoUrl) {
+        if (videoModule == null) {
+            return;
+        }
+
+        videoModule.setVisibility(View.VISIBLE);
+
+        MediaController mediaController = new MediaController(this);
+        mediaController.setAnchorView(videoModule);
+
+        videoModule.setMediaController(mediaController);
+        videoModule.setVideoURI(Uri.parse(videoUrl));
+        videoModule.requestFocus();
+
+        videoModule.setOnPreparedListener(mp -> videoModule.seekTo(1));
+
+        videoModule.setOnErrorListener((mp, what, extra) -> {
+            Toast.makeText(
+                    LessonActivity.this,
+                    "Không phát được video này",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return true;
+        });
+    }
+
+    private void addDownloadButton(String fileName, String fileUrl) {
+        if (layoutModuleFiles == null || fileUrl == null) {
+            return;
+        }
+
+        Button button = new Button(this);
+
+        String displayName = fileName == null || fileName.trim().isEmpty()
+                ? "Tải tài liệu"
+                : "Tải: " + fileName;
+
+        button.setText(displayName);
+        button.setAllCaps(false);
+
+        button.setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(fileUrl));
+                startActivity(intent);
+            } catch (Exception e) {
+                downloadFile(fileName, fileUrl);
+            }
+        });
+
+        layoutModuleFiles.addView(button);
+    }
+
+    private void downloadFile(String fileName, String fileUrl) {
+        try {
+            String name = fileName == null || fileName.trim().isEmpty()
+                    ? "module_file"
+                    : fileName;
+
+            DownloadManager.Request request =
+                    new DownloadManager.Request(Uri.parse(fileUrl));
+
+            request.setTitle(name);
+            request.setDescription("Đang tải tài liệu bài học");
+            request.setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            );
+
+            request.setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_DOWNLOADS,
+                    name
+            );
+
+            DownloadManager downloadManager =
+                    (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+            if (downloadManager != null) {
+                downloadManager.enqueue(request);
+
+                Toast.makeText(
+                        this,
+                        "Đang tải file...",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(
+                    this,
+                    "Không thể tải file: " + e.getMessage(),
+                    Toast.LENGTH_SHORT
+            ).show();
         }
     }
+
+    private boolean isVideoFile(String url, String name) {
+        String value = "";
+
+        if (url != null) {
+            value += url.toLowerCase();
+        }
+
+        if (name != null) {
+            value += " " + name.toLowerCase();
+        }
+
+        return value.contains(".mp4")
+                || value.contains(".mov")
+                || value.contains(".mkv")
+                || value.contains(".webm")
+                || value.contains("video");
+    }
+
+    private void showEmptyLesson() {
+        txtLessonTitle.setText("Không có khóa học");
+        txtObjective.setText("");
+        txtContent.setText("");
+        txtExample.setText("");
+
+        imgCourse.setImageResource(R.drawable.course_python);
+        imgExample.setImageResource(R.drawable.course_python);
+
+        btnBack.setVisibility(View.INVISIBLE);
+        btnNext.setVisibility(View.INVISIBLE);
+    }
+
+    private void showEmptyModule() {
+        txtLessonTitle.setText("Không có bài học");
+        txtObjective.setText("");
+        txtContent.setText("");
+        txtExample.setText("");
+
+        imgExample.setImageResource(R.drawable.course_python);
+
+        if (videoModule != null) {
+            videoModule.setVisibility(View.GONE);
+        }
+
+        if (layoutModuleFiles != null) {
+            layoutModuleFiles.removeAllViews();
+        }
+
+        btnBack.setVisibility(View.INVISIBLE);
+        btnNext.setVisibility(View.INVISIBLE);
+    }
+
+    private void updateNavigationButtonsForLessons() {
+        if (lessonList == null || lessonList.isEmpty()) {
+            btnBack.setVisibility(View.INVISIBLE);
+            btnNext.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        btnBack.setVisibility(currentIndex == 0 ? View.INVISIBLE : View.VISIBLE);
+        btnNext.setVisibility(currentIndex == lessonList.size() - 1 ? View.INVISIBLE : View.VISIBLE);
+    }
+
+    private void updateNavigationButtonsForModules() {
+        if (moduleIds == null || moduleIds.isEmpty()) {
+            btnBack.setVisibility(View.INVISIBLE);
+            btnNext.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        btnBack.setVisibility(currentIndex == 0 ? View.INVISIBLE : View.VISIBLE);
+        btnNext.setVisibility(currentIndex == moduleIds.size() - 1 ? View.INVISIBLE : View.VISIBLE);
+    }
+
+    private String safe(String value) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
+            return "";
+        }
+
+        return value.trim();
+    }
+
 }
