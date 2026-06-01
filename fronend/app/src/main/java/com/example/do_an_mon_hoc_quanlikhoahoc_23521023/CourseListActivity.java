@@ -90,7 +90,7 @@ public class CourseListActivity extends AppCompatActivity {
 
     // Hàm lấy danh sách bài học ban đầu
     private void fetchActiveLessons() {
-        lessonApiService.getAllLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
+        lessonApiService.getAllLessonsActive().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
             @Override
             public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
