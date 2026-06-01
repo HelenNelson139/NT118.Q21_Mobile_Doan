@@ -25,6 +25,9 @@ backend/src/main/resources/application.yaml
 *.iml
 *.ipr
 
+.idea/workspace.xml
+.idea/
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
