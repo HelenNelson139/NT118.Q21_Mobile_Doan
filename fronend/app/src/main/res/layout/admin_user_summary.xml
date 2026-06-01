@@ -1,40 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="10dp"
     app:cardBackgroundColor="#3F72AF"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="5dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <ImageView
             android:id="@+id/imgUserAvatar"
-            android:layout_width="140dp"
-            android:layout_height="110dp"
-            android:padding="2dp"
+            android:layout_width="120dp"
+            android:layout_height="100dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_learning_logo"
+            android:src="@drawable/ic_profile"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/RoundedCornerImage"
-            app:strokeColor="#A06EE1"
-            app:strokeWidth="2dp" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/txtUserId"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="ID User: "
-            android:textColor="#DBE2EF"
-            android:textSize="18sp"
+            android:text="Mã User: GV001"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/imgUserAvatar"
             app:layout_constraintTop_toTopOf="@id/imgUserAvatar" />
@@ -43,32 +41,31 @@
             android:id="@+id/txtUserName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Họ tên: "
-            android:textColor="#DBE2EF"
-            android:textSize="18sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="Họ tên: Nguyễn Văn A"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/txtUserId"
+            app:layout_constraintStart_toEndOf="@id/imgUserAvatar"
             app:layout_constraintTop_toBottomOf="@id/txtUserId" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDetails"
+            android:id="@+id/btnDetail"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:backgroundTint="#FFB84C"
-            android:insetTop="5dp"
-            android:insetBottom="5dp"
+            android:layout_height="45dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
             android:text="Xem chi tiết"
             android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textColor="@android:color/white"
             android:textStyle="bold"
-            app:cornerRadius="24dp"
-            app:layout_constraintBottom_toBottomOf="@id/imgUserAvatar"
+            app:backgroundTint="#FFB84C"
+            app:cornerRadius="18dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/txtUserName"
+            app:layout_constraintStart_toEndOf="@id/imgUserAvatar"
             app:layout_constraintTop_toBottomOf="@id/txtUserName" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </com.google.android.material.card.MaterialCardView>

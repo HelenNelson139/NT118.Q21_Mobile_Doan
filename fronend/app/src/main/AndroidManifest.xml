@@ -51,5 +51,6 @@
         <activity android:name=".TeacherClass" android:exported="false"/>
         <activity android:name=".TeacherProfileActivity" android:exported="false"/>
         <activity android:name=".TeacherEditProfileActivity" android:exported="false"/>
+
     </application>
 </manifest>

@@ -14,6 +14,7 @@ import com.example.backend.entity.Teacher;
 import com.example.backend.entity.User;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
+import com.example.backend.respository.EnrollmentRepository;
 import com.example.backend.respository.TeacherResponsitory;
 import com.example.backend.respository.UserResponsitory;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -33,6 +36,7 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateTeache
     private final TeacherMapper teacherMapper;
     private final UserService userService;
     private final SupabaseStorageService supabaseStorageService;
+    private final EnrollmentRepository enrollmentRepository;
 
 
     @Override
@@ -91,7 +95,21 @@ public class TeacherService extends IUserService<CreateUserRequest, UpdateTeache
     @Override
     public TeacherResponseProfile getUserProfile(Integer userId){
         User user = userResponsitory.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        String password = user.getPassword();
+        user.setId(userId);
         return teacherMapper.toProfileResponse(user);
+    }
+
+    public List<TeacherResponseProfile> getAllTeachers() {
+        return teacherResponsitory.findAll()
+                .stream()
+                .map(teacher -> getUserProfile(teacher.getUser().getId()))
+                .toList();
+    }
+
+    public List<Integer> getStudentIdsByLessonId(Integer lessonId) {
+        return enrollmentRepository.findById_LessonId(lessonId)
+                .stream()
+                .map(enrollment -> enrollment.getUser().getId())
+                .toList();
     }
 }

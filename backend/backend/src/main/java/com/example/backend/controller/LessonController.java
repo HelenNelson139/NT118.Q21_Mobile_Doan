@@ -91,7 +91,7 @@ public class LessonController {
                 .result(lessonService.approveLesson(id))
                 .build();
     }
-    @GetMapping("/  all")
+    @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ApiResponse<List<LessonResponse>> getAllLessons() {
         return ApiResponse.<List<LessonResponse>>builder()
@@ -101,13 +101,23 @@ public class LessonController {
                 .build();
     }
 
-    @GetMapping("/  allActive")
+    @GetMapping("/allActive")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ApiResponse<List<LessonResponse>> getAllLessonsActive() {
         return ApiResponse.<List<LessonResponse>>builder()
                 .code(1000)
                 .message("Get All of Lessons")
                 .result(lessonService.findAllLessonActive())
+                .build();
+    }
+
+    @GetMapping("/allPending")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ApiResponse<List<LessonResponse>> getAllLessonsPending() {
+        return ApiResponse.<List<LessonResponse>>builder()
+                .code(1000)
+                .message("Get All of Lessons")
+                .result(lessonService.findAllLessonPending())
                 .build();
     }
 

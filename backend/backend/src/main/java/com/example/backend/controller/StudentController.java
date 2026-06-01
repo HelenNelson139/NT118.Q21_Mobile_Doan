@@ -5,10 +5,13 @@ import com.example.backend.dto.student.request.CreateStudentRequest;
 import com.example.backend.dto.student.request.EnrollmentRequest;
 import com.example.backend.dto.student.request.UpdateStudentRequest;
 import com.example.backend.dto.student.response.StudentResponseProfile;
+import com.example.backend.dto.teacher.response.TeacherResponseProfile;
 import com.example.backend.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/students")
@@ -41,6 +44,16 @@ public class StudentController {
         return studentService.getUserProfile(userId);
     }
 
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    public ApiResponse<List<StudentResponseProfile>> getAllStudents() {
+        return ApiResponse.<List<StudentResponseProfile>>builder()
+                .code(1000)
+                .message("Get all students successful")
+                .result(studentService.getAllStudents())
+                .build();
+    }
+
     @PostMapping("/course")
     @PreAuthorize("hasAnyRole('STUDENT')")
     public ApiResponse<String> enrollCourse(@RequestBody EnrollmentRequest enrollmentRequest){
@@ -49,6 +62,18 @@ public class StudentController {
                 .code(1000)
                 .message("Đăng ký lớp học thành công")
                 .result("Sinh viên đăng ký lớp học thành công "+ enrollmentRequest.getLessonId())
+                .build();
+    }
+
+    @GetMapping("/{studentId}/lessons")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    public ApiResponse<List<Integer>> getStudentLessons(
+            @PathVariable Integer studentId
+    ) {
+        return ApiResponse.<List<Integer>>builder()
+                .code(1000)
+                .message("Get student lesson ids successful")
+                .result(studentService.getStudentlessonByStudentId(studentId))
                 .build();
     }
 }

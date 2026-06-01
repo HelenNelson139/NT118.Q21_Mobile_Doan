@@ -26,6 +26,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.imageview.ShapeableImageView;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -42,6 +43,8 @@ public class TeacherProfileActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> editProfileLauncher;
 
     private String currentAvatarUrl = "";
+    private String currentUsername = "";
+    private String currentDepartment = "";
 
     private static final String PREF_NAME = "APP_PREFS";
     private static final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
@@ -71,14 +74,12 @@ public class TeacherProfileActivity extends AppCompatActivity {
 
         btnMenuCard.setOnClickListener(v -> showSidebarMenu());
 
-        loadDefaultProfileData();
-        getTeacherProfileFromApi();
-
         editProfileLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         getTeacherProfileFromApi();
+                        getTeacherCourseCountFromApi();
                     }
                 }
         );
@@ -92,12 +93,23 @@ public class TeacherProfileActivity extends AppCompatActivity {
             intent.putExtra("name", txtName.getText().toString());
             intent.putExtra("email", txtEmail.getText().toString());
             intent.putExtra("phone", txtPhone.getText().toString());
-            intent.putExtra("username", txtUsername.getText().toString());
-            intent.putExtra("address", txtAddress.getText().toString());
+            intent.putExtra("username", currentUsername);
+            intent.putExtra("address", currentDepartment);
             intent.putExtra("avatar_url", currentAvatarUrl);
 
             editProfileLauncher.launch(intent);
         });
+
+        loadDefaultProfileData();
+        getTeacherProfileFromApi();
+        getTeacherCourseCountFromApi();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getTeacherProfileFromApi();
+        getTeacherCourseCountFromApi();
     }
 
     private void loadDefaultProfileData() {
@@ -107,8 +119,8 @@ public class TeacherProfileActivity extends AppCompatActivity {
         txtUsername.setText("Đang tải...");
         txtAddress.setText("Đang tải...");
 
-        txtRole.setText("Đang tải...");
-        txtCourses.setText("0");
+        txtRole.setText("Giảng viên");
+        txtCourses.setText("Đang tải...");
         txtStatus.setText("Đang tải...");
 
         imgAvatar.setImageResource(R.drawable.ic_profile);
@@ -158,8 +170,110 @@ public class TeacherProfileActivity extends AppCompatActivity {
             }
         };
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(request);
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    private void getTeacherCourseCountFromApi() {
+        String token = getToken();
+
+        if (token.isEmpty()) {
+            txtCourses.setText("0");
+            Toast.makeText(this, "Không tìm thấy token đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        /*
+         * API này lấy teacher theo username trong JWT token.
+         * Không truyền teacherId từ Android.
+         */
+        String url = BASE_URL + "/api/lessons/my-lessons";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    int courseCount = extractCourseCount(response);
+                    txtCourses.setText(String.valueOf(courseCount));
+                },
+                error -> {
+                    txtCourses.setText("0");
+
+                    String message = "Lỗi lấy số khoá học của giảng viên";
+
+                    if (error.networkResponse != null) {
+                        message += ": HTTP " + error.networkResponse.statusCode;
+
+                        try {
+                            String responseBody = new String(error.networkResponse.data);
+                            message += "\n" + responseBody;
+                        } catch (Exception ignored) {
+                        }
+                    } else {
+                        message += ": " + error.toString();
+                    }
+
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    private int extractCourseCount(JSONObject response) {
+        if (response == null) {
+            return 0;
+        }
+
+        Object result = response.opt("result");
+
+        if (result == null) {
+            return 0;
+        }
+
+        if (result instanceof JSONArray) {
+            return ((JSONArray) result).length();
+        }
+
+        if (result instanceof JSONObject) {
+            JSONObject resultObject = (JSONObject) result;
+
+            if (resultObject.has("totalElements")) {
+                return resultObject.optInt("totalElements", 0);
+            }
+
+            if (resultObject.has("total")) {
+                return resultObject.optInt("total", 0);
+            }
+
+            JSONArray contentArray = resultObject.optJSONArray("content");
+            if (contentArray != null) {
+                return contentArray.length();
+            }
+
+            JSONArray dataArray = resultObject.optJSONArray("data");
+            if (dataArray != null) {
+                return dataArray.length();
+            }
+
+            JSONArray lessonsArray = resultObject.optJSONArray("lessons");
+            if (lessonsArray != null) {
+                return lessonsArray.length();
+            }
+
+            if (resultObject.has("id")) {
+                return 1;
+            }
+        }
+
+        return 0;
     }
 
     private void mapTeacherProfileToView(JSONObject response) {
@@ -173,6 +287,8 @@ public class TeacherProfileActivity extends AppCompatActivity {
         String avatarUrl = response.optString("avatar_url", "");
 
         currentAvatarUrl = avatarUrl;
+        currentUsername = username;
+        currentDepartment = department;
 
         txtName.setText(fullName);
         txtEmail.setText(email);
@@ -181,7 +297,6 @@ public class TeacherProfileActivity extends AppCompatActivity {
         txtAddress.setText(department);
 
         txtRole.setText(formatRole(role));
-        txtCourses.setText("0");
         txtStatus.setText(formatStatus(status));
 
         if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
@@ -232,12 +347,20 @@ public class TeacherProfileActivity extends AppCompatActivity {
         return status;
     }
 
+    private String getToken() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        return sharedPreferences.getString(KEY_ACCESS_TOKEN, "");
+    }
+
     private void showSidebarMenu() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.teacher_layout_sidebar);
 
         Window window = dialog.getWindow();
+
         if (window != null) {
             window.setLayout(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -271,9 +394,7 @@ public class TeacherProfileActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        menuProfile.setOnClickListener(v -> {
-            dialog.dismiss();
-        });
+        menuProfile.setOnClickListener(v -> dialog.dismiss());
 
         txtLogout.setOnClickListener(v -> {
             SharedPreferences sharedPreferences =

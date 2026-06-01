@@ -4,6 +4,7 @@ package com.example.backend.service;
 import com.example.backend.dto.user.request.ChangePasswordRequest;
 import com.example.backend.dto.user.request.CreateUserRequest;
 import com.example.backend.entity.User;
+import com.example.backend.enums.Status;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
 import com.example.backend.respository.UserResponsitory;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor //cần phải khởi tạo biến private final liền sau đó không thay đổi biến này nữa nên dùng
@@ -68,6 +71,6 @@ public class UserService {
     @Transactional
     public void deleteUser(Integer userId){
         User user = userResponsitory.findById(userId).orElseThrow(()->new AppException(ErrorCode.USER_NOT_FOUND));
-        user.setStatus("Deactivated");
+        user.setStatus("DELETED");
     }
 }

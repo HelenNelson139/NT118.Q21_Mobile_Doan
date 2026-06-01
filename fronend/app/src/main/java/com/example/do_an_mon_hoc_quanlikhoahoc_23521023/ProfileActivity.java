@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -76,6 +77,7 @@ public class ProfileActivity extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         getStudentProfileFromApi();
+                        getStudentLessonCountFromApi();
                     }
                 }
         );
@@ -97,6 +99,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         loadDefaultProfileData();
         getStudentProfileFromApi();
+        getStudentLessonCountFromApi();
     }
 
     private void loadDefaultProfileData() {
@@ -108,7 +111,7 @@ public class ProfileActivity extends AppCompatActivity {
         txtAddress.setText("Đang tải...");
 
         txtRole.setText("Học viên");
-        txtCourses.setText("5");
+        txtCourses.setText("Đang tải...");
         txtStatus.setText("Đang hoạt động");
 
         imgAvatar.setImageResource(R.drawable.ic_profile);
@@ -162,6 +165,131 @@ public class ProfileActivity extends AppCompatActivity {
         queue.add(request);
     }
 
+    private void getStudentLessonCountFromApi() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        String token = sharedPreferences.getString(KEY_ACCESS_TOKEN, "");
+        int userId = sharedPreferences.getInt(KEY_USER_ID, -1);
+
+        if (token.isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy token đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (userId == -1) {
+            Toast.makeText(this, "Không tìm thấy userId", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        /*
+         * API lấy danh sách lesson mà học viên đã đăng ký:
+         * GET /NT118/api/students/{userId}/lessons
+         *
+         * Response ví dụ:
+         * {
+         *   "code": 1000,
+         *   "message": "Get student lesson ids successful",
+         *   "result": [1]
+         * }
+         */
+        String url = BASE_URL + "/api/students/" + userId + "/lessons";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    int lessonCount = extractStudentLessonCount(response);
+                    txtCourses.setText(String.valueOf(lessonCount));
+                },
+                error -> {
+                    txtCourses.setText("0");
+
+                    String message = "Lỗi lấy số khóa học đã đăng ký";
+
+                    if (error.networkResponse != null) {
+                        message += ": HTTP " + error.networkResponse.statusCode;
+
+                        try {
+                            String responseBody = new String(error.networkResponse.data);
+                            message += "\n" + responseBody;
+                        } catch (Exception ignored) {
+                        }
+                    } else {
+                        message += ": " + error.toString();
+                    }
+
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(request);
+    }
+
+    private int extractStudentLessonCount(JSONObject response) {
+        if (response == null) {
+            return 0;
+        }
+
+        Object result = response.opt("result");
+
+        if (result == null) {
+            return 0;
+        }
+
+        /*
+         * Trường hợp API trả:
+         * "result": [1, 2, 3]
+         */
+        if (result instanceof JSONArray) {
+            return ((JSONArray) result).length();
+        }
+
+        /*
+         * Trường hợp API trả dạng object phân trang:
+         * "result": {
+         *   "content": [...]
+         * }
+         */
+        if (result instanceof JSONObject) {
+            JSONObject resultObject = (JSONObject) result;
+
+            if (resultObject.has("totalElements")) {
+                return resultObject.optInt("totalElements", 0);
+            }
+
+            if (resultObject.has("total")) {
+                return resultObject.optInt("total", 0);
+            }
+
+            JSONArray contentArray = resultObject.optJSONArray("content");
+            if (contentArray != null) {
+                return contentArray.length();
+            }
+
+            JSONArray dataArray = resultObject.optJSONArray("data");
+            if (dataArray != null) {
+                return dataArray.length();
+            }
+
+            JSONArray lessonsArray = resultObject.optJSONArray("lessons");
+            if (lessonsArray != null) {
+                return lessonsArray.length();
+            }
+        }
+
+        return 0;
+    }
+
     private void mapStudentProfileToView(JSONObject response) {
         String avatarUrl = response.optString("avatar_url", "");
         String dateOfBirth = response.optString("date_of_birth", "");
@@ -184,7 +312,6 @@ public class ProfileActivity extends AppCompatActivity {
         txtAddress.setText(fullName);
 
         txtRole.setText(formatRole(role));
-        txtCourses.setText("5");
         txtStatus.setText(formatStatus(status));
 
         if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
