@@ -60,6 +60,15 @@ public interface LessonApiService {
     @PUT("api/lessons/{id}/approve-delete")
     Call<ApiResponse<LessonResponse>> approveDeleteLesson(
             @Path("id") Integer id
+    @GET("api/lessons/all")
+    Call<ApiResponse<List<LessonResponse>>> getAllLessons();
+    @GET("api/lessons")
+    Call<ApiResponse<PageResponse<Lesson>>> getLessons(
+            @Query("status") String status,
+            @Query("teacherId") Integer teacherId,
+            @Query("keyword") String keyword,
+            @Query("page") int page,
+            @Query("size") int size
     );
 
     @PATCH("api/lessons/update/{id}")
@@ -68,4 +77,7 @@ public interface LessonApiService {
             @Body LessonUpdateRequest request
     );
 
+}
+    @GET("api/lessons/allActive")
+    Call<ApiResponse<List<LessonResponse>>> getAllLessonsActive();
 }
