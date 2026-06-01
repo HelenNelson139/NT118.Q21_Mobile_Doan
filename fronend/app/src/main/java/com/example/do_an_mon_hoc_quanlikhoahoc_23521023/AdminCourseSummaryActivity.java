@@ -15,7 +15,6 @@ public class AdminCourseSummaryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Đảm bảo bạn đã có file admin_course_summary.xml
         setContentView(R.layout.admin_course_summary);
 
         // 1. Ánh xạ View

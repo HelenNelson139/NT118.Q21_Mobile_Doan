@@ -143,7 +143,7 @@
                     android:id="@+id/txtListTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="18dp"
                     android:text="Danh sách khóa học"
                     android:textColor="#112D4E"
                     android:textSize="18sp"
@@ -151,15 +151,51 @@
                     app:layout_constraintTop_toBottomOf="@id/searchContainer"
                     app:layout_constraintStart_toStartOf="parent" />
 
+                <LinearLayout
+                    android:id="@+id/filterButtonContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2"
+                    app:layout_constraintTop_toBottomOf="@id/txtListTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnApprovedCourses"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="Đã duyệt"
+                        android:textColor="#FFFFFF"
+                        android:textStyle="bold"
+                        app:cornerRadius="18dp"
+                        app:backgroundTint="#3F72AF" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPendingCourses"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="Chưa duyệt"
+                        android:textColor="#FFFFFF"
+                        android:textStyle="bold"
+                        app:cornerRadius="18dp"
+                        app:backgroundTint="#112D4E" />
+                </LinearLayout>
+
                 <TextView
                     android:id="@+id/txtEmpty"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Không có khóa học cần duyệt"
+                    android:text="Không có khóa học"
                     android:textColor="#112D4E"
                     android:textSize="16sp"
                     android:visibility="gone"
-                    app:layout_constraintTop_toBottomOf="@id/txtListTitle"
+                    app:layout_constraintTop_toBottomOf="@id/filterButtonContainer"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -168,11 +204,11 @@
                     android:id="@+id/rvCourseList"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="14dp"
                     android:clipToPadding="false"
                     android:paddingBottom="24dp"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    app:layout_constraintTop_toBottomOf="@id/txtListTitle"
+                    app:layout_constraintTop_toBottomOf="@id/filterButtonContainer"
                     app:layout_constraintBottom_toBottomOf="parent"
                     tools:listitem="@layout/admin_course_summary" />
 

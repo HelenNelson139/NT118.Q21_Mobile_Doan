@@ -11,7 +11,7 @@ import java.util.Optional;
 @EnableJpaAuditing
 public interface UserResponsitory extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
-    public User findByEmail(String email);
-    public User findByPhone(String phone);
+    Optional<User> findByEmail(String email);
+    Optional<User> findByPhone(String phone);
 
 }

@@ -1,6 +1,8 @@
 package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 public class LessonResponse {
     private Integer id;
     private String title;
@@ -14,6 +16,10 @@ public class LessonResponse {
     private String status;
     private String created_at;
     private String teacher_name;
+    @SerializedName("module")
+    private List<ModuleResponse> modules;
+    public List<ModuleResponse> getModules() {return modules;    }
+    public void setModules(List<ModuleResponse> modules) {this.modules = modules;    }
     public Integer getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -28,11 +34,6 @@ public class LessonResponse {
     public void setTitle(String title) {
         this.title = title;
     }
-    public String getTeacher_name() {
-        return teacher_name;
-    }
-
-    public void setTeacher_name(String teacher_name) {
-        this.teacher_name = teacher_name;
-    }
+    public String getTeacher_name() {return teacher_name;    }
+    public void setTeacher_name(String teacher_name) {this.teacher_name = teacher_name;    }
 }

@@ -17,6 +17,9 @@ public class CourseActivity extends AppCompatActivity {
     ViewPager2 viewPager;
     ViewPagerAdapter adapter;
 
+    // THÊM BIẾN NÀY: Để IntroFragment có thể gọi và lấy được ID khóa học
+    public int currentCourseId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,6 +27,9 @@ public class CourseActivity extends AppCompatActivity {
 
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
+
+        // HỨNG DỮ LIỆU: Lấy course_id từ StudentLessonAdapter truyền sang
+        currentCourseId = getIntent().getIntExtra("course_id", -1);
 
         adapter = new ViewPagerAdapter(this);
         viewPager.setAdapter(adapter);
@@ -39,8 +45,18 @@ public class CourseActivity extends AppCompatActivity {
 
         String name = getIntent().getStringExtra("course_name");
         TextView tv = findViewById(R.id.txtCourseTitle);
-        tv.setText(name);
+        if (tv != null) {
+            tv.setText(name);
+        }
 
-
+        ImageView imgCourse = findViewById(R.id.imgCourse);
+        String thumbnailUrl = getIntent().getStringExtra("course_thumbnail");
+        if (imgCourse != null) {
+            com.bumptech.glide.Glide.with(this)
+                    .load(thumbnailUrl)
+                    .placeholder(R.drawable.course_python)
+                    .error(R.drawable.course_python)
+                    .into(imgCourse);
+        }
     }
 }

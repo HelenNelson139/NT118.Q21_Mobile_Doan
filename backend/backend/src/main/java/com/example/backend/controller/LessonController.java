@@ -73,7 +73,7 @@ public class LessonController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'STUDENT')")
     public ApiResponse<LessonResponse> getLessonById(@PathVariable Integer id) {
         return ApiResponse.<LessonResponse>builder()
                 .code(1000)
@@ -91,13 +91,33 @@ public class LessonController {
                 .result(lessonService.approveLesson(id))
                 .build();
     }
-    @GetMapping("/  all")
+    @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ApiResponse<List<LessonResponse>> getAllLessons() {
         return ApiResponse.<List<LessonResponse>>builder()
                 .code(1000)
                 .message("Get All of Lessons")
                 .result(lessonService.findAllLesson())
+                .build();
+    }
+
+    @GetMapping("/allActive")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    public ApiResponse<List<LessonResponse>> getAllLessonsActive() {
+        return ApiResponse.<List<LessonResponse>>builder()
+                .code(1000)
+                .message("Get All of Lessons")
+                .result(lessonService.findAllLessonActive())
+                .build();
+    }
+
+    @GetMapping("/allPending")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ApiResponse<List<LessonResponse>> getAllLessonsPending() {
+        return ApiResponse.<List<LessonResponse>>builder()
+                .code(1000)
+                .message("Get All of Lessons")
+                .result(lessonService.findAllLessonPending())
                 .build();
     }
 

@@ -12,7 +12,6 @@
         android:layout_height="match_parent"
         android:background="#3F72AF">
 
-        <!-- Icon Home -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/imgHome"
             android:layout_width="50dp"
@@ -33,7 +32,6 @@
                 app:tint="#F9F7F7"/>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Menu Bar (hamberger bar) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnMenuCard"
             android:layout_width="55dp"
@@ -62,7 +60,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Header Section -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/headerContainer"
             android:layout_width="match_parent"
@@ -97,7 +94,6 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Main Content Container -->
         <androidx.cardview.widget.CardView
             android:id="@+id/mainCard"
             android:layout_width="match_parent"
@@ -134,7 +130,7 @@
                         android:id="@+id/tabAdmin"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nguyễn Huỳnh Tiến"
+                        android:text="Admin"
                         android:textColor="#112D4E"
                         android:textSize="25sp"
                         android:textStyle="bold" />
@@ -171,9 +167,10 @@
                                 android:orientation="vertical">
 
                                 <TextView
+                                    android:id="@+id/txtTotalCourses"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="10"
+                                    android:text="0"
                                     android:textColor="#DBE2EF"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
@@ -195,6 +192,7 @@
                             app:cardBackgroundColor="#3F72AF"
                             app:cardCornerRadius="20dp"
                             app:cardElevation="0dp">
+
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -203,9 +201,10 @@
                                 android:orientation="vertical">
 
                                 <TextView
+                                    android:id="@+id/txtTotalStudents"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="78"
+                                    android:text="0"
                                     android:textColor="#DBE2EF"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
@@ -237,9 +236,10 @@
                                 android:orientation="vertical">
 
                                 <TextView
+                                    android:id="@+id/txtTotalTeachers"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="6"
+                                    android:text="0"
                                     android:textColor="#DBE2EF"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
@@ -272,9 +272,10 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/txtPendingCourses"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="17"
+                                android:text="0"
                                 android:textColor="#DBE2EF"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />

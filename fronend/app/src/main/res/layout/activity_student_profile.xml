@@ -79,23 +79,22 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <com.google.android.material.imageview.ShapeableImageView
+            <ImageView
                 android:id="@+id/imgAvatar"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
+                android:background="@drawable/bg_profile_avatar"
                 android:elevation="10dp"
+                android:padding="6dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/ic_profile"
-                app:shapeAppearanceOverlay="@style/CircleImageView"
-                app:strokeColor="@color/dark_blue"
-                app:strokeWidth="5dp" />
+                android:src="@drawable/ic_profile" />
 
             <TextView
                 android:id="@+id/txtName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Nguyễn Văn A"
+                android:text="Đang tải..."
                 android:textColor="@color/dark_blue"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -104,7 +103,7 @@
                 android:id="@+id/txtEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="email@example.com"
+                android:text="Đang tải..."
                 android:textColor="@color/blue"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -144,7 +143,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tên đăng nhập"
+                android:text="Email"
                 android:textColor="@color/blue" />
 
             <TextView
@@ -157,7 +156,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Khoa"
+                android:text="Họ và tên"
                 android:textColor="@color/blue" />
 
             <TextView
@@ -167,7 +166,7 @@
                 android:text="Chưa cập nhật" />
         </LinearLayout>
 
-        <!-- THÔNG TIN KHOÁ HỌC -->
+        <!-- THÔNG TIN HỌC TẬP -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -180,7 +179,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Thông Tin Các Khoá Học"
+                android:text="Thông tin học tập"
                 android:textColor="@color/dark_blue"
                 android:textSize="17sp"
                 android:textStyle="bold"
@@ -197,12 +196,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="Giảng viên" />
+                android:text="Học viên" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Số khoá học của giảng viên"
+                android:text="Số khóa đã đăng ký"
                 android:textColor="@color/blue" />
 
             <TextView
@@ -210,7 +209,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="0" />
+                android:text="5" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -222,7 +221,7 @@
                 android:id="@+id/txtStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Chưa cập nhật" />
+                android:text="Đang hoạt động" />
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -234,6 +233,8 @@
             android:text="@string/btn_edit_profile"
             android:textColor="@drawable/btn_text_color_edit_profile"
             android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
             app:backgroundTint="@null" />
 
     </LinearLayout>

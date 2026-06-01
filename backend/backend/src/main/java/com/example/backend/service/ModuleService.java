@@ -32,7 +32,7 @@ public class ModuleService {
         Lesson lesson = lessonRepository.findById(request.getLessonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học tương ứng!"));
 
-        if (lesson.getStatus() == Status.REJECTED || lesson.getStatus() == Status.PENDING) {
+        if (lesson.getStatus() == Status.REJECTED   ) {
             throw new RuntimeException("Không thể thêm bài học vào khóa học đã bị xóa hoặc đang chờ xóa!");
         }
 
@@ -72,7 +72,7 @@ public class ModuleService {
         boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_TEACHER"));
 
-        if (isTeacher && (module.getStatus() == Status.REJECTED || module.getStatus() == Status.PENDING)) {
+        if (isTeacher && (module.getStatus() == Status.REJECTED     )) {
             throw new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!");
         }
         return moduleMapper.toModuleResponse(module);
@@ -82,7 +82,7 @@ public class ModuleService {
     public void deleteModule(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
-        module.setStatus(Status.PENDING);
+        module.setStatus(Status.REJECTED);
         moduleRepository.save(module);
     }
 
@@ -107,6 +107,20 @@ public class ModuleService {
         module.setStatus(Status.REJECTED);
         Module savedModule = moduleRepository.save(module);
         return moduleMapper.toModuleResponse(savedModule);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ModuleResponse> getModulesByLessonId(Integer lessonId) {
+        if (!lessonRepository.existsById(lessonId)) {
+            throw new RuntimeException("Không tìm thấy khóa học tương ứng!");
+        }
+
+        List<Module> modules = moduleRepository.findByLessonId(lessonId);
+
+        return modules.stream()
+                .filter(module -> module.getStatus() != Status.REJECTED)
+                .map(moduleMapper::toModuleResponse)
+                .toList();
     }
 }
 

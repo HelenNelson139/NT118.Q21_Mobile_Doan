@@ -17,6 +17,26 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Tên bài học"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@color/dark_blue"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="10dp" />
+
+        <EditText
+            android:id="@+id/txtModuleTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="4dp"
+            android:hint="Nhập tên bài học..."/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="@string/aim"
             android:textStyle="bold"
             android:textSize="18sp"

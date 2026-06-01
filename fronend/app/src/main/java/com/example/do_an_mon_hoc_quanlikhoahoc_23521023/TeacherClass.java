@@ -81,9 +81,14 @@ public class TeacherClass extends AppCompatActivity {
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-                    selectedImageUri = uri;
+
                     if (uri != null && imgPreview != null) {
                         imgPreview.setImageURI(uri);
+                        imgPreview.setTag(uri);
+
+                        if (imgPreview.getId() == R.id.imgCourseCover && lessonViews.isEmpty()) {
+                            selectedImageUri = uri;
+                        }
                     }
                 }
         );
@@ -91,6 +96,7 @@ public class TeacherClass extends AppCompatActivity {
         btnMenuCard.setOnClickListener(v -> showSidebarMenu());
         btnAddCourse.setOnClickListener(v -> showAddDialog());
         fetchTeacherLessonsFromServer();
+        setupSearch();
 
         if (edtSearchCourse != null) {
             edtSearchCourse.addTextChangedListener(new android.text.TextWatcher() {
@@ -146,6 +152,21 @@ public class TeacherClass extends AppCompatActivity {
                 Toast.makeText(TeacherClass.this, "Không thể kết nối đến máy chủ!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    private void setupSearch() {
+        View icFilter = findViewById(R.id.icFilter);
+        if (icFilter != null) {
+            icFilter.setOnClickListener(v -> {
+                String query = edtSearchCourse.getText().toString().trim();
+                if (!query.isEmpty()) {
+                    Toast.makeText(this, "Đang tìm kiếm online: " + query, Toast.LENGTH_SHORT).show();
+                    searchTeacherLessonsFromServer(query);
+                } else {
+                    Toast.makeText(this, "Vui lòng nhập từ khóa tìm kiếm!", Toast.LENGTH_SHORT).show();
+                    fetchTeacherLessonsFromServer();
+                }
+            });
+        }
     }
 
     private void searchTeacherLessonsFromServer(String keyword) {
@@ -261,7 +282,8 @@ public class TeacherClass extends AppCompatActivity {
                                 if (apiResponse.getCode() == 1000) {
                                     Toast.makeText(TeacherClass.this, "Thêm khóa học thành công!", Toast.LENGTH_SHORT).show();
                                     fetchTeacherLessonsFromServer();
-                                    dialog.dismiss();
+                                    int newLessonId = apiResponse.getResult().getId();
+                                    uploadModules(newLessonId, dialog);
                                 } else {
                                     Toast.makeText(TeacherClass.this, "Lỗi: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
                                 }
@@ -303,14 +325,28 @@ public class TeacherClass extends AppCompatActivity {
         MaterialButton btnSave = view.findViewById(R.id.btnSaveCourse);
         MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
 
+        // Reset danh sách view chứa các module mới cho lần mở dialog này
+        lessonViews.clear();
+        selectedImageUri = null;
+
+        // Đổ dữ liệu cũ của khóa học vào các ô nhập liệu
         edtTitle.setText(oldCourse.getTitle());
         if (edtDescription != null) edtDescription.setText(oldCourse.getDescription());
         if (edtWhatYouLearn != null) edtWhatYouLearn.setText(oldCourse.getWhatYouLearn());
         if (edtSkills != null) edtSkills.setText(oldCourse.getSkillLearned());
+
         if (btnUploadImage != null) {
-            btnUploadImage.setVisibility(View.GONE);
+            btnUploadImage.setVisibility(View.GONE); // Giữ nguyên logic ẩn nút chọn ảnh bìa từ code cũ của bạn
         }
-        imgCourseCover.setImageResource(R.drawable.course_python);
+
+        // LẤY IMAGE CỦA LESSON COVER: Sử dụng Glide để load URL ảnh từ object oldCourse
+        // Nếu getThumbnail() null/rỗng hoặc lỗi, Glide sẽ tự fallback về course_python làm mặc định
+        String thumbnailUrl = oldCourse.getThumbnailUrl();
+        com.bumptech.glide.Glide.with(this)
+                .load(thumbnailUrl)
+                .placeholder(R.drawable.course_python) // Ảnh hiển thị trong lúc đợi tải
+                .error(R.drawable.course_python)       // Ảnh hiển thị nếu đường dẫn lỗi hoặc trống
+                .into(imgCourseCover);
 
         btnSave.setText("Cập nhật");
 
@@ -324,7 +360,10 @@ public class TeacherClass extends AppCompatActivity {
             window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         }
 
+        // Thiết lập sự kiện chuyển đổi qua lại giữa tab Giới thiệu / Giáo trình
         setupTabs(tabLayout, containerIntro, containerCurriculum);
+
+        // Sự kiện click thêm bài học mới (Module) vào container giáo trình
         btnAddLesson.setOnClickListener(v -> addLesson(lessonContainer));
 
         btnSave.setOnClickListener(v -> {
@@ -347,11 +386,11 @@ public class TeacherClass extends AppCompatActivity {
                     if (response.isSuccessful() && response.body() != null) {
                         ApiResponse<String> apiResponse = response.body();
                         if (apiResponse.getCode() == 1000) {
-                            Toast.makeText(TeacherClass.this, "Đã cập nhật thông tin khóa học thành công!", Toast.LENGTH_SHORT).show();
-                            fetchTeacherLessonsFromServer();
-                            dialog.dismiss();
+                            // Thực hiện gọi uploadModules để create các module của bài học (Lesson) đang edit này
+                            int currentLessonId = oldCourse.getId();
+                            uploadModules(currentLessonId, dialog);
                         } else {
-                            Toast.makeText(TeacherClass.this, "Lỗi cập nhật: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TeacherClass.this, "Lỗi cập nhật thông tin: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Toast.makeText(TeacherClass.this, "Không thể cập nhật, mã phản hồi: " + response.code(), Toast.LENGTH_SHORT).show();
@@ -558,6 +597,98 @@ public class TeacherClass extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("URI_CONVERT_ERROR", "Không thể chuyển đổi URI sang File: " + e.getMessage());
             return null;
+        }
+    }
+
+    private void uploadModules(int newLessonId, Dialog dialog) {
+        if (lessonViews.isEmpty()) {
+            Toast.makeText(TeacherClass.this, "Thêm khóa học thành công!", Toast.LENGTH_SHORT).show();
+            fetchTeacherLessonsFromServer();
+            dialog.dismiss();
+            return;
+        }
+
+        ModuleApiService moduleApiService = RetrofitClient.getClient().create(ModuleApiService.class);
+        int totalModules = lessonViews.size();
+        int[] completed = {0};
+        int[] failed = {0}; // Thêm biến đếm số module bị lỗi
+
+        for (int i = 0; i < totalModules; i++) {
+            View lessonView = lessonViews.get(i);
+
+            EditText edtModuleTitle = lessonView.findViewById(R.id.txtModuleTitle);
+            EditText edtObjective = lessonView.findViewById(R.id.txtObjective);
+            EditText edtContent = lessonView.findViewById(R.id.txtContent);
+            EditText edtExample = lessonView.findViewById(R.id.txtExample);
+            ImageView imgLesson = lessonView.findViewById(R.id.imgCourseCover);
+
+            String title = edtModuleTitle != null && !edtModuleTitle.getText().toString().isEmpty()
+                    ? edtModuleTitle.getText().toString().trim() : "Module " + (i + 1);
+            String objective = edtObjective != null ? edtObjective.getText().toString().trim() : "";
+            String content = edtContent != null ? edtContent.getText().toString().trim() : "";
+            String example = edtExample != null ? edtExample.getText().toString().trim() : "";
+
+            Uri moduleImageUri = (Uri) imgLesson.getTag();
+
+            RequestBody lessonIdBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(newLessonId));
+            RequestBody titleBody = RequestBody.create(MediaType.parse("text/plain"), title);
+            RequestBody objectiveBody = RequestBody.create(MediaType.parse("text/plain"), objective);
+            RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), content);
+            RequestBody exampleBody = RequestBody.create(MediaType.parse("text/plain"), example);
+            RequestBody orderIndexBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(i + 1));
+
+            MultipartBody.Part imagePart = null;
+            if (moduleImageUri != null) {
+                java.io.File file = getFileFromUri(moduleImageUri);
+                if (file != null) {
+                    String mimeType = getContentResolver().getType(moduleImageUri);
+                    if (mimeType == null) mimeType = "image/jpeg";
+                    RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), file);
+                    imagePart = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
+                }
+            }
+
+            moduleApiService.createModule(lessonIdBody, titleBody, objectiveBody, contentBody, exampleBody, orderIndexBody, imagePart)
+                    .enqueue(new Callback<ApiResponse<ModuleResponse>>() {
+                        @Override
+                        public void onResponse(Call<ApiResponse<ModuleResponse>> call, Response<ApiResponse<ModuleResponse>> response) {
+                            completed[0]++;
+                            if (response.isSuccessful() && response.body() != null) {
+                                // Thành công thật sự
+                                Log.d("MODULE_UPLOAD", "Upload thành công module: " + response.body().getMessage());
+                            } else {
+                                // Server báo lỗi (Ví dụ 400 Bad Request)
+                                failed[0]++;
+                                try {
+                                    String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                                    Log.e("SERVER_MODULE_ERROR", "Lỗi Server từ chối Module: " + errorBody);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            checkAllModulesUploaded(completed[0], failed[0], totalModules, dialog);
+                        }
+
+                        @Override
+                        public void onFailure(Call<ApiResponse<ModuleResponse>> call, Throwable t) {
+                            completed[0]++;
+                            failed[0]++;
+                            Log.e("MODULE_UPLOAD", "Lỗi mạng khi upload module: " + t.getMessage());
+                            checkAllModulesUploaded(completed[0], failed[0], totalModules, dialog);
+                        }
+                    });
+        }
+    }
+
+    private void checkAllModulesUploaded(int completedCount, int failedCount, int totalModules, Dialog dialog) {
+        if (completedCount == totalModules) {
+            if (failedCount > 0) {
+                Toast.makeText(TeacherClass.this, "Đã thêm khóa học, nhưng có " + failedCount + " bài học bị lỗi không lưu được!", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(TeacherClass.this, "Thêm khóa học và giáo trình thành công!", Toast.LENGTH_SHORT).show();
+            }
+            fetchTeacherLessonsFromServer();
+            dialog.dismiss();
         }
     }
 }

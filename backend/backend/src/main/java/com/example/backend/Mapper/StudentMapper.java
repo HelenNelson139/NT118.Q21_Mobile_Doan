@@ -17,5 +17,7 @@ public interface StudentMapper {
     void updateEntityFromRequest(UpdateStudentRequest request, @MappingTarget Student student);
 
     @Mapping(target = "date_of_birth", source = "student.date_of_birth")
+    @Mapping(target = "student_code", source = "student.student_code")
+    @Mapping(target = "id", source = "student.user.id")
     StudentResponseProfile toProfileResponse(User user);
 }

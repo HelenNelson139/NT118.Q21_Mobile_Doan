@@ -18,5 +18,7 @@ public interface TeacherMapper {
     void updateEntityFromRequest(UpdateTeacherRequest request, @MappingTarget Teacher teacher);
 
     @Mapping(target = "department", source = "teacher.department")
+    @Mapping(target = "teacher_code", source = "teacher.teacher_code" )
+    @Mapping(target = "id", source = "teacher.user.id")
     TeacherResponseProfile toProfileResponse(User user);
 }

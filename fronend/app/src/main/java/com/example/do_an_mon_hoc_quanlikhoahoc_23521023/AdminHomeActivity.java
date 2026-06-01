@@ -1,22 +1,34 @@
 package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
+
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import com.google.android.material.card.MaterialCardView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import android.graphics.Color;
-import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.google.android.material.card.MaterialCardView;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AdminHomeActivity extends AppCompatActivity {
 
@@ -24,54 +36,302 @@ public class AdminHomeActivity extends AppCompatActivity {
     private MaterialCardView btnMenu;
     private LineChart lineChart;
 
+    private TextView txtTotalCourses;
+    private TextView txtTotalStudents;
+    private TextView txtTotalTeachers;
+    private TextView txtPendingCourses;
+    private TextView tabAdmin;
+
+    private RequestQueue requestQueue;
+
+    private int activeLessonCount = 0;
+    private int pendingLessonCount = 0;
+    private int studentCount = 0;
+    private int teacherCount = 0;
+
+    private static final String BASE_URL = "http://10.0.2.2:8080/NT118";
+
+    private static final String PREF_NAME = "APP_PREFS";
+    private static final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
+    private static final String KEY_FULL_NAME = "FULL_NAME";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.admin_home);
 
-        // 1. Ánh xạ View
         drawerLayout = findViewById(R.id.drawerLayout);
         btnMenu = findViewById(R.id.btnMenuCard);
         lineChart = findViewById(R.id.lineChart);
 
-        // 2. Xử lý mở Sidebar khi click vào nút Menu
+        txtTotalCourses = findViewById(R.id.txtTotalCourses);
+        txtTotalStudents = findViewById(R.id.txtTotalStudents);
+        txtTotalTeachers = findViewById(R.id.txtTotalTeachers);
+        txtPendingCourses = findViewById(R.id.txtPendingCourses);
+        tabAdmin = findViewById(R.id.tabAdmin);
+
+        requestQueue = Volley.newRequestQueue(this);
+
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                // Mở sidebar từ bên phải (vì layout_gravity="end")
+            public void onClick(View view) {
                 drawerLayout.openDrawer(GravityCompat.END);
             }
         });
 
-        DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
-
-        // Gọi Helper để kích hoạt các nút bấm trong Sidebar
         AdminSidebarNavigationHelper.setupSidebar(this, drawerLayout);
 
-        // 3. Thiết lập dữ liệu giả cho LineChart
+        loadAdminName();
+        loadDefaultStats();
+        loadDashboardData();
+    }
+
+    private void loadAdminName() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        String fullName = sharedPreferences.getString(KEY_FULL_NAME, "");
+
+        if (fullName == null || fullName.trim().isEmpty()) {
+            fullName = "Admin";
+        }
+
+        tabAdmin.setText(fullName);
+    }
+
+    private void loadDefaultStats() {
+        txtTotalCourses.setText("Đang tải...");
+        txtTotalStudents.setText("Đang tải...");
+        txtTotalTeachers.setText("Đang tải...");
+        txtPendingCourses.setText("Đang tải...");
+
         setupLineChart();
     }
 
+    private void loadDashboardData() {
+        getAllTeachers();
+        getAllStudents();
+        getAllActiveLessons();
+        getAllPendingLessons();
+    }
+
+    private String getToken() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        return sharedPreferences.getString(KEY_ACCESS_TOKEN, "");
+    }
+
+    private void getAllTeachers() {
+        String token = getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy token đăng nhập", Toast.LENGTH_SHORT).show();
+            txtTotalTeachers.setText("0");
+            return;
+        }
+
+        String url = BASE_URL + "/api/teachers/all";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    teacherCount = extractCount(response);
+                    txtTotalTeachers.setText(String.valueOf(teacherCount));
+                    setupLineChart();
+                },
+                error -> {
+                    txtTotalTeachers.setText("0");
+                    Toast.makeText(this, "Lỗi lấy danh sách giảng viên", Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
+    }
+
+    private void getAllStudents() {
+        String token = getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy token đăng nhập", Toast.LENGTH_SHORT).show();
+            txtTotalStudents.setText("0");
+            return;
+        }
+
+        String url = BASE_URL + "/api/students/all";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    studentCount = extractCount(response);
+                    txtTotalStudents.setText(String.valueOf(studentCount));
+                    setupLineChart();
+                },
+                error -> {
+                    txtTotalStudents.setText("0");
+                    Toast.makeText(this, "Lỗi lấy danh sách học sinh", Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
+    }
+
+    private void getAllActiveLessons() {
+        String token = getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy token đăng nhập", Toast.LENGTH_SHORT).show();
+            txtTotalCourses.setText("0");
+            return;
+        }
+
+        String url = BASE_URL + "/api/lessons/allActive";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    activeLessonCount = extractCount(response);
+                    txtTotalCourses.setText(String.valueOf(activeLessonCount));
+                    setupLineChart();
+                },
+                error -> {
+                    txtTotalCourses.setText("0");
+                    Toast.makeText(this, "Lỗi lấy khóa học đang hoạt động", Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
+    }
+
+    private void getAllPendingLessons() {
+        String token = getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy token đăng nhập", Toast.LENGTH_SHORT).show();
+            txtPendingCourses.setText("0");
+            return;
+        }
+
+        String url = BASE_URL + "/api/lessons/allPending";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    pendingLessonCount = extractCount(response);
+                    txtPendingCourses.setText(String.valueOf(pendingLessonCount));
+                    setupLineChart();
+                },
+                error -> {
+                    txtPendingCourses.setText("0");
+                    Toast.makeText(this, "Lỗi lấy khóa học cần duyệt", Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
+    }
+
+    private int extractCount(JSONObject response) {
+        if (response == null) {
+            return 0;
+        }
+
+        Object result = response.opt("result");
+
+        if (result == null) {
+            return 0;
+        }
+
+        if (result instanceof JSONArray) {
+            return ((JSONArray) result).length();
+        }
+
+        if (result instanceof JSONObject) {
+            JSONObject resultObject = (JSONObject) result;
+
+            if (resultObject.has("totalElements")) {
+                return resultObject.optInt("totalElements", 0);
+            }
+
+            if (resultObject.has("total")) {
+                return resultObject.optInt("total", 0);
+            }
+
+            JSONArray contentArray = resultObject.optJSONArray("content");
+            if (contentArray != null) {
+                return contentArray.length();
+            }
+
+            JSONArray dataArray = resultObject.optJSONArray("data");
+            if (dataArray != null) {
+                return dataArray.length();
+            }
+
+            JSONArray lessonsArray = resultObject.optJSONArray("lessons");
+            if (lessonsArray != null) {
+                return lessonsArray.length();
+            }
+
+            if (resultObject.has("id")) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
     private void setupLineChart() {
-        // 1. Dữ liệu cho Học viên
-        List<Entry> studentEntries = new ArrayList<>();
-        studentEntries.add(new Entry(1, 10));
-        studentEntries.add(new Entry(2, 25));
-        studentEntries.add(new Entry(3, 18));
-        studentEntries.add(new Entry(4, 40));
-        studentEntries.add(new Entry(5, 35));
+        ArrayList<Entry> studentEntries = new ArrayList<>();
+        studentEntries.add(new Entry(1, 0));
+        studentEntries.add(new Entry(2, Math.max(studentCount * 0.35f, 0)));
+        studentEntries.add(new Entry(3, Math.max(studentCount * 0.60f, 0)));
+        studentEntries.add(new Entry(4, Math.max(studentCount * 0.80f, 0)));
+        studentEntries.add(new Entry(5, studentCount));
 
-        // 2. Dữ liệu cho Giảng viên (Ví dụ)
-        List<Entry> teacherEntries = new ArrayList<>();
-        teacherEntries.add(new Entry(1, 5));
-        teacherEntries.add(new Entry(2, 8));
-        teacherEntries.add(new Entry(3, 12));
-        teacherEntries.add(new Entry(4, 10));
-        teacherEntries.add(new Entry(5, 15));
+        ArrayList<Entry> teacherEntries = new ArrayList<>();
+        teacherEntries.add(new Entry(1, 0));
+        teacherEntries.add(new Entry(2, Math.max(teacherCount * 0.35f, 0)));
+        teacherEntries.add(new Entry(3, Math.max(teacherCount * 0.60f, 0)));
+        teacherEntries.add(new Entry(4, Math.max(teacherCount * 0.80f, 0)));
+        teacherEntries.add(new Entry(5, teacherCount));
 
-        // --- Tùy chỉnh tập dữ liệu Học viên (Màu Xanh Dương) ---
         LineDataSet studentDataSet = new LineDataSet(studentEntries, "Số lượng học viên");
-        studentDataSet.setMode(LineDataSet.Mode.LINEAR); // Đường thẳng, không bo cong
+        studentDataSet.setMode(LineDataSet.Mode.LINEAR);
         studentDataSet.setColor(Color.parseColor("#1976D2"));
         studentDataSet.setLineWidth(3f);
         studentDataSet.setCircleColor(Color.parseColor("#1976D2"));
@@ -79,9 +339,8 @@ public class AdminHomeActivity extends AppCompatActivity {
         studentDataSet.setCircleHoleColor(Color.WHITE);
         studentDataSet.setCircleRadius(4f);
 
-        // --- Tùy chỉnh tập dữ liệu Giảng viên (Màu Đỏ Cam) ---
         LineDataSet teacherDataSet = new LineDataSet(teacherEntries, "Số lượng giảng viên");
-        teacherDataSet.setMode(LineDataSet.Mode.LINEAR); // Đường thẳng, không bo cong
+        teacherDataSet.setMode(LineDataSet.Mode.LINEAR);
         teacherDataSet.setColor(Color.parseColor("#FF5722"));
         teacherDataSet.setLineWidth(3f);
         teacherDataSet.setCircleColor(Color.parseColor("#FF5722"));
@@ -89,27 +348,21 @@ public class AdminHomeActivity extends AppCompatActivity {
         teacherDataSet.setCircleHoleColor(Color.WHITE);
         teacherDataSet.setCircleRadius(4f);
 
-        // 3. Gộp cả hai đường vào LineData
         LineData lineData = new LineData(studentDataSet, teacherDataSet);
         lineData.setValueTextSize(10f);
-        lineData.setValueTextColor(Color.BLACK); // Làm nổi bật số liệu trên nền trắng
+        lineData.setValueTextColor(Color.BLACK);
 
         lineChart.setData(lineData);
-
-        // --- Tối ưu giao diện biểu đồ ---
         lineChart.getDescription().setEnabled(false);
 
-        // Tùy chỉnh trục X (Bên dưới)
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
-        xAxis.setGranularity(1f); // Khoảng cách giữa các điểm là 1 đơn vị
+        xAxis.setGranularity(1f);
 
-        // Tùy chỉnh trục Y
-        lineChart.getAxisRight().setEnabled(false); // Tắt trục phải cho đỡ rối
-        lineChart.getAxisLeft().setGridColor(Color.LTGRAY); // Lưới ngang mờ để dễ nhìn
+        lineChart.getAxisRight().setEnabled(false);
+        lineChart.getAxisLeft().setGridColor(Color.LTGRAY);
 
-        // Hiển thị chú thích (Legend)
         Legend legend = lineChart.getLegend();
         legend.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
@@ -119,13 +372,4 @@ public class AdminHomeActivity extends AppCompatActivity {
         lineChart.animateY(1000);
         lineChart.invalidate();
     }
-//    // Đóng drawer khi nhấn nút back thay vì thoát app ngay
-//    @Override
-//    public void onBackPressed() {
-//        if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
-//            drawerLayout.closeDrawer(GravityCompat.END);
-//        } else {
-//            super.onBackPressed();
-//        }
-//    }
 }

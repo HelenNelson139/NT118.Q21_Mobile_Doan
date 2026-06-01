@@ -41,18 +41,19 @@ public class TeacherCourseAdapter extends RecyclerView.Adapter<TeacherCourseAdap
         holder.tvDescription.setText("Mô tả: " + course.getDescription());
         String status = course.getStatus() != null ? course.getStatus() : "PENDING";
         holder.tvTeacherName.setText("Trạng thái: " + status);
-        holder.imgCourse.setImageResource(R.drawable.course_python);
+        com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                .load(course.getThumbnailUrl())
+                .placeholder(R.drawable.course_python)
+                .error(R.drawable.course_python)
+                .into(holder.imgCourse);
+
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), CourseActivity.class);
             intent.putExtra("course_name", course.getTitle());
+            intent.putExtra("course_id", course.getId());
+            intent.putExtra("course_thumbnail", course.getThumbnailUrl());
             v.getContext().startActivity(intent);
-        });
-
-        holder.btnEditCourse.setOnClickListener(v -> {
-            if (listener != null && holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
-                listener.onEditClick(holder.getAdapterPosition());
-            }
         });
 
         holder.btnDeleteCourse.setOnClickListener(v -> {

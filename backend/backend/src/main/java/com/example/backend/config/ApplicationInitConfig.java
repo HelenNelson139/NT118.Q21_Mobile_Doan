@@ -16,7 +16,7 @@ import static com.example.backend.enums.Role.ADMIN;
 
 @Configuration
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE,makeFinal = true)
-//@AllArgsConstructor
+//  @AllArgsConstructor
 @RequiredArgsConstructor
 @Slf4j
 // thêm user Admin khi khởi tạo
