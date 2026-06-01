@@ -13,6 +13,7 @@ import com.example.backend.dto.user.request.CreateUserRequest;
 import com.example.backend.dto.user.request.UpdateUserRequest;
 import com.example.backend.dto.user.response.UserResponseProfile;
 import com.example.backend.entity.*;
+import com.example.backend.enums.Status;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
 import com.example.backend.respository.EnrollmentRepository;
@@ -124,6 +125,14 @@ public class StudentService extends IUserService<CreateUserRequest, UpdateStuden
         return enrollmentRepository.findById_UserId(studentId)
                 .stream()
                 .map(enrollment -> enrollment.getLesson().getId())
+                .toList();
+    }
+
+    public List<Integer> getUnenrolledLessonsByStudentId(Integer studentId) {
+        return lessonRepository.findLessonsNotEnrolledByStudentId(studentId)
+                .stream()
+                .filter(lesson -> lesson.getStatus() == Status.ACTIVE)
+                .map(Lesson::getId)
                 .toList();
     }
 
