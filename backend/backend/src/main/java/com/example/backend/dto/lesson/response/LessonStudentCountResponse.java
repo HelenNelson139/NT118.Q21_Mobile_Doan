@@ -1,0 +1,15 @@
+package com.example.backend.dto.lesson.response;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class LessonStudentCountResponse {
+    Integer lessonId;
+    String lessonTitle;
+    Long studentCount;
+}
