@@ -2,6 +2,7 @@ package com.example.backend.Mapper;
 
 import com.example.backend.dto.user.request.CreateUserRequest;
 import com.example.backend.dto.user.request.UpdateUserRequest;
+import com.example.backend.dto.user.response.UserResponseProfile;
 import com.example.backend.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -17,4 +18,5 @@ public interface UserMapper {
     User toCreate(CreateUserRequest createUserRequest);
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(UpdateUserRequest request, @MappingTarget User user);
+    UserResponseProfile toUserResponseProfile(User user);
 }

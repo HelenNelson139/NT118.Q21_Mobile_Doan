@@ -42,4 +42,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
     );
 
     List<com.example.backend.entity.Lesson> findByTeacherId(Integer teacherId);
+    @Query("SELECT l FROM Lesson l WHERE l.id NOT IN " +
+            "(SELECT e.lesson.id FROM Enrollment e WHERE e.id.userId = :studentId)")
+    List<Lesson> findLessonsNotEnrolledByStudentId(@Param("studentId") Integer studentId);
 }
