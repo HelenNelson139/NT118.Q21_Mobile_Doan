@@ -70,7 +70,7 @@ public class ModuleService {
     public ModuleResponse getModuleById(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!"));
-        if (module.getStatus() == Status.REJECTED || module.getStatus() == Status.PENDING) {
+        if (module.getStatus() == Status.REJECTED) {
             throw new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!");
         }
         return moduleMapper.toModuleResponse(module);

@@ -124,9 +124,7 @@ public class LessonService {
     public LessonResponse getLessonById(Integer id){
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!"));
-        boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TEACHER"));
-        if (isTeacher && lesson.getStatus() == Status.REJECTED || isTeacher && lesson.getStatus() == Status.DELETED) {
+        if (lesson.getStatus() == Status.REJECTED || lesson.getStatus() == Status.DELETED) {
             throw new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!");
         }
         return lessonMapper.toLessonResponse(lesson);

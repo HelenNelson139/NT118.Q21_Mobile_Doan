@@ -95,33 +95,92 @@ public class LessonActivity extends AppCompatActivity {
     }
 
     private void handleIntentData() {
-        if (getIntent() != null && getIntent().hasExtra("MODULE_IDS")) {
+        Intent intent = getIntent();
+
+        if (intent == null) {
+            isModuleMode = false;
+            showEmptyModule();
+            return;
+        }
+
+        /*
+         * CÁCH 1:
+         * Mở từ Teacher / Student / Admin bằng danh sách module.
+         */
+        if (intent.hasExtra("MODULE_IDS")) {
             isModuleMode = true;
 
-            moduleIds = getIntent().getIntegerArrayListExtra("MODULE_IDS");
-            currentIndex = getIntent().getIntExtra("CURRENT_INDEX", 0);
-            parentLessonThumbnail = getIntent().getStringExtra("PARENT_LESSON_THUMBNAIL");
+            moduleIds = intent.getIntegerArrayListExtra("MODULE_IDS");
+            currentIndex = intent.getIntExtra("CURRENT_INDEX", 0);
+            parentLessonThumbnail = intent.getStringExtra("PARENT_LESSON_THUMBNAIL");
 
             if (moduleIds == null) {
                 moduleIds = new ArrayList<>();
             }
 
-            if (parentLessonThumbnail != null && !parentLessonThumbnail.trim().isEmpty()) {
-                Glide.with(this)
-                        .load(parentLessonThumbnail)
-                        .placeholder(R.drawable.course_python)
-                        .error(R.drawable.course_python)
-                        .into(imgCourse);
-            } else {
-                imgCourse.setImageResource(R.drawable.course_python);
+            /*
+             * Nếu vì lý do nào đó MODULE_IDS rỗng,
+             * lấy MODULE_ID dự phòng.
+             */
+            int singleModuleId = intent.getIntExtra("MODULE_ID", -1);
+
+            if (moduleIds.isEmpty() && singleModuleId != -1) {
+                moduleIds.add(singleModuleId);
+                currentIndex = 0;
             }
 
-            fetchModuleFromServer();
+            if (currentIndex < 0 || currentIndex >= moduleIds.size()) {
+                currentIndex = 0;
+            }
 
+            loadParentThumbnail();
+            fetchModuleFromServer();
+            return;
+        }
+
+        /*
+         * CÁCH 2:
+         * Mở trực tiếp bằng 1 MODULE_ID.
+         * Đây là fallback cho Admin.
+         */
+        int singleModuleId = intent.getIntExtra("MODULE_ID", -1);
+
+        if (singleModuleId != -1) {
+            isModuleMode = true;
+
+            moduleIds = new ArrayList<>();
+            moduleIds.add(singleModuleId);
+
+            currentIndex = 0;
+            parentLessonThumbnail = intent.getStringExtra("PARENT_LESSON_THUMBNAIL");
+
+            loadParentThumbnail();
+            fetchModuleFromServer();
+            return;
+        }
+
+        /*
+         * CÁCH 3:
+         * Luồng cũ của Teacher.
+         */
+        isModuleMode = false;
+        currentIndex = intent.getIntExtra("index", 0);
+        fetchTeacherLessonsFromServer();
+    }
+
+    private void loadParentThumbnail() {
+        if (imgCourse == null) {
+            return;
+        }
+
+        if (parentLessonThumbnail != null && !parentLessonThumbnail.trim().isEmpty()) {
+            Glide.with(this)
+                    .load(parentLessonThumbnail)
+                    .placeholder(R.drawable.course_python)
+                    .error(R.drawable.course_python)
+                    .into(imgCourse);
         } else {
-            isModuleMode = false;
-            currentIndex = getIntent().getIntExtra("index", 0);
-            fetchTeacherLessonsFromServer();
+            imgCourse.setImageResource(R.drawable.course_python);
         }
     }
 
@@ -265,6 +324,7 @@ public class LessonActivity extends AppCompatActivity {
         releaseLessonPlayer();
 
         if (moduleIds == null || moduleIds.isEmpty()) {
+            Toast.makeText(this, "Không nhận được moduleId từ màn hình trước", Toast.LENGTH_SHORT).show();
             showEmptyModule();
             return;
         }
@@ -274,6 +334,12 @@ public class LessonActivity extends AppCompatActivity {
         }
 
         int currentModuleId = moduleIds.get(currentIndex);
+
+        Toast.makeText(
+                this,
+                "Đang mở bài giảng ID: " + currentModuleId,
+                Toast.LENGTH_SHORT
+        ).show();
 
         ModuleApiService apiService =
                 RetrofitClient.getClient().create(ModuleApiService.class);
@@ -290,9 +356,19 @@ public class LessonActivity extends AppCompatActivity {
                     if (apiResponse.getCode() == 1000 && apiResponse.getResult() != null) {
                         loadModule(apiResponse.getResult());
                     } else {
+                        Toast.makeText(
+                                LessonActivity.this,
+                                "Không lấy được chi tiết bài giảng: " + apiResponse.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
                         showEmptyModule();
                     }
                 } else {
+                    Toast.makeText(
+                            LessonActivity.this,
+                            "Không lấy được chi tiết bài giảng, HTTP " + response.code(),
+                            Toast.LENGTH_SHORT
+                    ).show();
                     showEmptyModule();
                 }
             }
@@ -302,7 +378,11 @@ public class LessonActivity extends AppCompatActivity {
                     Call<ApiResponse<ModuleResponse>> call,
                     Throwable t
             ) {
-                Log.e("API_MODULE_LOG", "Thất bại: " + t.getMessage());
+                Toast.makeText(
+                        LessonActivity.this,
+                        "Lỗi kết nối khi lấy bài giảng: " + t.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show();
                 showEmptyModule();
             }
         });
