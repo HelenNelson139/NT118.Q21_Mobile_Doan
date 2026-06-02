@@ -77,6 +77,32 @@ public interface LessonApiService {
             @Body LessonUpdateRequest request
     );
 
+    @GET("api/modules/lesson/{lessonId}")
+    Call<ApiResponse<List<ModuleResponse>>> getModulesByLessonId(
+            @Path("lessonId") int lessonId
+    );
+
+    @GET("api/modules/lesson/pending/{lessonId}")
+    Call<ApiResponse<List<ModuleResponse>>> getPendingModulesByLessonId(
+            @Path("lessonId") int lessonId
+    );
+
+    @PUT("api/modules/{id}/approve")
+    Call<ApiResponse<ModuleResponse>> approveModule(
+            @Path("id") int id
+    );
+
+    @PUT("api/modules/{id}/approve-delete")
+    Call<ApiResponse<ModuleResponse>> approveDeleteModule(
+            @Path("id") int id
+    );
+
+    @GET("api/modules/{id}")
+    Call<ApiResponse<ModuleResponse>> getModuleById(
+            @Path("id") int id
+    );
+
+}
 }
     @GET("api/lessons/allActive")
     Call<ApiResponse<List<LessonResponse>>> getAllLessonsActive();

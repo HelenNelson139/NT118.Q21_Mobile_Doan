@@ -38,6 +38,8 @@ android {
 }
 
 dependencies {
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -49,6 +51,7 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
+    implementation(libs.media3.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -66,4 +69,5 @@ dependencies {
     debugImplementation(libs.ui.test.manifest)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.android.volley:volley:1.2.1")
+
 }

@@ -2,6 +2,7 @@ package com.example.backend.service;
 
 import com.example.backend.Mapper.ModuleMapper;
 import com.example.backend.dto.lesson.request.ModuleCreationRequest;
+import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.dto.lesson.response.ModuleResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.enums.Status;
@@ -32,7 +33,7 @@ public class ModuleService {
         Lesson lesson = lessonRepository.findById(request.getLessonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học tương ứng!"));
 
-        if (lesson.getStatus() == Status.REJECTED   ) {
+        if (lesson.getStatus() == Status.REJECTED || lesson.getStatus() == Status.DELETED  ) {
             throw new RuntimeException("Không thể thêm bài học vào khóa học đã bị xóa hoặc đang chờ xóa!");
         }
 
@@ -69,20 +70,25 @@ public class ModuleService {
     public ModuleResponse getModuleById(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!"));
-        boolean isTeacher = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_TEACHER"));
-
-        if (isTeacher && (module.getStatus() == Status.REJECTED     )) {
+        if (module.getStatus() == Status.REJECTED || module.getStatus() == Status.PENDING) {
             throw new RuntimeException("Bài học không tồn tại hoặc đã bị ẩn!");
         }
         return moduleMapper.toModuleResponse(module);
+    }
+    public List<ModuleResponse> getPendingModulesByLesson(Integer lessonId) {
+        List<Module> modules = moduleRepository
+                .findByLessonIdAndStatus(lessonId, Status.PENDING);
+
+        return modules.stream()
+                .map(moduleMapper::toModuleResponse)
+                .toList();
     }
 
     @Transactional
     public void deleteModule(Integer id) {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
-        module.setStatus(Status.REJECTED);
+        module.setStatus(Status.PENDING_DELETE);
         moduleRepository.save(module);
     }
 
@@ -100,12 +106,15 @@ public class ModuleService {
         Module module = moduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài học không tồn tại!"));
 
-        if (module.getStatus() != Status.PENDING) {
-            throw new RuntimeException("Bài học này không nằm trong danh sách yêu cầu xóa!");
+        if (module.getStatus() != Status.PENDING_DELETE
+                && module.getStatus() != Status.PENDING) {
+            throw new RuntimeException("Bài học này không nằm trong danh sách yêu cầu xoá!");
         }
 
         module.setStatus(Status.REJECTED);
+
         Module savedModule = moduleRepository.save(module);
+
         return moduleMapper.toModuleResponse(savedModule);
     }
 
@@ -122,5 +131,39 @@ public class ModuleService {
                 .map(moduleMapper::toModuleResponse)
                 .toList();
     }
+
+    public List<ModuleResponse> findAllModuleActive(){
+        List<Module> listModuleFound = moduleRepository.findAll();
+        return listModuleFound.stream()
+                .filter(module -> module.getStatus() == Status.ACTIVE )
+                .map(moduleMapper::toModuleResponse)
+                .toList();
+    }
+    public List<ModuleResponse> findAllModulePending(){
+        List<Module> listModuleFound = moduleRepository.findAll();
+        return listModuleFound.stream()
+                .filter(module -> module.getStatus() == Status.PENDING )
+                .map(moduleMapper::toModuleResponse)
+                .toList();
+    }
+    public List<ModuleResponse> findAllModuleRejected(){
+        List<Module> listModuleFound = moduleRepository.findAll();
+        return listModuleFound.stream()
+                .filter(module -> module.getStatus() == Status.REJECTED)
+                .map(moduleMapper::toModuleResponse)
+                .toList();
+    }
+
+    public void approvePendingModulesByLesson(Integer lessonId) {
+        List<Module> modules = moduleRepository
+                .findByLessonIdAndStatus(lessonId, Status.PENDING);
+
+        for (Module module : modules) {
+            module.setStatus(Status.ACTIVE);
+        }
+
+        moduleRepository.saveAll(modules);
+    }
+
 }
 

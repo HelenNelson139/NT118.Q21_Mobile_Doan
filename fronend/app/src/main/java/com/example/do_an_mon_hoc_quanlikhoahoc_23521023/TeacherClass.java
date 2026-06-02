@@ -24,6 +24,9 @@ import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
+import androidx.media3.common.MediaItem;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -40,7 +43,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -54,7 +59,7 @@ public class TeacherClass extends AppCompatActivity {
     private RecyclerView rvCourseList;
     private List<LessonResponse> filteredList;
     private TeacherCourseAdapter adapter;
-
+    private final Map<View, ExoPlayer> previewPlayerMap = new HashMap<>();
     private MaterialCardView btnMenuCard;
     private View btnAddCourse;
     private EditText edtSearchCourse;
@@ -63,10 +68,15 @@ public class TeacherClass extends AppCompatActivity {
     private ImageView imgPreview;
     private ActivityResultLauncher<String> imagePickerLauncher;
 
-    private ActivityResultLauncher<String> moduleFilePickerLauncher;
-    private View currentModuleFileView;
+    private ActivityResultLauncher<String> videoPickerLauncher;
+    private ActivityResultLauncher<String> documentPickerLauncher;
+
+    private View currentVideoModuleView;
+    private View currentDocumentModuleView;
 
     private final List<View> lessonViews = new ArrayList<>();
+    private final Map<View, Uri> moduleVideoMap = new HashMap<>();
+    private final Map<View, Uri> moduleDocumentMap = new HashMap<>();
 
     private static final String PREF_NAME = "APP_PREFS";
     private static final String KEY_USER_ID = "USER_ID";
@@ -113,38 +123,72 @@ public class TeacherClass extends AppCompatActivity {
                 }
         );
 
-        moduleFilePickerLauncher = registerForActivityResult(
+        videoPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-                    if (uri != null && currentModuleFileView != null) {
-                        TextView txtSelectedFile =
-                                currentModuleFileView.findViewById(R.id.txtSelectedFile);
+                    if (uri == null || currentVideoModuleView == null) {
+                        return;
+                    }
 
-                        VideoView videoPreview =
-                                currentModuleFileView.findViewById(R.id.videoPreview);
+                    moduleVideoMap.put(currentVideoModuleView, uri);
 
-                        currentModuleFileView.setTag(uri);
+                    TextView txtSelectedVideo =
+                            currentVideoModuleView.findViewById(R.id.txtSelectedVideo);
 
-                        String fileName = getFileNameFromUri(uri);
+                    PlayerView videoPreview =
+                            currentVideoModuleView.findViewById(R.id.videoPreview);
 
-                        if (txtSelectedFile != null) {
-                            txtSelectedFile.setText("Đã chọn: " + fileName);
+                    String fileName = getFileNameFromUri(uri);
+
+                    if (txtSelectedVideo != null) {
+                        txtSelectedVideo.setText("Đã chọn video: " + fileName);
+                    }
+
+                    if (videoPreview != null) {
+                        videoPreview.setVisibility(View.VISIBLE);
+
+                        ExoPlayer oldPlayer = previewPlayerMap.get(currentVideoModuleView);
+
+                        if (oldPlayer != null) {
+                            oldPlayer.release();
                         }
 
-                        String mimeType = getContentResolver().getType(uri);
+                        ExoPlayer player = new ExoPlayer.Builder(this).build();
 
-                        if (mimeType != null && mimeType.startsWith("video/") && videoPreview != null) {
-                            videoPreview.setVisibility(View.VISIBLE);
-                            videoPreview.setVideoURI(uri);
+                        videoPreview.setPlayer(player);
 
-                            MediaController mediaController = new MediaController(this);
-                            mediaController.setAnchorView(videoPreview);
-                            videoPreview.setMediaController(mediaController);
+                        MediaItem mediaItem = MediaItem.fromUri(uri);
+                        player.setMediaItem(mediaItem);
 
-                            videoPreview.seekTo(1);
-                        } else if (videoPreview != null) {
-                            videoPreview.setVisibility(View.GONE);
-                        }
+                        player.prepare();
+
+                        /*
+                         * Không auto play khi đang thêm giáo trình.
+                         * Chỉ render preview, người dùng bấm play nếu muốn xem thử.
+                         */
+                        player.setPlayWhenReady(false);
+
+                        previewPlayerMap.put(currentVideoModuleView, player);
+                    }
+                }
+        );
+
+        documentPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri == null || currentDocumentModuleView == null) {
+                        return;
+                    }
+
+                    moduleDocumentMap.put(currentDocumentModuleView, uri);
+
+                    TextView txtSelectedDocument =
+                            currentDocumentModuleView.findViewById(R.id.txtSelectedDocument);
+
+                    String fileName = getFileNameFromUri(uri);
+
+                    if (txtSelectedDocument != null) {
+                        txtSelectedDocument.setText("Đã chọn file: " + fileName);
                     }
                 }
         );
@@ -199,6 +243,7 @@ public class TeacherClass extends AppCompatActivity {
                                 Toast.LENGTH_SHORT
                         ).show();
                     }
+
                 } else {
                     Toast.makeText(
                             TeacherClass.this,
@@ -318,6 +363,9 @@ public class TeacherClass extends AppCompatActivity {
 
         selectedImageUri = null;
         lessonViews.clear();
+        moduleVideoMap.clear();
+        moduleDocumentMap.clear();
+
         imgPreview = imgCourseCover;
 
         Dialog dialog = new Dialog(this, R.style.CustomDialogTheme);
@@ -376,6 +424,13 @@ public class TeacherClass extends AppCompatActivity {
                 return;
             }
 
+            File file = getFileFromUri(selectedImageUri);
+
+            if (file == null) {
+                Toast.makeText(this, "Không đọc được ảnh bìa!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             MultipartBody.Part titlePart =
                     MultipartBody.Part.createFormData("title", title);
 
@@ -390,13 +445,6 @@ public class TeacherClass extends AppCompatActivity {
 
             MultipartBody.Part teacherIdPart =
                     MultipartBody.Part.createFormData("teacherId", teacherIdStr);
-
-            File file = getFileFromUri(selectedImageUri);
-
-            if (file == null) {
-                Toast.makeText(this, "Không đọc được ảnh bìa!", Toast.LENGTH_SHORT).show();
-                return;
-            }
 
             String mimeType = getContentResolver().getType(selectedImageUri);
 
@@ -530,6 +578,8 @@ public class TeacherClass extends AppCompatActivity {
         MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
 
         lessonViews.clear();
+        moduleVideoMap.clear();
+        moduleDocumentMap.clear();
         selectedImageUri = null;
 
         edtTitle.setText(safe(oldCourse.getTitle()));
@@ -571,11 +621,18 @@ public class TeacherClass extends AppCompatActivity {
 
         setupTabs(tabLayout, containerIntro, containerCurriculum);
 
+        fetchExistingModulesForLesson(
+                oldCourse.getId(),
+                oldCourse.getThumbnailUrl(),
+                lessonContainer
+        );
+
         btnAddLesson.setOnClickListener(v -> addLesson(lessonContainer));
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         btnSave.setOnClickListener(v -> {
             String newTitle = edtTitle.getText().toString().trim();
+
             String newDescription = edtDescription != null
                     ? edtDescription.getText().toString().trim()
                     : "";
@@ -730,28 +787,23 @@ public class TeacherClass extends AppCompatActivity {
     }
 
     private void addLesson(LinearLayout lessonContainer) {
-        View lessonView =
-                LayoutInflater.from(this).inflate(R.layout.item_lesson, null);
+        View lessonView = LayoutInflater.from(this).inflate(R.layout.item_lesson, null);
 
-        MaterialButton btnUploadVideo =
-                lessonView.findViewById(R.id.btnUploadVideo);
+        MaterialButton btnUploadVideo = lessonView.findViewById(R.id.btnUploadVideo);
+        MaterialButton btnUploadDocument = lessonView.findViewById(R.id.btnUploadDocument);
 
         if (btnUploadVideo != null) {
             btnUploadVideo.setOnClickListener(v -> {
-                currentModuleFileView = lessonView;
-                moduleFilePickerLauncher.launch("*/*");
+                currentVideoModuleView = lessonView;
+                videoPickerLauncher.launch("video/*");
             });
         }
 
-        if (!lessonViews.isEmpty()) {
-            LinearLayout.LayoutParams params =
-                    new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                    );
-
-            params.topMargin = 20;
-            lessonView.setLayoutParams(params);
+        if (btnUploadDocument != null) {
+            btnUploadDocument.setOnClickListener(v -> {
+                currentDocumentModuleView = lessonView;
+                documentPickerLauncher.launch("*/*");
+            });
         }
 
         lessonContainer.addView(lessonView);
@@ -779,6 +831,7 @@ public class TeacherClass extends AppCompatActivity {
         int[] failed = {0};
 
         for (int i = 0; i < totalModules; i++) {
+            final int orderIndex = i + 1;
             View lessonView = lessonViews.get(i);
 
             EditText edtModuleTitle = lessonView.findViewById(R.id.txtModuleTitle);
@@ -790,7 +843,7 @@ public class TeacherClass extends AppCompatActivity {
                     edtModuleTitle != null
                             && !edtModuleTitle.getText().toString().trim().isEmpty()
                             ? edtModuleTitle.getText().toString().trim()
-                            : "Module " + (i + 1);
+                            : "Module " + orderIndex;
 
             String objective =
                     edtObjective != null
@@ -807,11 +860,8 @@ public class TeacherClass extends AppCompatActivity {
                             ? edtExample.getText().toString().trim()
                             : "";
 
-            Uri selectedModuleFileUri = null;
-
-            if (lessonView.getTag() instanceof Uri) {
-                selectedModuleFileUri = (Uri) lessonView.getTag();
-            }
+            Uri videoUri = moduleVideoMap.get(lessonView);
+            Uri documentUri = moduleDocumentMap.get(lessonView);
 
             RequestBody lessonIdBody =
                     RequestBody.create(
@@ -846,10 +896,8 @@ public class TeacherClass extends AppCompatActivity {
             RequestBody orderIndexBody =
                     RequestBody.create(
                             MediaType.parse("text/plain"),
-                            String.valueOf(i + 1)
+                            String.valueOf(orderIndex)
                     );
-
-            Uri finalSelectedModuleFileUri = selectedModuleFileUri;
 
             moduleApiService.createModule(
                     lessonIdBody,
@@ -871,39 +919,30 @@ public class TeacherClass extends AppCompatActivity {
 
                         Integer moduleId = response.body().getResult().getId();
 
-                        if (finalSelectedModuleFileUri != null) {
-                            uploadFileForModule(
-                                    moduleId,
-                                    finalSelectedModuleFileUri,
-                                    () -> {
-                                        completed[0]++;
-                                        checkAllModulesUploaded(
-                                                completed[0],
-                                                failed[0],
-                                                totalModules,
-                                                dialog
-                                        );
-                                    },
-                                    () -> {
-                                        completed[0]++;
-                                        failed[0]++;
-                                        checkAllModulesUploaded(
-                                                completed[0],
-                                                failed[0],
-                                                totalModules,
-                                                dialog
-                                        );
-                                    }
-                            );
-                        } else {
-                            completed[0]++;
-                            checkAllModulesUploaded(
-                                    completed[0],
-                                    failed[0],
-                                    totalModules,
-                                    dialog
-                            );
-                        }
+                        uploadModuleAttachments(
+                                moduleId,
+                                videoUri,
+                                documentUri,
+                                () -> {
+                                    completed[0]++;
+                                    checkAllModulesUploaded(
+                                            completed[0],
+                                            failed[0],
+                                            totalModules,
+                                            dialog
+                                    );
+                                },
+                                () -> {
+                                    completed[0]++;
+                                    failed[0]++;
+                                    checkAllModulesUploaded(
+                                            completed[0],
+                                            failed[0],
+                                            totalModules,
+                                            dialog
+                                    );
+                                }
+                        );
 
                     } else {
                         failed[0]++;
@@ -946,9 +985,57 @@ public class TeacherClass extends AppCompatActivity {
         }
     }
 
-    private void uploadFileForModule(
+    private void uploadModuleAttachments(
+            Integer moduleId,
+            Uri videoUri,
+            Uri documentUri,
+            Runnable onSuccess,
+            Runnable onError
+    ) {
+        if (moduleId == null) {
+            onError.run();
+            return;
+        }
+
+        if (videoUri != null) {
+            uploadMultipartToServer(
+                    moduleId,
+                    videoUri,
+                    true,
+                    () -> {
+                        if (documentUri != null) {
+                            uploadMultipartToServer(
+                                    moduleId,
+                                    documentUri,
+                                    false,
+                                    onSuccess,
+                                    onError
+                            );
+                        } else {
+                            onSuccess.run();
+                        }
+                    },
+                    onError
+            );
+        } else {
+            if (documentUri != null) {
+                uploadMultipartToServer(
+                        moduleId,
+                        documentUri,
+                        false,
+                        onSuccess,
+                        onError
+                );
+            } else {
+                onSuccess.run();
+            }
+        }
+    }
+
+    private void uploadMultipartToServer(
             Integer moduleId,
             Uri fileUri,
+            boolean isVideo,
             Runnable onSuccess,
             Runnable onError
     ) {
@@ -961,6 +1048,7 @@ public class TeacherClass extends AppCompatActivity {
             File file = getFileFromUri(fileUri);
 
             if (file == null) {
+                Toast.makeText(this, "Không đọc được file", Toast.LENGTH_LONG).show();
                 onError.run();
                 return;
             }
@@ -1001,11 +1089,23 @@ public class TeacherClass extends AppCompatActivity {
             FileApiService fileApiService =
                     RetrofitClient.getClient().create(FileApiService.class);
 
-            fileApiService.uploadFile(
-                    moduleIdBody,
-                    fileNameBody,
-                    filePart
-            ).enqueue(new Callback<ApiResponse<String>>() {
+            Call<ApiResponse<String>> call;
+
+            if (isVideo) {
+                call = fileApiService.uploadVideo(
+                        moduleIdBody,
+                        fileNameBody,
+                        filePart
+                );
+            } else {
+                call = fileApiService.uploadFile(
+                        moduleIdBody,
+                        fileNameBody,
+                        filePart
+                );
+            }
+
+            call.enqueue(new Callback<ApiResponse<String>>() {
                 @Override
                 public void onResponse(
                         Call<ApiResponse<String>> call,
@@ -1019,9 +1119,18 @@ public class TeacherClass extends AppCompatActivity {
                                     ? response.errorBody().string()
                                     : "Không có error body";
 
-                            Log.e("UPLOAD_MODULE_FILE_ERROR", errorBody);
+                            Log.e("UPLOAD_ATTACHMENT_ERROR", "HTTP " + response.code());
+                            Log.e("UPLOAD_ATTACHMENT_ERROR", errorBody);
+
+                            Toast.makeText(
+                                    TeacherClass.this,
+                                    "Upload " + (isVideo ? "video" : "file")
+                                            + " lỗi HTTP " + response.code(),
+                                    Toast.LENGTH_LONG
+                            ).show();
+
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.e("UPLOAD_ATTACHMENT_PARSE", String.valueOf(e.getMessage()));
                         }
 
                         onError.run();
@@ -1030,13 +1139,22 @@ public class TeacherClass extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
-                    Log.e("UPLOAD_MODULE_FILE_FAIL", String.valueOf(t.getMessage()));
+                    Log.e("UPLOAD_ATTACHMENT_FAIL", String.valueOf(t.getMessage()));
+
+                    Toast.makeText(
+                            TeacherClass.this,
+                            "Lỗi upload " + (isVideo ? "video" : "file")
+                                    + ": " + t.getMessage(),
+                            Toast.LENGTH_LONG
+                    ).show();
+
                     onError.run();
                 }
             });
 
         } catch (Exception e) {
-            Log.e("UPLOAD_FILE_EXCEPTION", String.valueOf(e.getMessage()));
+            Log.e("UPLOAD_ATTACHMENT_EXCEPTION", String.valueOf(e.getMessage()));
+            Toast.makeText(this, "Lỗi upload: " + e.getMessage(), Toast.LENGTH_LONG).show();
             onError.run();
         }
     }
@@ -1057,7 +1175,7 @@ public class TeacherClass extends AppCompatActivity {
             } else {
                 Toast.makeText(
                         TeacherClass.this,
-                        "Lưu khóa học, giáo trình và file thành công!",
+                        "Lưu khóa học, giáo trình, video và file thành công!",
                         Toast.LENGTH_SHORT
                 ).show();
             }
@@ -1161,6 +1279,16 @@ public class TeacherClass extends AppCompatActivity {
                     extension = ".mp4";
                 } else if (mimeType.contains("pdf")) {
                     extension = ".pdf";
+                } else if (mimeType.contains("word")) {
+                    extension = ".docx";
+                } else if (mimeType.contains("presentation")) {
+                    extension = ".pptx";
+                } else if (mimeType.contains("spreadsheet") || mimeType.contains("excel")) {
+                    extension = ".xlsx";
+                } else if (mimeType.contains("zip")) {
+                    extension = ".zip";
+                } else if (mimeType.contains("text")) {
+                    extension = ".txt";
                 }
             }
 
@@ -1282,6 +1410,248 @@ public class TeacherClass extends AppCompatActivity {
         dialog.show();
     }
 
+    private void fetchExistingModulesForLesson(
+            Integer lessonId,
+            String lessonThumbnail,
+            LinearLayout lessonContainer
+    ) {
+        if (lessonId == null || lessonContainer == null) {
+            return;
+        }
+
+        ModuleApiService moduleApiService =
+                RetrofitClient.getClient().create(ModuleApiService.class);
+
+        moduleApiService.getModulesByLessonId(lessonId)
+                .enqueue(new Callback<ApiResponse<List<ModuleResponse>>>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<List<ModuleResponse>>> call,
+                            Response<ApiResponse<List<ModuleResponse>>> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            ApiResponse<List<ModuleResponse>> apiResponse = response.body();
+
+                            if (apiResponse.getCode() == 1000) {
+                                List<ModuleResponse> modules = apiResponse.getResult();
+
+                                if (modules == null || modules.isEmpty()) {
+                                    addEmptyModuleText(lessonContainer);
+                                    return;
+                                }
+
+                                ArrayList<Integer> moduleIds = new ArrayList<>();
+
+                                for (ModuleResponse module : modules) {
+                                    if (module != null && module.getId() != null) {
+                                        moduleIds.add(module.getId());
+                                    }
+                                }
+
+                                for (int i = 0; i < modules.size(); i++) {
+                                    ModuleResponse module = modules.get(i);
+
+                                    if (module == null) {
+                                        continue;
+                                    }
+
+                                    View moduleView = createExistingModuleView(
+                                            module,
+                                            moduleIds,
+                                            i,
+                                            lessonThumbnail
+                                    );
+
+                                    lessonContainer.addView(moduleView);
+                                }
+
+                            } else {
+                                Toast.makeText(
+                                        TeacherClass.this,
+                                        "Không lấy được giáo trình: " + apiResponse.getMessage(),
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+
+                        } else {
+                            Toast.makeText(
+                                    TeacherClass.this,
+                                    "Lỗi lấy giáo trình, mã: " + response.code(),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<List<ModuleResponse>>> call,
+                            Throwable t
+                    ) {
+                        Log.e("GET_MODULES_BY_LESSON", String.valueOf(t.getMessage()));
+
+                        Toast.makeText(
+                                TeacherClass.this,
+                                "Không thể kết nối để lấy giáo trình",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+    private View createExistingModuleView(
+            ModuleResponse module,
+            ArrayList<Integer> moduleIds,
+            int index,
+            String lessonThumbnail
+    ) {
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.item_existing_module, null);
+
+        TextView txtTitle = view.findViewById(R.id.txtExistingModuleTitle);
+        TextView txtStatus = view.findViewById(R.id.txtExistingModuleStatus);
+        TextView txtObjective = view.findViewById(R.id.txtExistingModuleObjective);
+        TextView txtContent = view.findViewById(R.id.txtExistingModuleContent);
+        TextView txtExample = view.findViewById(R.id.txtExistingModuleExample);
+
+        MaterialButton btnView = view.findViewById(R.id.btnViewExistingModule);
+        MaterialButton btnDelete = view.findViewById(R.id.btnDeleteExistingModule);
+
+        txtTitle.setText(safe(module.getTitle()));
+
+        txtStatus.setText("Trạng thái: " + String.valueOf(module.getStatus()));
+
+        txtObjective.setText("Mục tiêu: " + safe(module.getObjective()));
+        txtContent.setText("Nội dung: " + safe(module.getContent()));
+        txtExample.setText("Ví dụ: " + safe(module.getExample()));
+
+        String status = String.valueOf(module.getStatus());
+
+        if ("PENDING_DELETE".equalsIgnoreCase(status)) {
+            btnDelete.setEnabled(false);
+            btnDelete.setText("Đang chờ xoá");
+        }
+
+        btnView.setOnClickListener(v -> {
+            Intent intent = new Intent(TeacherClass.this, LessonActivity.class);
+            intent.putIntegerArrayListExtra("MODULE_IDS", moduleIds);
+            intent.putExtra("CURRENT_INDEX", index);
+            intent.putExtra("PARENT_LESSON_THUMBNAIL", lessonThumbnail);
+            startActivity(intent);
+        });
+
+        btnDelete.setOnClickListener(v -> {
+            Integer moduleId = module.getId();
+
+            if (moduleId == null) {
+                Toast.makeText(
+                        TeacherClass.this,
+                        "Không tìm thấy moduleId",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+
+            confirmDeleteModule(moduleId, txtStatus, btnDelete);
+        });
+
+        return view;
+    }
+
+    private void confirmDeleteModule(
+            Integer moduleId,
+            TextView txtStatus,
+            MaterialButton btnDelete
+    ) {
+        new AlertDialog.Builder(this)
+                .setTitle("Yêu cầu xoá bài học")
+                .setMessage("Bạn có chắc muốn gửi yêu cầu xoá bài học này không?")
+                .setPositiveButton("Gửi yêu cầu", (dialog, which) -> {
+                    requestDeleteModule(moduleId, txtStatus, btnDelete);
+                })
+                .setNegativeButton("Huỷ", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void requestDeleteModule(
+            Integer moduleId,
+            TextView txtStatus,
+            MaterialButton btnDelete
+    ) {
+        ModuleApiService moduleApiService =
+                RetrofitClient.getClient().create(ModuleApiService.class);
+
+        btnDelete.setEnabled(false);
+        btnDelete.setText("Đang gửi...");
+
+        moduleApiService.deleteModule(moduleId)
+                .enqueue(new Callback<ApiResponse<String>>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<String>> call,
+                            Response<ApiResponse<String>> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            ApiResponse<String> apiResponse = response.body();
+
+                            if (apiResponse.getCode() == 1000) {
+                                Toast.makeText(
+                                        TeacherClass.this,
+                                        "Đã gửi yêu cầu xoá bài học",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                txtStatus.setText("Trạng thái: PENDING_DELETE");
+                                btnDelete.setText("Đang chờ xoá");
+                                btnDelete.setEnabled(false);
+
+                            } else {
+                                btnDelete.setText("Yêu cầu xoá");
+                                btnDelete.setEnabled(true);
+
+                                Toast.makeText(
+                                        TeacherClass.this,
+                                        "Lỗi: " + apiResponse.getMessage(),
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+
+                        } else {
+                            btnDelete.setText("Yêu cầu xoá");
+                            btnDelete.setEnabled(true);
+
+                            Toast.makeText(
+                                    TeacherClass.this,
+                                    "Gửi yêu cầu xoá thất bại, mã: " + response.code(),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
+                        btnDelete.setText("Yêu cầu xoá");
+                        btnDelete.setEnabled(true);
+
+                        Log.e("DELETE_MODULE_ERROR", String.valueOf(t.getMessage()));
+
+                        Toast.makeText(
+                                TeacherClass.this,
+                                "Lỗi kết nối khi xoá bài học",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+    private void addEmptyModuleText(LinearLayout lessonContainer) {
+        TextView textView = new TextView(this);
+        textView.setText("Khóa học này chưa có bài học nào.");
+        textView.setTextColor(Color.GRAY);
+        textView.setTextSize(14);
+        textView.setPadding(12, 16, 12, 8);
+
+        lessonContainer.addView(textView);
+    }
     private String safe(String value) {
         if (value == null || "null".equalsIgnoreCase(value.trim())) {
             return "";
@@ -1289,4 +1659,5 @@ public class TeacherClass extends AppCompatActivity {
 
         return value.trim();
     }
+
 }

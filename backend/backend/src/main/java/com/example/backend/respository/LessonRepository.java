@@ -27,6 +27,20 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
             Pageable pageable
     );
 
+    @Query("""
+    SELECT DISTINCT l
+    FROM Lesson l
+    WHERE l.status = :pendingStatus
+       OR l.id IN (
+            SELECT m.lesson.id
+            FROM Module m
+            WHERE m.status = :pendingStatus
+       )
+""")
+    List<Lesson> findAllPendingOrHasPendingModules(
+            @Param("pendingStatus") Status pendingStatus
+    );
+
     List<com.example.backend.entity.Lesson> findByTeacherId(Integer teacherId);
     @Query("SELECT l FROM Lesson l WHERE l.id NOT IN " +
             "(SELECT e.lesson.id FROM Enrollment e WHERE e.id.userId = :studentId)")

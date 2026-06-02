@@ -5,25 +5,40 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0021f203-19bc-4e6a-838f-69eeec0d14e6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/FileApiService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/FileResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/drawable/bg_circle_button.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminModuleAdapter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminModuleDetailActivity.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/admin_module_detail.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_admin_module.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_admin_module_card.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_admin_pending_module.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_existing_module.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/Mapper/ModuleMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/Mapper/ModuleMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/lesson/request/ModuleCreationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/lesson/request/ModuleCreationRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/entity/Module.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/entity/Module.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/FileController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/FileController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/LessonController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/LessonController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/ModuleController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/ModuleController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/lesson/response/ModuleResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/lesson/response/ModuleResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/enums/Status.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/enums/Status.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/LessonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/LessonRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/ModuleRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/ModuleRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/FileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/FileService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/LessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/LessonService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/ModuleService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/ModuleService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseListActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseListActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/SupabaseStorageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/SupabaseStorageService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseDetailActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseDetailActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummary.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummary.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminManageCourse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminManageCourse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/FileApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/FileApiService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonApiService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonUpdateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonUpdateRequest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/ModuleApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/ModuleApiService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherCourseAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherCourseAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_lesson.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_lesson.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/admin_course_detail.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/admin_course_detail.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_lesson.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_lesson.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_teacher_course_list.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_teacher_course_list.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/gradle/libs.versions.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,32 +69,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Spring Boot.BackendApplication.executor&quot;: &quot;Run&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;com.google.cloudcode.ide_session_index&quot;: &quot;20260427_0001&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;update&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.BackendApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.google.cloudcode.ide_session_index": "20260427_0001",
+    "git-widget-placeholder": "minor",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="backend.main" />
@@ -134,6 +149,7 @@
       <workItem from="1780232679834" duration="16393000" />
       <workItem from="1780276523433" duration="14987000" />
       <workItem from="1780306270402" duration="5346000" />
+      <workItem from="1780355282120" duration="20152000" />
     </task>
     <servers />
   </component>

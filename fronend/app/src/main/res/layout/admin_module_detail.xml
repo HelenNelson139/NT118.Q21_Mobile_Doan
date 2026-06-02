@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,26 +7,23 @@
     android:layout_height="match_parent"
     android:background="#DBE2EF">
 
-    <!-- HEADER CỐ ĐỊNH -->
     <TextView
-        android:id="@+id/tvFixedHeader"
+        android:id="@+id/tvModuleDetailTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#F9F7F7"
         android:gravity="center"
-        android:padding="20dp"
-        android:text="Chi tiết khóa học"
+        android:padding="18dp"
         android:textColor="#112D4E"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Lập trình Python" />
+        tools:text="Bài 1" />
 
-    <!-- NÚT QUAY LẠI CỐ ĐỊNH DƯỚI -->
     <LinearLayout
-        android:id="@+id/layoutFixedButtons"
+        android:id="@+id/layoutBottom"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#F9F7F7"
@@ -47,79 +43,89 @@
             android:textSize="16sp"
             app:backgroundTint="#112D4E"
             app:cornerRadius="20dp" />
-
     </LinearLayout>
 
-    <!-- NỘI DUNG CUỘN -->
     <ScrollView
-        android:id="@+id/scrollCourseDetail"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintBottom_toTopOf="@id/layoutFixedButtons"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottom"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvFixedHeader">
+        app:layout_constraintTop_toBottomOf="@id/tvModuleDetailTitle">
 
         <LinearLayout
-            android:id="@+id/layoutContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="18dp">
 
-            <!-- ẢNH KHÓA HỌC -->
-            <ImageView
-                android:id="@+id/imgCourse"
-                android:layout_width="match_parent"
-                android:layout_height="220dp"
-                android:background="#EEEEEE"
-                android:scaleType="centerCrop"
-                tools:src="@drawable/python" />
-
-            <!-- THÔNG TIN KHÓA HỌC -->
             <TextView
-                android:id="@+id/tvCourseInfo"
+                android:id="@+id/tvModuleStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:lineSpacingExtra="6dp"
+                android:text="Trạng thái:"
                 android:textColor="#3F72AF"
-                android:textSize="18sp"
-                tools:text="Giảng viên: A\nNgày đăng: 2026-06-01" />
-
-            <!-- MÔ TẢ KHÓA HỌC -->
-            <TextView
-                android:id="@+id/tvCourseDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:lineSpacingExtra="6dp"
-                android:textColor="#112D4E"
                 android:textSize="16sp"
-                tools:text="Mô tả: Đây là khóa học lập trình Python..." />
+                android:textStyle="bold" />
 
-            <!-- TIÊU ĐỀ DANH SÁCH BÀI GIẢNG -->
             <TextView
-                android:id="@+id/tvModuleListTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Danh sách bài giảng"
+                android:layout_marginTop="18dp"
+                android:text="Mục tiêu"
                 android:textColor="#112D4E"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
-            <!-- NƠI ADMINCOURSEDETAILACTIVITY RENDER MODULE CARD MÀU XANH -->
-            <LinearLayout
-                android:id="@+id/layoutModules"
+            <TextView
+                android:id="@+id/tvModuleGoal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical" />
+                android:layout_marginTop="6dp"
+                android:textColor="#112D4E"
+                android:textSize="15sp"
+                tools:text="Mục tiêu bài học" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Nội dung"
+                android:textColor="#112D4E"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvModuleContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="#112D4E"
+                android:textSize="15sp"
+                tools:text="Nội dung bài học" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Ví dụ"
+                android:textColor="#112D4E"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvModuleExample"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="#F9F7F7"
+                android:padding="12dp"
+                android:textColor="#112D4E"
+                android:textSize="15sp"
+                tools:text="Ví dụ bài học" />
 
         </LinearLayout>
-
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

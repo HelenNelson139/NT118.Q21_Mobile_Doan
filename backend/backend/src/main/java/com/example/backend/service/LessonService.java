@@ -34,6 +34,7 @@ public class LessonService {
     TeacherResponsitory teacherResponsitory;
     LessonMapper lessonMapper;
     SupabaseStorageService supabaseStorageService;
+    private final ModuleService moduleService;
 
     public LessonResponse createLesson(LessonCreationRequest request){
         Teacher teacher = teacherResponsitory.findById(request.getTeacherId())
@@ -138,6 +139,7 @@ public class LessonService {
         if (lesson.getStatus() != Status.PENDING) {
             throw new RuntimeException("Khóa học này không nằm trong danh sách yêu cầu !");
         }
+        moduleService.approvePendingModulesByLesson(id);
         lesson.setStatus(Status.ACTIVE);
         Lesson savedLesson = lessonRepository.save(lesson);
         return lessonMapper.toLessonResponse(savedLesson);
@@ -163,6 +165,16 @@ public class LessonService {
                 .map(lessonMapper::toLessonResponse)
                 .collect(Collectors.toList());
     }
+
+    public List<LessonResponse> getAllPendingOrHasPendingModules() {
+        List<Lesson> lessons = lessonRepository
+                .findAllPendingOrHasPendingModules(Status.PENDING);
+
+        return lessons.stream()
+                .map(lessonMapper::toLessonResponse)
+                .toList();
+    }
+
 
     @Transactional
     public LessonResponse UpdateLesson(Integer id, LessonUpdateRequest request) {

@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.lesson.request.ModuleCreationRequest;
 import com.example.backend.dto.ApiResponse;
+import com.example.backend.dto.lesson.response.LessonResponse;
 import com.example.backend.dto.lesson.response.ModuleResponse;
 import com.example.backend.entity.Module;
 import com.example.backend.service.ModuleService;
@@ -91,4 +92,26 @@ public class ModuleController {
                 .result(moduleService.getModulesByLessonId(lessonId))
                 .build();
     }
+
+    @GetMapping("/lesson/pending/{lessonId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ApiResponse<List<ModuleResponse>> getPendingModulesByLessonId(@PathVariable Integer lessonId) {
+        return ApiResponse.<List<ModuleResponse>>builder()
+                .code(1000)
+                .message("Get Modules by Lesson ID Successful")
+                .result(moduleService.getPendingModulesByLesson(lessonId))
+                .build();
+    }
+
+    @GetMapping("/allPending")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ApiResponse<List<ModuleResponse>> getAllModulesPending() {
+        return ApiResponse.<List<ModuleResponse>>builder()
+                .code(1000)
+                .message("Get All of Modules")
+                .result(moduleService.findAllModulePending())
+                .build();
+    }
+
+
 }

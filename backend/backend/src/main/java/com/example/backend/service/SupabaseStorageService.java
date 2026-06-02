@@ -26,9 +26,7 @@ public class SupabaseStorageService {
     public String uploadFile(MultipartFile file, String folder) {
         try {
             validateImage(file);
-
             return uploadToSupabase(file, folder, "avatar");
-
         } catch (Exception e) {
             throw new RuntimeException("Could not upload image to Supabase: " + e.getMessage());
         }
@@ -36,14 +34,12 @@ public class SupabaseStorageService {
 
     // =========================================================
     // 2. UPLOAD MODULE FILE
-    // Dùng cho file bài học: pdf, docx, pptx, zip, txt, image...
+    // Dùng cho file bài học: video, pdf, docx, pptx, zip, txt, image...
     // =========================================================
     public String uploadModuleFile(MultipartFile file, String folder) {
         try {
             validateGeneralFile(file);
-
             return uploadToSupabase(file, folder, "module_file");
-
         } catch (Exception e) {
             throw new RuntimeException("Could not upload module file to Supabase: " + e.getMessage());
         }
@@ -60,8 +56,14 @@ public class SupabaseStorageService {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
+        String safeFolder = folder;
+
+        if (safeFolder == null || safeFolder.isBlank()) {
+            safeFolder = "files";
+        }
+
         String fileName = prefix + "_" + System.currentTimeMillis() + extension;
-        String filePath = folder + "/" + fileName;
+        String filePath = safeFolder + "/" + fileName;
 
         String uploadUrl = supabaseUrl
                 + "/storage/v1/object/"
@@ -127,16 +129,17 @@ public class SupabaseStorageService {
 
     // =========================================================
     // 5. VALIDATE FILE MODULE
+    // Cho phép: video, pdf, word, ppt, excel, zip, text, image
     // =========================================================
     private void validateGeneralFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("File is required");
         }
 
-        long maxSize = 20 * 1024 * 1024; // 20MB
+        long maxSize = 200L * 1024 * 1024; // 200MB
 
         if (file.getSize() > maxSize) {
-            throw new RuntimeException("File size must be less than 20MB");
+            throw new RuntimeException("File size must be less than 200MB");
         }
 
         String contentType = file.getContentType();
@@ -146,7 +149,9 @@ public class SupabaseStorageService {
         }
 
         boolean allowed =
-                contentType.equals("application/pdf")
+                contentType.startsWith("video/")
+                        || contentType.startsWith("image/")
+                        || contentType.equals("application/pdf")
                         || contentType.equals("application/msword")
                         || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
                         || contentType.equals("application/vnd.ms-powerpoint")
@@ -154,8 +159,9 @@ public class SupabaseStorageService {
                         || contentType.equals("application/vnd.ms-excel")
                         || contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                         || contentType.equals("application/zip")
+                        || contentType.equals("application/x-zip-compressed")
                         || contentType.equals("text/plain")
-                        || contentType.startsWith("image/");
+                        || contentType.equals("application/octet-stream");
 
         if (!allowed) {
             throw new RuntimeException("File type is not allowed: " + contentType);

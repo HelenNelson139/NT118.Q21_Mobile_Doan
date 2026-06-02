@@ -152,6 +152,16 @@ public class LessonController {
                 .build();
     }
 
+    @GetMapping("/allPendingOrHasPendingModules")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ApiResponse<List<LessonResponse>> getAllPendingOrHasPendingModules() {
+        return ApiResponse.<List<LessonResponse>>builder()
+                .code(1000)
+                .message("Get pending lessons or lessons has pending modules successful")
+                .result(lessonService.getAllPendingOrHasPendingModules())
+                .build();
+    }
+
     @PatchMapping("/update/{id}")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ApiResponse<String> updateLesson(

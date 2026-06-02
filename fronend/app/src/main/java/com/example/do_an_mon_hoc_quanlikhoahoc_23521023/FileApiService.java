@@ -15,6 +15,14 @@ public interface FileApiService {
 
     @Multipart
     @POST("api/file/upload")
+    Call<ApiResponse<String>> uploadVideo(
+            @Part("module_id") RequestBody moduleId,
+            @Part("file_name") RequestBody fileName,
+            @Part MultipartBody.Part file
+    );
+
+    @Multipart
+    @POST("api/file/upload")
     Call<ApiResponse<String>> uploadFile(
             @Part("module_id") RequestBody moduleId,
             @Part("file_name") RequestBody fileName,

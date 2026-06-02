@@ -11,6 +11,7 @@ lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.13.0"
 kotlin = "2.0.21"
 composeBom = "2024.09.00"
+media3Common = "1.10.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -30,6 +31,7 @@ ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview
 ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 material3 = { group = "androidx.compose.material3", name = "material3" }
+media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3Common" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

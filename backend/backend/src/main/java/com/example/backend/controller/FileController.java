@@ -32,7 +32,7 @@ public class FileController {
     }
 
     @GetMapping("/get/{id}")
-    @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER', 'ADMIN')")
     public List<FileResponse> getFiles(@PathVariable Integer id) {
         return fileService.getFilesByModule(id);
     }
