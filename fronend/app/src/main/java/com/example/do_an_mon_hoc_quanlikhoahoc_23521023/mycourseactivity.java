@@ -2,6 +2,7 @@ package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -19,9 +20,10 @@ public class mycourseactivity extends AppCompatActivity {
 
     private MaterialCardView btnMenuCard;
 
-    // Thêm 2 card khóa học
     private MaterialCardView cardLearningCourse;
     private MaterialCardView cardCompletedCourse;
+
+    private static final String PREF_NAME = "APP_PREFS";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,24 +31,23 @@ public class mycourseactivity extends AppCompatActivity {
         setContentView(R.layout.my_course);
 
         btnMenuCard = findViewById(R.id.btnMenuCard);
-        btnMenuCard.setOnClickListener(v -> showSidebarMenu());
-
-        // ====== Bắt card khóa học ======
         cardLearningCourse = findViewById(R.id.cardLearningCourse);
         cardCompletedCourse = findViewById(R.id.cardCompletedCourse);
 
-        // ====== Khi ấn vào khóa học đang học ======
-        cardLearningCourse.setOnClickListener(v -> {
-            Intent intent = new Intent(mycourseactivity.this, LessonActivity.class);
-            startActivity(intent);
-        });
+        btnMenuCard.setOnClickListener(v -> showSidebarMenu());
 
-        // ====== Khi ấn vào khóa học đã hoàn thành ======
-        cardCompletedCourse.setOnClickListener(v -> {
-            Intent intent = new Intent(mycourseactivity.this, LessonActivity.class);
-            startActivity(intent);
-        });
+        /*
+         * Trang này hiện tại bạn không dùng nữa.
+         * Nếu vẫn bấm vào card thì tạm mở CourseListActivity cho đúng luồng khóa học đã đăng ký.
+         * Không nên mở LessonActivity trực tiếp khi chưa có MODULE_IDS.
+         */
+        if (cardLearningCourse != null) {
+            cardLearningCourse.setOnClickListener(v -> openPage(CourseListActivity.class));
+        }
 
+        if (cardCompletedCourse != null) {
+            cardCompletedCourse.setOnClickListener(v -> openPage(CourseListActivity.class));
+        }
     }
 
     private void showSidebarMenu() {
@@ -55,6 +56,7 @@ public class mycourseactivity extends AppCompatActivity {
         dialog.setContentView(R.layout.layout_sidebar);
 
         Window window = dialog.getWindow();
+
         if (window != null) {
             window.setLayout(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -65,39 +67,77 @@ public class mycourseactivity extends AppCompatActivity {
         }
 
         MaterialCardView btnCloseMenu = dialog.findViewById(R.id.btnCloseMenu);
-        LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
+
+        LinearLayout menuHome = dialog.findViewById(R.id.menuHome);
         LinearLayout menuCourses = dialog.findViewById(R.id.menuCourses);
-        LinearLayout menuMyCourses = dialog.findViewById(R.id.menuLearning);
+        LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
+
         TextView txtLogout = dialog.findViewById(R.id.txtLogout);
+        TextView tvUserName = dialog.findViewById(R.id.tvUserName);
 
-        btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
+        if (tvUserName != null) {
+            tvUserName.setText("Học viên");
+        }
 
-        menuProfile.setOnClickListener(v -> {
-            startActivity(new Intent(this, ProfileActivity.class));
-            dialog.dismiss();
-        });
+        if (btnCloseMenu != null) {
+            btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
+        }
 
-        menuCourses.setOnClickListener(v -> {
-            startActivity(new Intent(this, CourseListActivity.class));
-            dialog.dismiss();
-        });
+        if (menuHome != null) {
+            menuHome.setOnClickListener(v -> {
+                dialog.dismiss();
+                openPage(HomeActivity.class);
+            });
+        }
 
-        menuMyCourses.setOnClickListener(v -> {
-            startActivity(new Intent(this, mycourseactivity.class));
-            dialog.dismiss();
-        });
+        if (menuCourses != null) {
+            menuCourses.setOnClickListener(v -> {
+                dialog.dismiss();
+                openPage(CourseListActivity.class);
+            });
+        }
 
-        txtLogout.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK |
-                            Intent.FLAG_ACTIVITY_CLEAR_TASK
-            );
-            startActivity(intent);
-            dialog.dismiss();
-            finish();
-        });
+        if (menuProfile != null) {
+            menuProfile.setOnClickListener(v -> {
+                dialog.dismiss();
+                openPage(ProfileActivity.class);
+            });
+        }
+
+        if (txtLogout != null) {
+            txtLogout.setOnClickListener(v -> {
+                SharedPreferences sharedPreferences =
+                        getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+                sharedPreferences.edit().clear().apply();
+
+                Intent intent = new Intent(mycourseactivity.this, MainActivity.class);
+                intent.setFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                                | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                );
+
+                startActivity(intent);
+                dialog.dismiss();
+                finish();
+            });
+        }
 
         dialog.show();
+    }
+
+    private void openPage(Class<?> targetActivity) {
+        if (this.getClass().equals(targetActivity)) {
+            return;
+        }
+
+        Intent intent = new Intent(this, targetActivity);
+        intent.setFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        | Intent.FLAG_ACTIVITY_SINGLE_TOP
+        );
+
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 }

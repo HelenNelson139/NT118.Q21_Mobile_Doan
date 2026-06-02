@@ -3,6 +3,7 @@ package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -21,6 +22,7 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +57,11 @@ public class LessonActivity extends AppCompatActivity {
     private boolean isModuleMode = false;
     private String parentLessonThumbnail = "";
 
+    private MaterialButton btnCompleteModule;
+
+    private static final String PREF_NAME = "APP_PREFS";
+    private static final String KEY_USER_ID = "USER_ID";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +90,8 @@ public class LessonActivity extends AppCompatActivity {
 
         videoModule = findViewById(R.id.videoModule);
         layoutModuleFiles = findViewById(R.id.layoutModuleFiles);
+
+        btnCompleteModule = findViewById(R.id.btnCompleteModule);
     }
 
     private void handleIntentData() {
@@ -93,12 +102,18 @@ public class LessonActivity extends AppCompatActivity {
             currentIndex = getIntent().getIntExtra("CURRENT_INDEX", 0);
             parentLessonThumbnail = getIntent().getStringExtra("PARENT_LESSON_THUMBNAIL");
 
+            if (moduleIds == null) {
+                moduleIds = new ArrayList<>();
+            }
+
             if (parentLessonThumbnail != null && !parentLessonThumbnail.trim().isEmpty()) {
                 Glide.with(this)
                         .load(parentLessonThumbnail)
                         .placeholder(R.drawable.course_python)
                         .error(R.drawable.course_python)
                         .into(imgCourse);
+            } else {
+                imgCourse.setImageResource(R.drawable.course_python);
             }
 
             fetchModuleFromServer();
@@ -146,6 +161,10 @@ public class LessonActivity extends AppCompatActivity {
                 }
             }
         });
+
+        if (btnCompleteModule != null) {
+            btnCompleteModule.setOnClickListener(view -> completeCurrentModule());
+        }
     }
 
     private void fetchTeacherLessonsFromServer() {
@@ -235,6 +254,10 @@ public class LessonActivity extends AppCompatActivity {
             imgExample.setImageResource(R.drawable.course_python);
         }
 
+        if (btnCompleteModule != null) {
+            btnCompleteModule.setVisibility(View.GONE);
+        }
+
         updateNavigationButtonsForLessons();
     }
 
@@ -300,6 +323,8 @@ public class LessonActivity extends AppCompatActivity {
         txtObjective.setText(safe(module.getObjective()));
         txtContent.setText(safe(module.getContent()));
         txtExample.setText(safe(module.getExample()));
+
+        resetCompleteButton();
 
         if (module.getImageExampleUrl() != null && !module.getImageExampleUrl().trim().isEmpty()) {
             Glide.with(this)
@@ -522,6 +547,10 @@ public class LessonActivity extends AppCompatActivity {
 
         btnBack.setVisibility(View.INVISIBLE);
         btnNext.setVisibility(View.INVISIBLE);
+
+        if (btnCompleteModule != null) {
+            btnCompleteModule.setVisibility(View.GONE);
+        }
     }
 
     private void showEmptyModule() {
@@ -544,6 +573,10 @@ public class LessonActivity extends AppCompatActivity {
 
         btnBack.setVisibility(View.INVISIBLE);
         btnNext.setVisibility(View.INVISIBLE);
+
+        if (btnCompleteModule != null) {
+            btnCompleteModule.setVisibility(View.GONE);
+        }
     }
 
     private void updateNavigationButtonsForLessons() {
@@ -592,6 +625,126 @@ public class LessonActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         releaseLessonPlayer();
+    }
+
+    private void completeCurrentModule() {
+        Integer currentModuleId = getCurrentModuleId();
+
+        if (currentModuleId == null) {
+            Toast.makeText(this, "Không tìm thấy bài học hiện tại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int studentId = getCurrentStudentId();
+
+        if (studentId == -1) {
+            Toast.makeText(this, "Không tìm thấy học sinh đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(
+                this,
+                "Đang lưu tiến độ bài học...",
+                Toast.LENGTH_SHORT
+        ).show();
+
+        if (btnCompleteModule != null) {
+            btnCompleteModule.setEnabled(false);
+            btnCompleteModule.setText("Đang lưu tiến độ...");
+        }
+
+        ProgressApiService progressApiService =
+                RetrofitClient.getClient().create(ProgressApiService.class);
+
+        progressApiService.completeModule(currentModuleId, studentId)
+                .enqueue(new Callback<ApiResponse<Void>>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<Void>> call,
+                            Response<ApiResponse<Void>> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            ApiResponse<Void> apiResponse = response.body();
+
+                            if (apiResponse.getCode() == 1000 || apiResponse.getCode() == 0) {
+                                Toast.makeText(
+                                        LessonActivity.this,
+                                        "Đã đánh dấu hoàn thành bài học",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                if (btnCompleteModule != null) {
+                                    btnCompleteModule.setText("Đã học xong");
+                                    btnCompleteModule.setEnabled(false);
+                                }
+                            } else {
+                                Toast.makeText(
+                                        LessonActivity.this,
+                                        "Lỗi: " + apiResponse.getMessage(),
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                resetCompleteButton();
+                            }
+
+                        } else {
+                            Toast.makeText(
+                                    LessonActivity.this,
+                                    "Lưu tiến độ thất bại, HTTP " + response.code(),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            resetCompleteButton();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<Void>> call,
+                            Throwable t
+                    ) {
+                        Toast.makeText(
+                                LessonActivity.this,
+                                "Lỗi kết nối khi lưu tiến độ: " + t.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                        resetCompleteButton();
+                    }
+                });
+    }
+
+    private void resetCompleteButton() {
+        if (btnCompleteModule == null) {
+            return;
+        }
+
+        if (isModuleMode && getCurrentStudentId() != -1) {
+            btnCompleteModule.setVisibility(View.VISIBLE);
+            btnCompleteModule.setEnabled(true);
+            btnCompleteModule.setText("Đánh dấu đã học xong");
+        } else {
+            btnCompleteModule.setVisibility(View.GONE);
+        }
+    }
+
+    private Integer getCurrentModuleId() {
+        if (moduleIds == null || moduleIds.isEmpty()) {
+            return null;
+        }
+
+        if (currentIndex < 0 || currentIndex >= moduleIds.size()) {
+            return null;
+        }
+
+        return moduleIds.get(currentIndex);
+    }
+
+    private int getCurrentStudentId() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        return sharedPreferences.getInt(KEY_USER_ID, -1);
     }
 
     private String safe(String value) {

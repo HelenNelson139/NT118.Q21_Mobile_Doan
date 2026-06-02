@@ -380,6 +380,7 @@ public class ProfileActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.layout_sidebar);
 
         Window window = dialog.getWindow();
+
         if (window != null) {
             window.setLayout(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -390,12 +391,9 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         MaterialCardView btnCloseMenu = dialog.findViewById(R.id.btnCloseMenu);
-
         LinearLayout menuHome = dialog.findViewById(R.id.menuHome);
         LinearLayout menuCourses = dialog.findViewById(R.id.menuCourses);
-        LinearLayout menuLearning = dialog.findViewById(R.id.menuLearning);
         LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
-
         TextView txtLogout = dialog.findViewById(R.id.txtLogout);
         TextView tvUserName = dialog.findViewById(R.id.tvUserName);
 
@@ -403,49 +401,60 @@ public class ProfileActivity extends AppCompatActivity {
             tvUserName.setText("Học viên");
         }
 
-        btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
+        if (btnCloseMenu != null) {
+            btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
+        }
 
-        menuHome.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            dialog.dismiss();
-            finish();
-        });
+        if (menuHome != null) {
+            menuHome.setOnClickListener(v -> {
+                dialog.dismiss();
+                openPage(HomeActivity.class);
+            });
+        }
 
-        menuCourses.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            dialog.dismiss();
-            finish();
-        });
+        if (menuCourses != null) {
+            menuCourses.setOnClickListener(v -> {
+                dialog.dismiss();
+                openPage(CourseListActivity.class);
+            });
+        }
 
-        menuLearning.setOnClickListener(v -> {
-            Toast.makeText(this, "Chức năng học tập sẽ làm sau", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
+        if (menuProfile != null) {
+            menuProfile.setOnClickListener(v -> {
+                dialog.dismiss();
+            });
+        }
 
-        menuProfile.setOnClickListener(v -> {
-            dialog.dismiss();
-        });
+        if (txtLogout != null) {
+            txtLogout.setOnClickListener(v -> {
+                SharedPreferences sharedPreferences =
+                        getSharedPreferences(PREF_NAME, MODE_PRIVATE);
 
-        txtLogout.setOnClickListener(v -> {
-            SharedPreferences sharedPreferences =
-                    getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+                sharedPreferences.edit().clear().apply();
 
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.clear();
-            editor.apply();
+                Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
 
-            Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-
-            dialog.dismiss();
-            finish();
-        });
+                dialog.dismiss();
+                finish();
+            });
+        }
 
         dialog.show();
+    }
+
+    private void openPage(Class<?> targetActivity) {
+        if (this.getClass().equals(targetActivity)) {
+            return;
+        }
+
+        Intent intent = new Intent(this, targetActivity);
+        intent.setFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        | Intent.FLAG_ACTIVITY_SINGLE_TOP
+        );
+
+        startActivity(intent);
     }
 }

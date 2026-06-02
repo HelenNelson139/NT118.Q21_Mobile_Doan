@@ -41,12 +41,12 @@ public class UserController {
 
     @PatchMapping("/{userId}/avatar")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'STUDENT')")
-    public ApiResponse<String> updateAvatar(@PathVariable Integer userId, @RequestParam("avatar") MultipartFile avatar){
-        userService.updateAvatar(userId, avatar);
+    public ApiResponse<String> updateAvatar(@PathVariable Integer id, @RequestParam("avatar") MultipartFile avatar){
+        userService.updateAvatar(id, avatar);
         return ApiResponse.<String>builder()
                 .code(1000)
                 .message("Cập nhật ảnh đại diện thành công")
-                .result("Cập nhật ảnh đại diện thành công cho user" + userId)
+                .result("Cập nhật ảnh đại diện thành công cho user" + id)
                 .build();
     }
 
