@@ -68,10 +68,10 @@ public class AuthenticationService {
         boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword());
 
         if(!authenticated){
-            throw new AppException(ErrorCode.UN_AUTHENTICATED);}
-//        }else if(user.getStatus().equals("DELETED")){
-//            throw new AppException(ErrorCode.USER_DELETED);
-//        }
+            throw new AppException(ErrorCode.UN_AUTHENTICATED);
+        }else if(user.getStatus().equals("DELETED")){
+            throw new AppException(ErrorCode.USER_DELETED);
+        }
 
         var token = generateToken(user);
         return AuthenticationResponse.builder()

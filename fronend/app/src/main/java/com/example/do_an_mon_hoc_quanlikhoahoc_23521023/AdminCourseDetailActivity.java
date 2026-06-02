@@ -37,7 +37,7 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
     private String currentLessonThumbnail = "";
 
     /*
-     * true  = mở từ tab/trang "Chưa duyệt"
+     * true  = mở từ trang/chế độ "Chưa duyệt"
      * false = mở từ trang bình thường
      */
     private boolean adminPendingMode = false;
@@ -58,7 +58,9 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Lỗi: Không tìm thấy ID khóa học!", Toast.LENGTH_SHORT).show();
         }
 
-        btnBack.setOnClickListener(v -> finish());
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
     }
 
     private void initViews() {
@@ -90,6 +92,11 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
                         LessonResponse lesson = apiResponse.getResult();
 
                         displayLessonInfo(lesson);
+
+                        if (lesson.getId() == null) {
+                            showEmptyModuleText("Không tìm thấy lessonId.");
+                            return;
+                        }
 
                         if (adminPendingMode) {
                             loadPendingModulesByLessonId(lesson.getId());
@@ -133,34 +140,41 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
             return;
         }
 
-        tvHeaderTitle.setText(safe(lesson.getTitle()));
+        if (tvHeaderTitle != null) {
+            tvHeaderTitle.setText(safe(lesson.getTitle()));
+        }
 
-        tvCourseInfo.setText(
-                "Giảng viên: " + safe(lesson.getTeacher_name()) + "\n"
-                        + "Ngày đăng: " + safe(lesson.getCreatedAt())
-        );
+        if (tvCourseInfo != null) {
+            tvCourseInfo.setText(
+                    "Giảng viên: " + safe(lesson.getTeacher_name()) + "\n"
+                            + "Ngày đăng: " + safe(lesson.getCreatedAt())
+            );
+        }
 
-        tvCourseDescription.setText(
-                "Mô tả: " + safe(lesson.getDescription())
-        );
+        if (tvCourseDescription != null) {
+            tvCourseDescription.setText(
+                    "Mô tả: " + safe(lesson.getDescription())
+            );
+        }
 
         currentLessonThumbnail = safe(lesson.getThumbnailUrl());
 
-        if (!currentLessonThumbnail.isEmpty()) {
-            Glide.with(this)
-                    .load(currentLessonThumbnail)
-                    .placeholder(R.drawable.course_python)
-                    .error(R.drawable.course_python)
-                    .into(imgCourse);
-        } else {
-            imgCourse.setImageResource(R.drawable.course_python);
+        if (imgCourse != null) {
+            if (!currentLessonThumbnail.isEmpty()) {
+                Glide.with(this)
+                        .load(currentLessonThumbnail)
+                        .placeholder(R.drawable.course_python)
+                        .error(R.drawable.course_python)
+                        .into(imgCourse);
+            } else {
+                imgCourse.setImageResource(R.drawable.course_python);
+            }
         }
     }
 
     /*
      * Trang Admin - Chưa duyệt:
      * Chỉ lấy module PENDING / PENDING_DELETE của lesson.
-     * Không gọi /api/modules/lesson/{lessonId}.
      */
     private void loadPendingModulesByLessonId(Integer lessonId) {
         if (lessonId == null) {
@@ -284,7 +298,6 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
 
             /*
              * Trang chưa duyệt chỉ hiện module cần xử lý.
-             * Không hiện ACTIVE.
              */
             if ("PENDING".equalsIgnoreCase(status)
                     || "PENDING_DELETE".equalsIgnoreCase(status)) {
@@ -300,10 +313,16 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
         ArrayList<Integer> moduleIds = new ArrayList<>();
 
         for (ModuleResponse module : displayModules) {
-            moduleIds.add(module.getId());
+            if (module != null && module.getId() != null) {
+                moduleIds.add(module.getId());
+            }
         }
 
         for (ModuleResponse module : displayModules) {
+            if (module == null || module.getId() == null) {
+                continue;
+            }
+
             int realIndex = moduleIds.indexOf(module.getId());
 
             View moduleView = createPendingModuleView(
@@ -312,7 +331,9 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
                     realIndex
             );
 
-            layoutModules.addView(moduleView);
+            if (layoutModules != null) {
+                layoutModules.addView(moduleView);
+            }
         }
     }
 
@@ -324,19 +345,22 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
             return;
         }
 
+        ArrayList<ModuleResponse> displayModules = new ArrayList<>();
         ArrayList<Integer> moduleIds = new ArrayList<>();
 
         for (ModuleResponse module : modules) {
             if (module != null && module.getId() != null) {
+                displayModules.add(module);
                 moduleIds.add(module.getId());
             }
         }
 
-        for (ModuleResponse module : modules) {
-            if (module == null || module.getId() == null) {
-                continue;
-            }
+        if (displayModules.isEmpty()) {
+            showEmptyModuleText("Không có bài giảng nào.");
+            return;
+        }
 
+        for (ModuleResponse module : displayModules) {
             int realIndex = moduleIds.indexOf(module.getId());
 
             View moduleView = createNormalModuleView(
@@ -345,12 +369,17 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
                     realIndex
             );
 
-            layoutModules.addView(moduleView);
+            if (layoutModules != null) {
+                layoutModules.addView(moduleView);
+            }
         }
     }
 
     /*
-     * Layout riêng có 3 nút: Xem chi tiết / Duyệt / Duyệt xoá
+     * Item pending có:
+     * - Xem chi tiết
+     * - Duyệt
+     * - Duyệt xoá
      */
     private View createPendingModuleView(
             ModuleResponse module,
@@ -372,38 +401,70 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
 
         String status = safe(module.getStatus());
 
-        txtTitle.setText(safe(module.getTitle()));
-        txtStatus.setText("Trạng thái: " + status);
-        txtObjective.setText("Mục tiêu: " + safe(module.getObjective()));
-        txtContent.setText("Nội dung: " + safe(module.getContent()));
-        txtExample.setText("Ví dụ: " + safe(module.getExample()));
+        if (txtTitle != null) {
+            txtTitle.setText(safe(module.getTitle()));
+        }
 
-        btnView.setOnClickListener(v -> openModuleDetail(moduleIds, index));
+        if (txtStatus != null) {
+            txtStatus.setText("Trạng thái: " + status);
+        }
+
+        if (txtObjective != null) {
+            txtObjective.setText("Mục tiêu: " + safe(module.getObjective()));
+        }
+
+        if (txtContent != null) {
+            txtContent.setText("Nội dung: " + safe(module.getContent()));
+        }
+
+        if (txtExample != null) {
+            txtExample.setText("Ví dụ: " + safe(module.getExample()));
+        }
+
+        if (btnView != null) {
+            btnView.setText("Xem chi tiết");
+            btnView.setOnClickListener(v ->
+                    openModuleDetail(moduleIds, index, module.getId())
+            );
+        }
 
         if ("PENDING".equalsIgnoreCase(status)) {
-            btnApprove.setVisibility(View.VISIBLE);
-            btnApproveDelete.setVisibility(View.GONE);
+            if (btnApprove != null) {
+                btnApprove.setVisibility(View.VISIBLE);
+                btnApprove.setText("Duyệt");
+                btnApprove.setOnClickListener(v -> approvePendingModule(module.getId()));
+            }
 
-            btnApprove.setText("Duyệt");
-            btnApprove.setOnClickListener(v -> approvePendingModule(module.getId()));
+            if (btnApproveDelete != null) {
+                btnApproveDelete.setVisibility(View.GONE);
+            }
 
         } else if ("PENDING_DELETE".equalsIgnoreCase(status)) {
-            btnApprove.setVisibility(View.GONE);
-            btnApproveDelete.setVisibility(View.VISIBLE);
+            if (btnApprove != null) {
+                btnApprove.setVisibility(View.GONE);
+            }
 
-            btnApproveDelete.setText("Duyệt xoá");
-            btnApproveDelete.setOnClickListener(v -> approveDeletePendingModule(module.getId()));
+            if (btnApproveDelete != null) {
+                btnApproveDelete.setVisibility(View.VISIBLE);
+                btnApproveDelete.setText("Duyệt xoá");
+                btnApproveDelete.setOnClickListener(v -> approveDeletePendingModule(module.getId()));
+            }
 
         } else {
-            btnApprove.setVisibility(View.GONE);
-            btnApproveDelete.setVisibility(View.GONE);
+            if (btnApprove != null) {
+                btnApprove.setVisibility(View.GONE);
+            }
+
+            if (btnApproveDelete != null) {
+                btnApproveDelete.setVisibility(View.GONE);
+            }
         }
 
         return view;
     }
 
     /*
-     * Trang bình thường dùng lại item_existing_module.
+     * Trang bình thường dùng item_existing_module.
      */
     private View createNormalModuleView(
             ModuleResponse module,
@@ -422,14 +483,32 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
         MaterialButton btnView = view.findViewById(R.id.btnViewExistingModule);
         MaterialButton btnDelete = view.findViewById(R.id.btnDeleteExistingModule);
 
-        txtTitle.setText(safe(module.getTitle()));
-        txtStatus.setText("Trạng thái: " + safe(module.getStatus()));
-        txtObjective.setText("Mục tiêu: " + safe(module.getObjective()));
-        txtContent.setText("Nội dung: " + safe(module.getContent()));
-        txtExample.setText("Ví dụ: " + safe(module.getExample()));
+        if (txtTitle != null) {
+            txtTitle.setText(safe(module.getTitle()));
+        }
 
-        btnView.setText("Xem chi tiết");
-        btnView.setOnClickListener(v -> openModuleDetail(moduleIds, index));
+        if (txtStatus != null) {
+            txtStatus.setText("Trạng thái: " + safe(module.getStatus()));
+        }
+
+        if (txtObjective != null) {
+            txtObjective.setText("Mục tiêu: " + safe(module.getObjective()));
+        }
+
+        if (txtContent != null) {
+            txtContent.setText("Nội dung: " + safe(module.getContent()));
+        }
+
+        if (txtExample != null) {
+            txtExample.setText("Ví dụ: " + safe(module.getExample()));
+        }
+
+        if (btnView != null) {
+            btnView.setText("Xem chi tiết");
+            btnView.setOnClickListener(v ->
+                    openModuleDetail(moduleIds, index, module.getId())
+            );
+        }
 
         if (btnDelete != null) {
             btnDelete.setVisibility(View.GONE);
@@ -438,21 +517,73 @@ public class AdminCourseDetailActivity extends AppCompatActivity {
         return view;
     }
 
-    private void openModuleDetail(ArrayList<Integer> moduleIds, int index) {
-        if (moduleIds == null || moduleIds.isEmpty()) {
+    /*
+     * Chỗ này là phần quan trọng.
+     *
+     * LessonActivity của bạn cần:
+     * - MODULE_IDS
+     * - CURRENT_INDEX
+     * - PARENT_LESSON_THUMBNAIL
+     *
+     * Nếu chỉ start LessonActivity mà không truyền MODULE_IDS
+     * thì nó sẽ hiện "Không có bài học".
+     */
+    private void openModuleDetail(
+            ArrayList<Integer> moduleIds,
+            int index,
+            Integer selectedModuleId
+    ) {
+        ArrayList<Integer> safeModuleIds = new ArrayList<>();
+
+        if (moduleIds != null) {
+            for (Integer id : moduleIds) {
+                if (id != null && !safeModuleIds.contains(id)) {
+                    safeModuleIds.add(id);
+                }
+            }
+        }
+
+        /*
+         * Fallback cực quan trọng:
+         * Nếu vì lý do nào đó moduleIds rỗng,
+         * vẫn mở được module đang bấm.
+         */
+        if (safeModuleIds.isEmpty() && selectedModuleId != null) {
+            safeModuleIds.add(selectedModuleId);
+        }
+
+        if (safeModuleIds.isEmpty()) {
             Toast.makeText(this, "Không có bài giảng để mở", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (index < 0 || index >= moduleIds.size()) {
-            Toast.makeText(this, "Vị trí bài giảng không hợp lệ", Toast.LENGTH_SHORT).show();
-            return;
+        int realIndex = index;
+
+        if (selectedModuleId != null) {
+            int foundIndex = safeModuleIds.indexOf(selectedModuleId);
+
+            if (foundIndex >= 0) {
+                realIndex = foundIndex;
+            }
+        }
+
+        if (realIndex < 0 || realIndex >= safeModuleIds.size()) {
+            realIndex = 0;
         }
 
         Intent intent = new Intent(AdminCourseDetailActivity.this, LessonActivity.class);
-        intent.putIntegerArrayListExtra("MODULE_IDS", moduleIds);
-        intent.putExtra("CURRENT_INDEX", index);
+
+        intent.putIntegerArrayListExtra("MODULE_IDS", safeModuleIds);
+        intent.putExtra("CURRENT_INDEX", realIndex);
         intent.putExtra("PARENT_LESSON_THUMBNAIL", currentLessonThumbnail);
+
+        /*
+         * Truyền thêm MODULE_ID để dự phòng nếu sau này LessonActivity có hỗ trợ mở 1 module.
+         */
+        if (selectedModuleId != null) {
+            intent.putExtra("MODULE_ID", selectedModuleId);
+        }
+
         startActivity(intent);
     }
 

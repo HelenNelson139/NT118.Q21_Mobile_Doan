@@ -39,6 +39,13 @@ public class AdminCourseSummaryActivity extends AppCompatActivity {
                     AdminCourseDetailActivity.class
             );
 
+            /*
+             * Nếu SummaryActivity này đang mở từ danh sách khóa học chưa duyệt,
+             * bắt buộc truyền true.
+             */
+            intent.putExtra("ADMIN_PENDING_MODE", true);
+
+
             intent.putExtra("COURSE_ID", courseId);
             startActivity(intent);
         });
