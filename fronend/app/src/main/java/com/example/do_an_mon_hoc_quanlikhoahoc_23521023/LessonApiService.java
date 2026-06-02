@@ -60,6 +60,7 @@ public interface LessonApiService {
     @PUT("api/lessons/{id}/approve-delete")
     Call<ApiResponse<LessonResponse>> approveDeleteLesson(
             @Path("id") Integer id
+    );
     @GET("api/lessons/all")
     Call<ApiResponse<List<LessonResponse>>> getAllLessons();
     @GET("api/lessons")
@@ -101,9 +102,7 @@ public interface LessonApiService {
     Call<ApiResponse<ModuleResponse>> getModuleById(
             @Path("id") int id
     );
-
-}
-}
     @GET("api/lessons/allActive")
     Call<ApiResponse<List<LessonResponse>>> getAllLessonsActive();
+
 }
