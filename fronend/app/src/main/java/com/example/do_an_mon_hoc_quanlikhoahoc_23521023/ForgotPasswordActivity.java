@@ -1,8 +1,11 @@
 package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,52 +14,238 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ForgotPasswordActivity extends AppCompatActivity {
 
-    private EditText editUsername, editOldPassword, editNewPassword, editConfirmNewPassword;
-    private Button buttonChangePassword;
+    private LinearLayout layoutPhoneStep, layoutOtpStep, layoutPasswordStep;
+    private TextView textDescription;
+
+    private EditText editPhone, editOtp;
+    private TextInputEditText editNewPassword, editConfirmPassword;
+
+    private Button buttonSendOtp, buttonVerifyOtp, buttonResetPassword;
+
+    private RequestQueue requestQueue;
+
+    private String verifiedPhone = "";
+    private String verifiedOtp = "";
 
     private static final String BASE_URL = "http://10.0.2.2:8080/NT118";
 
-    private static final String LOGIN_URL =
-            BASE_URL + "/api/auth/login";
+    private static final String FORGOT_PASSWORD_URL =
+            BASE_URL + "/api/auth/forgot-password";
 
-    private static final String CHANGE_PASSWORD_URL =
-            BASE_URL + "/api/users/password?userId=";
+    private static final String VERIFY_OTP_URL =
+            BASE_URL + "/api/auth/verify-otp";
+
+    private static final String RESET_PASSWORD_URL =
+            BASE_URL + "/api/auth/reset-password";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
 
-        editUsername = findViewById(R.id.editUsername);
-        editOldPassword = findViewById(R.id.editOldPassword);
-        editNewPassword = findViewById(R.id.editNewPassword);
-        editConfirmNewPassword = findViewById(R.id.editConfirmNewPassword);
-        buttonChangePassword = findViewById(R.id.buttonChangePassword);
+        requestQueue = Volley.newRequestQueue(this);
 
-        buttonChangePassword.setOnClickListener(v -> handleChangePassword());
+        mappingView();
+
+        showPhoneStep();
+
+        buttonSendOtp.setOnClickListener(v -> sendOtp());
+        buttonVerifyOtp.setOnClickListener(v -> verifyOtp());
+        buttonResetPassword.setOnClickListener(v -> resetPassword());
     }
 
-    private void handleChangePassword() {
-        String username = editUsername.getText().toString().trim();
-        String oldPassword = editOldPassword.getText().toString().trim();
-        String newPassword = editNewPassword.getText().toString().trim();
-        String confirmNewPassword = editConfirmNewPassword.getText().toString().trim();
+    private void mappingView() {
+        layoutPhoneStep = findViewById(R.id.layoutPhoneStep);
+        layoutOtpStep = findViewById(R.id.layoutOtpStep);
+        layoutPasswordStep = findViewById(R.id.layoutPasswordStep);
 
-        if (username.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập tên đăng nhập", Toast.LENGTH_SHORT).show();
+        textDescription = findViewById(R.id.textDescription);
+
+        editPhone = findViewById(R.id.editPhone);
+        editOtp = findViewById(R.id.editOtp);
+        editNewPassword = findViewById(R.id.editNewPassword);
+        editConfirmPassword = findViewById(R.id.editConfirmPassword);
+
+        buttonSendOtp = findViewById(R.id.buttonSendOtp);
+        buttonVerifyOtp = findViewById(R.id.buttonVerifyOtp);
+        buttonResetPassword = findViewById(R.id.buttonResetPassword);
+    }
+
+    private void showPhoneStep() {
+        layoutPhoneStep.setVisibility(View.VISIBLE);
+        layoutOtpStep.setVisibility(View.GONE);
+        layoutPasswordStep.setVisibility(View.GONE);
+
+        textDescription.setText("Nhập số điện thoại để nhận mã xác thực OTP.");
+    }
+
+    private void showOtpStep() {
+        layoutPhoneStep.setVisibility(View.GONE);
+        layoutOtpStep.setVisibility(View.VISIBLE);
+        layoutPasswordStep.setVisibility(View.GONE);
+
+        textDescription.setText("Mã OTP đã được gửi qua SMS. Vui lòng nhập mã để xác nhận.");
+    }
+
+    private void showPasswordStep() {
+        layoutPhoneStep.setVisibility(View.GONE);
+        layoutOtpStep.setVisibility(View.GONE);
+        layoutPasswordStep.setVisibility(View.VISIBLE);
+
+        textDescription.setText("OTP hợp lệ. Vui lòng nhập mật khẩu mới.");
+    }
+
+    private void sendOtp() {
+        String phone = editPhone.getText().toString().trim();
+
+        if (phone.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập số điện thoại", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (oldPassword.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập mật khẩu cũ", Toast.LENGTH_SHORT).show();
+        if (phone.length() < 9) {
+            Toast.makeText(this, "Số điện thoại không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("phone", phone);
+
+            buttonSendOtp.setEnabled(false);
+            buttonSendOtp.setText("Đang gửi...");
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    FORGOT_PASSWORD_URL,
+                    body,
+                    response -> {
+                        buttonSendOtp.setEnabled(true);
+                        buttonSendOtp.setText("Gửi mã OTP");
+
+                        verifiedPhone = phone;
+
+                        Toast.makeText(
+                                this,
+                                "Đã gửi OTP. Hãy kiểm tra SMS trên emulator",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                        showOtpStep();
+                    },
+                    error -> {
+                        buttonSendOtp.setEnabled(true);
+                        buttonSendOtp.setText("Gửi mã OTP");
+
+                        Toast.makeText(
+                                this,
+                                getVolleyErrorMessage(error, "Gửi OTP thất bại"),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+            );
+
+            requestQueue.add(request);
+
+        } catch (Exception e) {
+            buttonSendOtp.setEnabled(true);
+            buttonSendOtp.setText("Gửi mã OTP");
+            Toast.makeText(this, "Lỗi tạo dữ liệu gửi OTP", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void verifyOtp() {
+        String otp = editOtp.getText().toString().trim();
+
+        if (verifiedPhone.isEmpty()) {
+            Toast.makeText(this, "Vui lòng gửi OTP trước", Toast.LENGTH_SHORT).show();
+            showPhoneStep();
+            return;
+        }
+
+        if (otp.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập mã OTP", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (otp.length() != 6) {
+            Toast.makeText(this, "Mã OTP phải gồm 6 số", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("phone", verifiedPhone);
+            body.put("otp", otp);
+
+            buttonVerifyOtp.setEnabled(false);
+            buttonVerifyOtp.setText("Đang xác nhận...");
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    VERIFY_OTP_URL,
+                    body,
+                    response -> {
+                        buttonVerifyOtp.setEnabled(true);
+                        buttonVerifyOtp.setText("Xác nhận OTP");
+
+                        boolean verified = true;
+
+                        try {
+                            if (response.has("result")) {
+                                verified = response.getBoolean("result");
+                            }
+                        } catch (Exception ignored) {
+                            verified = true;
+                        }
+
+                        if (verified) {
+                            verifiedOtp = otp;
+                            Toast.makeText(this, "Xác nhận OTP thành công", Toast.LENGTH_SHORT).show();
+                            showPasswordStep();
+                        } else {
+                            Toast.makeText(this, "OTP không đúng hoặc đã hết hạn", Toast.LENGTH_SHORT).show();
+                        }
+                    },
+                    error -> {
+                        buttonVerifyOtp.setEnabled(true);
+                        buttonVerifyOtp.setText("Xác nhận OTP");
+
+                        Toast.makeText(
+                                this,
+                                getVolleyErrorMessage(error, "OTP không đúng hoặc đã hết hạn"),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+            );
+
+            requestQueue.add(request);
+
+        } catch (Exception e) {
+            buttonVerifyOtp.setEnabled(true);
+            buttonVerifyOtp.setText("Xác nhận OTP");
+            Toast.makeText(this, "Lỗi tạo dữ liệu xác nhận OTP", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void resetPassword() {
+        String newPassword = editNewPassword.getText() == null
+                ? ""
+                : editNewPassword.getText().toString().trim();
+
+        String confirmPassword = editConfirmPassword.getText() == null
+                ? ""
+                : editConfirmPassword.getText().toString().trim();
+
+        if (verifiedPhone.isEmpty() || verifiedOtp.isEmpty()) {
+            Toast.makeText(this, "Vui lòng xác nhận OTP trước", Toast.LENGTH_SHORT).show();
+            showOtpStep();
             return;
         }
 
@@ -70,119 +259,70 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        if (!newPassword.equals(confirmNewPassword)) {
-            Toast.makeText(this, "Mật khẩu mới nhập lại không khớp", Toast.LENGTH_SHORT).show();
+        if (confirmPassword.isEmpty()) {
+            Toast.makeText(this, "Vui lòng xác nhận mật khẩu", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (oldPassword.equals(newPassword)) {
-            Toast.makeText(this, "Mật khẩu mới không được trùng mật khẩu cũ", Toast.LENGTH_SHORT).show();
+        if (!newPassword.equals(confirmPassword)) {
+            Toast.makeText(this, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        loginThenChangePassword(username, oldPassword, newPassword);
-    }
-
-    private void loginThenChangePassword(String username, String oldPassword, String newPassword) {
         try {
-            JSONObject loginBody = new JSONObject();
-            loginBody.put("username", username);
-            loginBody.put("password", oldPassword);
+            JSONObject body = new JSONObject();
+            body.put("phone", verifiedPhone);
+            body.put("otp", verifiedOtp);
+            body.put("newPassword", newPassword);
 
-            JsonObjectRequest loginRequest = new JsonObjectRequest(
+            buttonResetPassword.setEnabled(false);
+            buttonResetPassword.setText("Đang đổi...");
+
+            JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    LOGIN_URL,
-                    loginBody,
+                    RESET_PASSWORD_URL,
+                    body,
                     response -> {
-                        try {
-                            int code = response.getInt("code");
+                        buttonResetPassword.setEnabled(true);
+                        buttonResetPassword.setText("Đổi mật khẩu");
 
-                            if (code == 0 || code == 1000) {
-                                JSONObject result = response.getJSONObject("result");
-
-                                boolean authenticated = result.getBoolean("authenticated");
-
-                                if (!authenticated) {
-                                    Toast.makeText(this, "Mật khẩu cũ không đúng", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-
-                                String accessToken = result.getString("accessToken");
-                                int userId = result.getInt("id");
-
-                                changePassword(userId, accessToken, oldPassword, newPassword);
-
-                            } else {
-                                Toast.makeText(this, "Tên đăng nhập hoặc mật khẩu cũ không đúng", Toast.LENGTH_SHORT).show();
-                            }
-
-                        } catch (Exception e) {
-                            Toast.makeText(
-                                    this,
-                                    "Lỗi đọc dữ liệu login: " + e.getMessage(),
-                                    Toast.LENGTH_LONG
-                            ).show();
-                        }
+                        Toast.makeText(this, "Đổi mật khẩu thành công", Toast.LENGTH_SHORT).show();
+                        finish();
                     },
                     error -> {
+                        buttonResetPassword.setEnabled(true);
+                        buttonResetPassword.setText("Đổi mật khẩu");
+
                         Toast.makeText(
                                 this,
-                                "Đăng nhập ngầm thất bại. Kiểm tra username hoặc mật khẩu cũ",
+                                getVolleyErrorMessage(error, "Đổi mật khẩu thất bại"),
                                 Toast.LENGTH_LONG
                         ).show();
                     }
             );
 
-            RequestQueue queue = Volley.newRequestQueue(this);
-            queue.add(loginRequest);
+            requestQueue.add(request);
 
         } catch (Exception e) {
-            Toast.makeText(this, "Lỗi tạo dữ liệu đăng nhập", Toast.LENGTH_SHORT).show();
+            buttonResetPassword.setEnabled(true);
+            buttonResetPassword.setText("Đổi mật khẩu");
+            Toast.makeText(this, "Lỗi tạo dữ liệu đổi mật khẩu", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void changePassword(int userId, String accessToken, String oldPassword, String newPassword) {
-        try {
-            String url = CHANGE_PASSWORD_URL + userId;
-
-            JSONObject body = new JSONObject();
-            body.put("oldPassword", oldPassword);
-            body.put("newPassword", newPassword);
-
-            JsonObjectRequest changePasswordRequest = new JsonObjectRequest(
-                    Request.Method.PATCH,
-                    url,
-                    body,
-                    response -> {
-                        Toast.makeText(this, "Đổi mật khẩu thành công", Toast.LENGTH_SHORT).show();
-                        finish();
-                    },
-                    error -> {
-                        String message = "Lỗi đổi mật khẩu";
-
-                        if (error.networkResponse != null) {
-                            message += ": HTTP " + error.networkResponse.statusCode;
-                        } else {
-                            message += ": " + error.toString();
-                        }
-
-                        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-                    }
-            ) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Authorization", "Bearer " + accessToken);
-                    headers.put("Content-Type", "application/json");
-                    return headers;
-                }
-            };
-
-            RequestQueue queue = Volley.newRequestQueue(this);
-            queue.add(changePasswordRequest);
-
-        } catch (Exception e) {
-            Toast.makeText(this, "Lỗi tạo dữ liệu đổi mật khẩu", Toast.LENGTH_SHORT).show();
+    private String getVolleyErrorMessage(com.android.volley.VolleyError error, String defaultMessage) {
+        if (error == null) {
+            return defaultMessage;
         }
+
+        if (error.networkResponse != null) {
+            return defaultMessage + ": HTTP " + error.networkResponse.statusCode;
+        }
+
+        if (error.getMessage() != null) {
+            return defaultMessage + ": " + error.getMessage();
+        }
+
+        return defaultMessage;
     }
 }

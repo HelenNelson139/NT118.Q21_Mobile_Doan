@@ -5,32 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0021f203-19bc-4e6a-838f-69eeec0d14e6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/StudentModuleProgressController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/lesson/response/LessonProgressResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/entity/StudentModuleProgress.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/enums/ProgressStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/StudentModuleProgressRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/StudentModuleProgressService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonProgressResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/ProgressApiService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/StudentCourseApiService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/StudentCourseRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_student_course_detail.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_student_module_card.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/PasswordResetController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/Authentication/request/ForgotPasswordRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/Authentication/request/ResetPasswordRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/Authentication/request/VerifyOtpRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/entity/PasswordResetOtp.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/PasswordResetOtpRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/EmulatorSmsService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/PasswordResetService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/Authentication/response/AuthenticationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/Authentication/response/AuthenticationResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/exception/ErrorCode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/ModuleRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/ModuleRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/config/ApplicationInitConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/config/ApplicationInitConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/config/SecurityConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/AuthenticationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/AuthenticationService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseListActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/CourseListActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/HomeActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/HomeActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/StudentLessonAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/StudentLessonAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_lesson.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_lesson.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/home.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/home.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseDetailActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseDetailActivity.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,32 +48,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Spring Boot.BackendApplication.executor": "Run",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.google.cloudcode.ide_session_index": "20260427_0001",
-    "git-widget-placeholder": "admin",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.BackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.google.cloudcode.ide_session_index&quot;: &quot;20260427_0001&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;hope&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="backend.main" />
@@ -141,7 +128,8 @@
       <workItem from="1780232679834" duration="16393000" />
       <workItem from="1780276523433" duration="14987000" />
       <workItem from="1780306270402" duration="5346000" />
-      <workItem from="1780355282120" duration="36155000" />
+      <workItem from="1780355282120" duration="36540000" />
+      <workItem from="1780408132939" duration="4512000" />
     </task>
     <servers />
   </component>

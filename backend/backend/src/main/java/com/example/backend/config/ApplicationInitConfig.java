@@ -30,7 +30,8 @@ public class ApplicationInitConfig {
             if(userResponsitory.findByUsername("admin").isEmpty()){
                 User user = User.builder()
                         .username("admin")
-                        .password(passwordEncoder.encode("admin"))
+                        .password(passwordEncoder.encode("123456"))
+                        .status("ACTIVE")
                         .role(ADMIN)
                         .build();
 
