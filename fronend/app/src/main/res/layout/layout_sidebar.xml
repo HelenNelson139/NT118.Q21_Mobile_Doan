@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -15,7 +16,6 @@
         android:layout_height="match_parent"
         android:padding="24dp">
 
-        <!-- NÚT ĐÓNG MENU -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnCloseMenu"
             android:layout_width="55dp"
@@ -37,11 +37,11 @@
                 android:padding="10dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_menu"
+                android:contentDescription="Đóng menu"
                 app:tint="#F9F7F7" />
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- SEARCH -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/searchContainer"
             android:layout_width="match_parent"
@@ -86,7 +86,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- USER NAME -->
         <TextView
             android:id="@+id/tvUserName"
             android:layout_width="wrap_content"
@@ -99,7 +98,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/searchContainer" />
 
-        <!-- MENU -->
         <LinearLayout
             android:id="@+id/menuContainer"
             android:layout_width="match_parent"
@@ -108,7 +106,6 @@
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/tvUserName">
 
-            <!-- TRANG CHỦ -->
             <LinearLayout
                 android:id="@+id/menuHome"
                 android:layout_width="match_parent"
@@ -117,6 +114,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingVertical="15dp">
 
                 <ImageView
@@ -133,9 +131,9 @@
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
             </LinearLayout>
 
-            <!-- KHÓA HỌC -->
             <LinearLayout
                 android:id="@+id/menuCourses"
                 android:layout_width="match_parent"
@@ -144,6 +142,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingVertical="15dp">
 
                 <ImageView
@@ -160,36 +159,9 @@
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
             </LinearLayout>
 
-            <!-- HỌC TẬP -->
-            <LinearLayout
-                android:id="@+id/menuLearning"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:paddingVertical="15dp">
-
-                <ImageView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:src="@drawable/ic_study"
-                    app:tint="#FFFFFF" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="15dp"
-                    android:text="Học tập"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- HỒ SƠ -->
             <LinearLayout
                 android:id="@+id/menuProfile"
                 android:layout_width="match_parent"
@@ -198,6 +170,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingVertical="15dp">
 
                 <ImageView
@@ -215,9 +188,9 @@
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
             </LinearLayout>
 
-            <!-- ĐĂNG XUẤT -->
             <TextView
                 android:id="@+id/txtLogout"
                 android:layout_width="match_parent"
@@ -236,4 +209,5 @@
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </com.google.android.material.card.MaterialCardView>

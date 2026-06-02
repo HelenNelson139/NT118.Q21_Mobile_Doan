@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -15,6 +16,7 @@
         app:layout_constraintBottom_toTopOf="@id/navigationContainer">
 
         <LinearLayout
+            android:id="@+id/layoutLessonContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -126,7 +128,8 @@
                 android:background="#000000"
                 android:visibility="gone"
                 app:use_controller="true"
-                app:resize_mode="fit" />
+                app:resize_mode="fit"
+                app:show_buffering="when_playing" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -144,7 +147,22 @@
                 android:layout_marginTop="8dp"
                 android:orientation="vertical" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCompleteModule"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="20dp"
+                android:text="Đánh dấu đã học xong"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="#00B14F"
+                app:cornerRadius="14dp" />
+
         </LinearLayout>
+
     </ScrollView>
 
     <LinearLayout

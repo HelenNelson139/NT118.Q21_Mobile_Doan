@@ -2,12 +2,12 @@ package com.example.do_an_mon_hoc_quanlikhoahoc_23521023;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +24,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -34,207 +37,404 @@ public class CourseListActivity extends AppCompatActivity {
 
     private MaterialCardView btnMenuCard;
     private RecyclerView rvStudentCourses;
-    private StudentLessonAdapter studentAdapter;
-    private List<LessonResponse> activeLessonsList = new ArrayList<>();
-    private LessonApiService lessonApiService;
-
-    // Y XÌ FILE ADMIN: Khai báo đúng tên biến edtSearch
     private EditText edtSearch;
+    private TextView txtListTitle;
+
+    private StudentLessonAdapter studentAdapter;
+
+    private final List<LessonResponse> enrolledLessons = new ArrayList<>();
+    private final List<LessonResponse> originalLessons = new ArrayList<>();
+
+    /*
+     * Chặn trùng lessonId.
+     */
+    private final Set<Integer> addedEnrolledLessonIds = new HashSet<>();
+
+    /*
+     * Chặn request cũ trả về sau request mới.
+     */
+    private int enrolledLoadVersion = 0;
+
+    private LessonApiService lessonApiService;
+    private StudentCourseApiService studentCourseApiService;
+
+    private static final String PREF_NAME = "APP_PREFS";
+    private static final String KEY_USER_ID = "USER_ID";
+
+    private int currentStudentId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.courses);
 
-        // Ánh xạ các thành phần cũ của bạn
+        initViews();
+        setupRecyclerView();
+        setupServices();
+        setupEvents();
+
+        /*
+         * Không gọi fetchEnrolledLessonIds() ở đây.
+         * Chỉ gọi trong onResume() để tránh load 2 lần.
+         */
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        currentStudentId = getCurrentStudentId();
+        fetchEnrolledLessonIds();
+    }
+
+    private void initViews() {
         btnMenuCard = findViewById(R.id.btnMenuCard);
         rvStudentCourses = findViewById(R.id.rvCourseList);
-
-        // Y XÌ FILE ADMIN: Ánh xạ và gán TextWatcher lắng nghe sự kiện
         edtSearch = findViewById(R.id.edtSearch);
+        txtListTitle = findViewById(R.id.txtListTitle);
+
+        if (txtListTitle != null) {
+            txtListTitle.setText("Danh sách khóa học đã đăng ký");
+        }
+    }
+
+    private void setupRecyclerView() {
+        rvStudentCourses.setLayoutManager(new LinearLayoutManager(this));
+
+        studentAdapter = new StudentLessonAdapter(this, enrolledLessons);
+        rvStudentCourses.setAdapter(studentAdapter);
+    }
+
+    private void setupServices() {
+        lessonApiService = RetrofitClient.getClient().create(LessonApiService.class);
+        studentCourseApiService = RetrofitClient.getClient().create(StudentCourseApiService.class);
+    }
+
+    private void setupEvents() {
+        btnMenuCard.setOnClickListener(view -> showSidebarMenu());
+
         if (edtSearch != null) {
             edtSearch.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    String query = s.toString().trim();
-                    if (query.isEmpty()) {
-                        // Nếu trống ô nhập -> Gọi lại hàm tải danh sách ban đầu giống hệt Admin
-                        fetchActiveLessons();
-                    } else {
-                        // Nếu có chữ -> Thực hiện hàm tìm kiếm kết nối Server
-                        searchLessonsFromServer(query);
-                    }
+                    filterLocalLessons(s.toString());
                 }
 
                 @Override
-                public void afterTextChanged(Editable s) {}
+                public void afterTextChanged(Editable s) {
+                }
             });
         }
 
-        btnMenuCard.setOnClickListener(view -> showSidebarMenu());
+        View icFilter = findViewById(R.id.icFilter);
 
-        // Cài đặt RecyclerView hiển thị danh sách
-        rvStudentCourses.setLayoutManager(new LinearLayoutManager(this));
-        studentAdapter = new StudentLessonAdapter(this, activeLessonsList);
-        rvStudentCourses.setAdapter(studentAdapter);
+        if (icFilter != null) {
+            icFilter.setOnClickListener(v -> {
+                String query = "";
 
-        // Khởi tạo Api Service qua Retrofit Client
-        lessonApiService = RetrofitClient.getClient().create(LessonApiService.class);
-        // Tải danh sách mặc định ban đầu khi vào ứng dụng
-        fetchActiveLessons();
-        setupSearch();
+                if (edtSearch != null) {
+                    query = edtSearch.getText().toString().trim();
+                }
+
+                filterLocalLessons(query);
+            });
+        }
     }
 
-    // Hàm lấy danh sách bài học ban đầu
-    private void fetchActiveLessons() {
-        lessonApiService.getAllActiveLessons().enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
-            @Override
-            public void onResponse(
-                    Call<ApiResponse<List<LessonResponse>>> call,
-                    Response<ApiResponse<List<LessonResponse>>> response
-            ) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
+    private int getCurrentStudentId() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        return sharedPreferences.getInt(KEY_USER_ID, -1);
+    }
 
-                    if (apiResponse.getCode() == 1000 && apiResponse.getResult() != null) {
-                        activeLessonsList.clear();
-                        activeLessonsList.addAll(apiResponse.getResult());
-                        studentAdapter.notifyDataSetChanged();
+    /*
+     * API:
+     * GET /api/students/{userId}/lessons
+     *
+     * Backend trả result là danh sách lessonId sinh viên đã đăng ký.
+     */
+    private void fetchEnrolledLessonIds() {
+        if (currentStudentId == -1) {
+            clearCourseList();
+            Toast.makeText(this, "Không tìm thấy ID học sinh", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                        if (activeLessonsList.isEmpty()) {
+        final int requestVersion = ++enrolledLoadVersion;
+
+        clearCourseList();
+
+        studentCourseApiService.getStudentLessonIds(currentStudentId)
+                .enqueue(new Callback<ApiResponse<List<Integer>>>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<List<Integer>>> call,
+                            Response<ApiResponse<List<Integer>>> response
+                    ) {
+                        /*
+                         * Nếu request này là request cũ, bỏ qua.
+                         */
+                        if (requestVersion != enrolledLoadVersion) {
+                            return;
+                        }
+
+                        if (response.isSuccessful() && response.body() != null) {
+                            ApiResponse<List<Integer>> apiResponse = response.body();
+
+                            if (apiResponse.getCode() == 1000) {
+                                List<Integer> lessonIds = apiResponse.getResult();
+
+                                if (lessonIds == null || lessonIds.isEmpty()) {
+                                    Toast.makeText(
+                                            CourseListActivity.this,
+                                            "Bạn chưa đăng ký khóa học nào",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                    return;
+                                }
+
+                                /*
+                                 * Dùng LinkedHashSet để:
+                                 * - Loại trùng ID từ backend nếu backend trả trùng
+                                 * - Giữ nguyên thứ tự
+                                 */
+                                Set<Integer> uniqueLessonIds = new LinkedHashSet<>(lessonIds);
+
+                                for (Integer lessonId : uniqueLessonIds) {
+                                    if (lessonId == null) {
+                                        continue;
+                                    }
+
+                                    if (addedEnrolledLessonIds.contains(lessonId)) {
+                                        continue;
+                                    }
+
+                                    fetchLessonDetailAndAdd(lessonId, requestVersion);
+                                }
+
+                            } else {
+                                Toast.makeText(
+                                        CourseListActivity.this,
+                                        "Lỗi: " + apiResponse.getMessage(),
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+
+                        } else {
                             Toast.makeText(
                                     CourseListActivity.this,
-                                    "Chưa có khóa học ACTIVE nào",
+                                    "Không lấy được danh sách khóa học đã đăng ký",
                                     Toast.LENGTH_SHORT
                             ).show();
                         }
-                    } else {
-                        Toast.makeText(
-                                CourseListActivity.this,
-                                "Lỗi server: " + apiResponse.getMessage(),
-                                Toast.LENGTH_SHORT
-                        ).show();
                     }
-                } else {
-                    Toast.makeText(
-                            CourseListActivity.this,
-                            "Lỗi tải khóa học, mã: " + response.code(),
-                            Toast.LENGTH_SHORT
-                    ).show();
-                }
-            }
 
-            @Override
-            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
-                Log.e("API_ACTIVE_LESSON", "Lỗi tải danh sách khóa học: " + t.getMessage());
-                Toast.makeText(
-                        CourseListActivity.this,
-                        "Không thể kết nối đến máy chủ",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<List<Integer>>> call,
+                            Throwable t
+                    ) {
+                        if (requestVersion == enrolledLoadVersion) {
+                            Toast.makeText(
+                                    CourseListActivity.this,
+                                    "Lỗi kết nối khi lấy khóa học đã đăng ký",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+                });
     }
 
-    private void setupSearch() {
-        View icFilter = findViewById(R.id.icFilter);
-        if (icFilter != null) {
-            icFilter.setOnClickListener(v -> {
-                String query = edtSearch.getText().toString().trim();
-                if (!query.isEmpty()) {
-                    Toast.makeText(this, "Đang tìm kiếm online: " + query, Toast.LENGTH_SHORT).show();
-                    searchLessonsFromServer(query);
-                } else {
-                    Toast.makeText(this, "Vui lòng nhập từ khóa tìm kiếm!", Toast.LENGTH_SHORT).show();
-                    fetchActiveLessons();
-                }
-            });
+    private void fetchLessonDetailAndAdd(Integer lessonId, int requestVersion) {
+        lessonApiService.getLessonById(lessonId)
+                .enqueue(new Callback<ApiResponse<LessonResponse>>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<LessonResponse>> call,
+                            Response<ApiResponse<LessonResponse>> response
+                    ) {
+                        /*
+                         * Nếu request cũ trả về sau, bỏ qua.
+                         */
+                        if (requestVersion != enrolledLoadVersion) {
+                            return;
+                        }
+
+                        /*
+                         * Chặn trùng trước khi add.
+                         */
+                        if (addedEnrolledLessonIds.contains(lessonId)) {
+                            return;
+                        }
+
+                        if (response.isSuccessful() && response.body() != null) {
+                            ApiResponse<LessonResponse> apiResponse = response.body();
+
+                            if (apiResponse.getCode() == 1000 && apiResponse.getResult() != null) {
+                                LessonResponse lesson = apiResponse.getResult();
+
+                                if (lesson == null || lesson.getId() == null) {
+                                    return;
+                                }
+
+                                Integer realLessonId = lesson.getId();
+
+                                /*
+                                 * Chặn trùng theo id thật từ API lesson detail.
+                                 */
+                                if (addedEnrolledLessonIds.contains(realLessonId)) {
+                                    return;
+                                }
+
+                                addedEnrolledLessonIds.add(realLessonId);
+
+                                originalLessons.add(lesson);
+                                enrolledLessons.add(lesson);
+
+                                studentAdapter.notifyItemInserted(enrolledLessons.size() - 1);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<LessonResponse>> call,
+                            Throwable t
+                    ) {
+                        /*
+                         * Bỏ qua lesson lỗi.
+                         * Không add gì để tránh dữ liệu sai.
+                         */
+                    }
+                });
+    }
+
+    private void clearCourseList() {
+        enrolledLessons.clear();
+        originalLessons.clear();
+        addedEnrolledLessonIds.clear();
+
+        if (studentAdapter != null) {
+            studentAdapter.notifyDataSetChanged();
         }
     }
 
+    private void filterLocalLessons(String keyword) {
+        String query = safe(keyword).toLowerCase();
 
-    // Y XÌ FILE ADMIN: Hàm xử lý gọi API kết nối đến Server và cập nhật giao diện
-    private void searchLessonsFromServer(String keyword) {
-        lessonApiService.searchLessons(keyword).enqueue(new Callback<ApiResponse<List<LessonResponse>>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<List<LessonResponse>>> call, Response<ApiResponse<List<LessonResponse>>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<List<LessonResponse>> apiResponse = response.body();
-                    if (apiResponse.getCode() == 1000 && apiResponse.getResult() != null) {
+        enrolledLessons.clear();
 
-                        activeLessonsList.clear();
-                        if (!apiResponse.getResult().isEmpty()) {
-                            // Đổ dữ liệu tìm kiếm tìm thấy được
-                            activeLessonsList.addAll(apiResponse.getResult());
-                        } else {
-                            // Hiển thị thông báo Toast nếu không tìm thấy giống file Admin mẫu của bạn
-                            Toast.makeText(CourseListActivity.this, "Không tìm thấy bài học nào phù hợp!", Toast.LENGTH_SHORT).show();
-                        }
-                        studentAdapter.notifyDataSetChanged();
+        if (query.isEmpty()) {
+            enrolledLessons.addAll(originalLessons);
+        } else {
+            for (LessonResponse lesson : originalLessons) {
+                if (lesson == null) {
+                    continue;
+                }
 
-                    } else {
-                        Toast.makeText(CourseListActivity.this, "Lỗi hệ thống: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(CourseListActivity.this, "Lỗi kết nối mạng, mã: " + response.code(), Toast.LENGTH_SHORT).show();
+                String title = safe(lesson.getTitle()).toLowerCase();
+                String description = safe(lesson.getDescription()).toLowerCase();
+
+                if (title.contains(query) || description.contains(query)) {
+                    enrolledLessons.add(lesson);
                 }
             }
+        }
 
-            @Override
-            public void onFailure(Call<ApiResponse<List<LessonResponse>>> call, Throwable t) {
-                Log.e("API_STUDENT_SEARCH", "Thất bại: " + t.getMessage());
-                Toast.makeText(CourseListActivity.this, "Không thể kết nối đến máy chủ", Toast.LENGTH_SHORT).show();
-            }
-        });
+        studentAdapter.notifyDataSetChanged();
     }
 
-    // GIỮ NGUYÊN HOÀN TOÀN: Sidebar Menu gốc của bạn không đổi một chữ
     private void showSidebarMenu() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.layout_sidebar);
 
         Window window = dialog.getWindow();
+
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            window.setLayout(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.setGravity(Gravity.END);
         }
 
         MaterialCardView btnCloseMenu = dialog.findViewById(R.id.btnCloseMenu);
-        LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
+        LinearLayout menuHome = dialog.findViewById(R.id.menuHome);
         LinearLayout menuCourses = dialog.findViewById(R.id.menuCourses);
-        LinearLayout menuMyCourses = dialog.findViewById(R.id.menuLearning);
+        LinearLayout menuProfile = dialog.findViewById(R.id.menuProfile);
         TextView txtLogout = dialog.findViewById(R.id.txtLogout);
+        TextView tvUserName = dialog.findViewById(R.id.tvUserName);
 
-        btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
+        if (tvUserName != null) {
+            tvUserName.setText("Học viên");
+        }
 
-        menuProfile.setOnClickListener(v -> {
-            startActivity(new Intent(CourseListActivity.this, ProfileActivity.class));
-            dialog.dismiss();
-        });
+        if (btnCloseMenu != null) {
+            btnCloseMenu.setOnClickListener(v -> dialog.dismiss());
+        }
 
-        menuCourses.setOnClickListener(v -> {
-            startActivity(new Intent(CourseListActivity.this, CourseListActivity.class));
-            dialog.dismiss();
-        });
+        if (menuHome != null) {
+            menuHome.setOnClickListener(v -> {
+                dialog.dismiss();
+                openPage(HomeActivity.class);
+            });
+        }
 
-        menuMyCourses.setOnClickListener(v -> {
-            startActivity(new Intent(CourseListActivity.this, mycourseactivity.class));
-            dialog.dismiss();
-        });
+        if (menuCourses != null) {
+            menuCourses.setOnClickListener(v -> {
+                dialog.dismiss();
+            });
+        }
 
-        txtLogout.setOnClickListener(v -> {
-            Intent intent = new Intent(CourseListActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            dialog.dismiss();
-            finish();
-        });
+        if (menuProfile != null) {
+            menuProfile.setOnClickListener(v -> {
+                dialog.dismiss();
+                openPage(ProfileActivity.class);
+            });
+        }
+
+        if (txtLogout != null) {
+            txtLogout.setOnClickListener(v -> {
+                SharedPreferences sharedPreferences =
+                        getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+                sharedPreferences.edit().clear().apply();
+
+                Intent intent = new Intent(CourseListActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+
+                dialog.dismiss();
+                finish();
+            });
+        }
 
         dialog.show();
+    }
+    private void openPage(Class<?> targetActivity) {
+        if (this.getClass().equals(targetActivity)) {
+            return;
+        }
+
+        Intent intent = new Intent(this, targetActivity);
+        intent.setFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        | Intent.FLAG_ACTIVITY_SINGLE_TOP
+        );
+
+        startActivity(intent);
+    }
+
+    private String safe(String value) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
+            return "";
+        }
+
+        return value.trim();
     }
 }
