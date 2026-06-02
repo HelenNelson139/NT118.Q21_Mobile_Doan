@@ -54,6 +54,7 @@ public class AdminHomeActivity extends AppCompatActivity {
     private static final String PREF_NAME = "APP_PREFS";
     private static final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
     private static final String KEY_FULL_NAME = "FULL_NAME";
+    private static final String KEY_USERNAME = "USERNAME";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,31 +73,102 @@ public class AdminHomeActivity extends AppCompatActivity {
 
         requestQueue = Volley.newRequestQueue(this);
 
-        btnMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                drawerLayout.openDrawer(GravityCompat.END);
-            }
-        });
+        btnMenu.setOnClickListener(view -> drawerLayout.openDrawer(GravityCompat.END));
 
         AdminSidebarNavigationHelper.setupSidebar(this, drawerLayout);
 
-        loadAdminName();
+        showDefaultAdminName();
+        loadAdminInfoFromApi();
         loadDefaultStats();
         loadDashboardData();
     }
 
-    private void loadAdminName() {
-        SharedPreferences sharedPreferences =
-                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadAdminInfoFromApi();
+    }
+
+    private void showDefaultAdminName() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
 
         String fullName = sharedPreferences.getString(KEY_FULL_NAME, "");
+        String username = sharedPreferences.getString(KEY_USERNAME, "");
 
-        if (fullName == null || fullName.trim().isEmpty()) {
-            fullName = "Admin";
+        String displayName = getDisplayAdminName(fullName, username);
+
+        tabAdmin.setText(displayName);
+    }
+
+    private void loadAdminInfoFromApi() {
+        String token = getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            tabAdmin.setText("Admin");
+            return;
         }
 
-        tabAdmin.setText(fullName);
+        String url = BASE_URL + "/api/users/admin/info";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    try {
+                        JSONObject result = response.optJSONObject("result");
+
+                        if (result == null) {
+                            tabAdmin.setText("Admin");
+                            return;
+                        }
+
+                        String fullName = safe(result.optString("full_name", ""));
+                        String username = safe(result.optString("username", ""));
+                        String displayName = getDisplayAdminName(fullName, username);
+
+                        tabAdmin.setText(displayName);
+
+                        SharedPreferences sharedPreferences =
+                                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+                        sharedPreferences.edit()
+                                .putString(KEY_FULL_NAME, displayName)
+                                .putString(KEY_USERNAME, username)
+                                .apply();
+
+                    } catch (Exception e) {
+                        tabAdmin.setText("Admin");
+                    }
+                },
+                error -> {
+                    tabAdmin.setText("Admin");
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
+    }
+
+    private String getDisplayAdminName(String fullName, String username) {
+        fullName = safe(fullName);
+        username = safe(username);
+
+        if (!fullName.isEmpty()) {
+            return fullName;
+        }
+
+        if (!username.isEmpty()) {
+            return username;
+        }
+
+        return "Admin";
     }
 
     private void loadDefaultStats() {
@@ -371,5 +443,13 @@ public class AdminHomeActivity extends AppCompatActivity {
 
         lineChart.animateY(1000);
         lineChart.invalidate();
+    }
+
+    private String safe(String value) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
+            return "";
+        }
+
+        return value.trim();
     }
 }

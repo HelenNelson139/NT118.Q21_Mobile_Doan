@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#DBE2EF"
-    android:padding="24dp">
+    android:padding="20dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imgDetailAvatar"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="30dp"
+        android:layout_width="145dp"
+        android:layout_height="145dp"
+        android:layout_marginTop="24dp"
         android:padding="5dp"
+        android:scaleType="centerCrop"
         android:src="@drawable/ic_profile"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,168 +23,194 @@
         app:strokeColor="#112D4E"
         app:strokeWidth="2dp" />
 
-    <LinearLayout
-        android:id="@+id/inputArea"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/imgDetailAvatar">
+    <ScrollView
+        android:id="@+id/scrollProfile"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/imgDetailAvatar"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomButtons"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
+            android:id="@+id/inputArea"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="ID"
                 android:textColor="#112D4E"
-                android:textSize="18sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/edtId"
-                android:layout_width="230dp"
-                android:layout_height="55dp"
-                android:focusable="false"
-                android:cursorVisible="false"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#8899AA"
                 android:paddingHorizontal="12dp"
-                android:text="ad001"
                 android:textColor="#3F72AF"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+                android:textSize="16sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Họ Tên:"
+                android:text="Username"
                 android:textColor="#112D4E"
-                android:textSize="18sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtUsername"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#8899AA"
+                android:paddingHorizontal="12dp"
+                android:textColor="#3F72AF"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Họ tên"
+                android:textColor="#112D4E"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/edtFullName"
-                android:layout_width="230dp"
-                android:layout_height="55dp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#8899AA"
+                android:hint="Admin"
+                android:inputType="textPersonName"
                 android:paddingHorizontal="12dp"
-                android:text="Nguyễn Huỳnh Tiến"
                 android:textColor="#112D4E"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+                android:textSize="16sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Gmail"
+                android:text="Email"
                 android:textColor="#112D4E"
-                android:textSize="18sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/edtGmail"
-                android:layout_width="230dp"
-                android:layout_height="55dp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#8899AA"
+                android:hint="Chưa cập nhật"
                 android:inputType="textEmailAddress"
                 android:paddingHorizontal="12dp"
-                android:text="admin@gmail.com"
                 android:textColor="#112D4E"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+                android:textSize="16sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Ngày sinh:"
+                android:text="Số điện thoại"
                 android:textColor="#112D4E"
-                android:textSize="18sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <EditText
-                android:id="@+id/edtDob"
-                android:layout_width="230dp"
-                android:layout_height="55dp"
+                android:id="@+id/edtPhone"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#8899AA"
+                android:hint="Chưa cập nhật"
+                android:inputType="phone"
                 android:paddingHorizontal="12dp"
-                android:text="01/01/2005"
                 android:textColor="#112D4E"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+                android:textSize="16sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Mật khẩu"
+                android:text="Vai trò"
                 android:textColor="#112D4E"
-                android:textSize="18sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="230dp"
-                android:layout_height="55dp"
-                app:hintEnabled="false"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="#112D4E"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+            <EditText
+                android:id="@+id/edtRole"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#8899AA"
+                android:paddingHorizontal="12dp"
+                android:textColor="#3F72AF"
+                android:textSize="16sp" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtPassword"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:inputType="textPassword"
-                    android:paddingHorizontal="12dp"
-                    android:text="123456789"
-                    android:textColor="#112D4E" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Trạng thái"
+                android:textColor="#112D4E"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtStatus"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#8899AA"
+                android:paddingHorizontal="12dp"
+                android:textColor="#3F72AF"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/layoutBottomButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpdate"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="#00B14F"
+            android:text="Cập nhật thông tin"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:cornerRadius="15dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBack"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="#3F72AF"
+            android:text="Quay lại"
+            android:textAllCaps="false"
+            android:textColor="#F9F7F7"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:cornerRadius="15dp" />
+
     </LinearLayout>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnBack"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginBottom="10dp"
-        android:backgroundTint="#3F72AF"
-        android:text="Quay lại"
-        android:textAllCaps="false"
-        android:textColor="#F9F7F7"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:cornerRadius="15dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

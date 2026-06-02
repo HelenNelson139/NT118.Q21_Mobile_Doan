@@ -5,40 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0021f203-19bc-4e6a-838f-69eeec0d14e6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminModuleAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminModuleDetailActivity.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/admin_module_detail.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_admin_module.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_admin_module_card.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_admin_pending_module.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_existing_module.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/FileController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/FileController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/LessonController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/LessonController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/ModuleController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/ModuleController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/lesson/response/ModuleResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/dto/lesson/response/ModuleResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/enums/Status.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/enums/Status.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/LessonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/LessonRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/ModuleRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/respository/ModuleRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/FileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/FileService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/LessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/LessonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/ModuleService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/ModuleService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/SupabaseStorageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/service/SupabaseStorageService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseDetailActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseDetailActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummary.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummary.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminCourseSummaryAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminManageCourse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/AdminManageCourse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/FileApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/FileApiService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/example/backend/controller/UserController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/LessonApiService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/ModuleApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/ModuleApiService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/java/com/example/do_an_mon_hoc_quanlikhoahoc_23521023/TeacherClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_lesson.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/activity_lesson.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/admin_course_detail.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/admin_course_detail.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_lesson.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/app/src/main/res/layout/item_lesson.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fronend/gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../fronend/gradle/libs.versions.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +52,7 @@
     "Spring Boot.BackendApplication.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.google.cloudcode.ide_session_index": "20260427_0001",
-    "git-widget-placeholder": "minor",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
@@ -149,7 +118,7 @@
       <workItem from="1780232679834" duration="16393000" />
       <workItem from="1780276523433" duration="14987000" />
       <workItem from="1780306270402" duration="5346000" />
-      <workItem from="1780355282120" duration="20152000" />
+      <workItem from="1780355282120" duration="21591000" />
     </task>
     <servers />
   </component>
