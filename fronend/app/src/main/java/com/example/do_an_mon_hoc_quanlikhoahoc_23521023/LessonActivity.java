@@ -322,7 +322,7 @@ public class LessonActivity extends AppCompatActivity {
 
     private void fetchModuleFromServer() {
         releaseLessonPlayer();
-
+        //gitcommit
         if (moduleIds == null || moduleIds.isEmpty()) {
             Toast.makeText(this, "Không nhận được moduleId từ màn hình trước", Toast.LENGTH_SHORT).show();
             showEmptyModule();
