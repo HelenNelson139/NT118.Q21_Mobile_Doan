@@ -4,10 +4,12 @@ import com.example.backend.Mapper.LessonMapper;
 import com.example.backend.dto.lesson.request.LessonCreationRequest;
 import com.example.backend.dto.lesson.request.LessonUpdateRequest;
 import com.example.backend.dto.lesson.response.LessonResponse;
+import com.example.backend.dto.lesson.response.LessonStudentCountResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.entity.Teacher;
 import com.example.backend.entity.User;
 import com.example.backend.enums.Status;
+import com.example.backend.respository.EnrollmentRepository;
 import com.example.backend.respository.LessonRepository;
 import com.example.backend.respository.TeacherResponsitory;
 import jakarta.transaction.Transactional;
@@ -34,7 +36,8 @@ public class LessonService {
     TeacherResponsitory teacherResponsitory;
     LessonMapper lessonMapper;
     SupabaseStorageService supabaseStorageService;
-    private final ModuleService moduleService;
+    ModuleService moduleService;
+    EnrollmentRepository enrollmentRepository;
 
     public LessonResponse createLesson(LessonCreationRequest request){
         Teacher teacher = teacherResponsitory.findById(request.getTeacherId())
@@ -200,5 +203,15 @@ public class LessonService {
 
         Lesson updatedLesson = lessonRepository.save(lesson);
         return lessonMapper.toLessonResponse(updatedLesson);
+    }
+
+    public List<LessonStudentCountResponse> getStudentCountPerLesson() {
+        return enrollmentRepository.countStudentsPerLesson();
+    }
+
+    public Integer getStudentCountByLessonId(Integer lessonId) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại hoặc đã bị xóa!"));
+        return enrollmentRepository.countById_LessonId(lessonId).intValue();
     }
 }

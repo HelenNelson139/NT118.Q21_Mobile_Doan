@@ -4,6 +4,7 @@ import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.lesson.request.LessonCreationRequest;
 import com.example.backend.dto.lesson.request.LessonUpdateRequest;
 import com.example.backend.dto.lesson.response.LessonResponse;
+import com.example.backend.dto.lesson.response.LessonStudentCountResponse;
 import com.example.backend.entity.Lesson;
 import com.example.backend.enums.Status;
 import com.example.backend.respository.UserResponsitory;
@@ -175,5 +176,25 @@ public class LessonController {
                 .message("Đã cập nhật thông tin khóa học") //
                 .result("Mã khóa học được cập nhật: " + id) //
                 .build(); //
+    }
+
+    @GetMapping("/studentCount")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER','STUDENT')")
+    public ApiResponse<List<LessonStudentCountResponse>> getStudentCountPerLesson() {
+        return ApiResponse.<List<LessonStudentCountResponse>>builder()
+                .code(1000)
+                .message("Get student count per lesson successful")
+                .result(lessonService.getStudentCountPerLesson())
+                .build();
+    }
+
+    @GetMapping("/{lessonId}/studentCount")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER','STUDENT')")
+    public ApiResponse<Integer> getStudentCountByLesson(@PathVariable Integer lessonId) {
+        return ApiResponse.<Integer>builder()
+                .code(1000)
+                .message("Get student count for lesson successful")
+                .result(lessonService.getStudentCountByLessonId(lessonId))
+                .build();
     }
 }
