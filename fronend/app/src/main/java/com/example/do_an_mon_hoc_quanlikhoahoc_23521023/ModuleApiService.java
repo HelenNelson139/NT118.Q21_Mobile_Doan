@@ -51,8 +51,16 @@ public interface ModuleApiService {
             @Path("id") Integer id
     );
 
-    @GET("api/modules/lesson/{id}")
+    @GET("api/modules/lesson/{lessonId}")
     Call<ApiResponse<List<ModuleResponse>>> getModulesByLessonId(
-            @Path("id") int lessonId
+            @Path("lessonId") Integer lessonId
     );
+
+    @GET("api/modules/lesson/pending/{lessonId}")
+    Call<ApiResponse<List<ModuleResponse>>> getPendingModulesByLessonId(
+            @Path("lessonId") Integer lessonId
+    );
+
+    @GET("api/modules/allPending")
+    Call<ApiResponse<List<ModuleResponse>>> getAllModulesPending();
 }

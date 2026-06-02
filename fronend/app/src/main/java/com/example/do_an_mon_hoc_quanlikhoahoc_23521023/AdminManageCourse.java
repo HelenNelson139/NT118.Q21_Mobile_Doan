@@ -30,8 +30,8 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AdminManageCourse extends AppCompatActivity {
@@ -47,7 +47,9 @@ public class AdminManageCourse extends AppCompatActivity {
     private MaterialButton btnPendingCourses;
 
     private AdminCourseSummaryAdapter adapter;
-    private List<LessonResponse> lessonList;
+
+    private final List<LessonResponse> lessonList = new ArrayList<>();
+    private final List<LessonResponse> originalList = new ArrayList<>();
 
     private RequestQueue requestQueue;
 
@@ -91,9 +93,8 @@ public class AdminManageCourse extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        lessonList = new ArrayList<>();
         rvCourseList.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AdminCourseSummaryAdapter(this, lessonList);
+        adapter = new AdminCourseSummaryAdapter(this, lessonList, "APPROVED");
         rvCourseList.setAdapter(adapter);
     }
 
@@ -114,7 +115,6 @@ public class AdminManageCourse extends AppCompatActivity {
             btnPendingCourses.setBackgroundTintList(
                     ColorStateList.valueOf(Color.parseColor("#112D4E"))
             );
-
             txtListTitle.setText("Danh sách khóa học đã duyệt");
         } else {
             btnApprovedCourses.setBackgroundTintList(
@@ -123,7 +123,6 @@ public class AdminManageCourse extends AppCompatActivity {
             btnPendingCourses.setBackgroundTintList(
                     ColorStateList.valueOf(Color.parseColor("#3F72AF"))
             );
-
             txtListTitle.setText("Danh sách khóa học chưa duyệt");
         }
 
@@ -133,6 +132,10 @@ public class AdminManageCourse extends AppCompatActivity {
 
     private void fetchApprovedCoursesFromServer() {
         updateFilterButtonStyle(FILTER_APPROVED);
+
+        if (adapter != null) {
+            adapter.setMode("APPROVED");
+        }
 
         String url = BASE_URL + "/api/lessons/allActive";
 
@@ -146,20 +149,27 @@ public class AdminManageCourse extends AppCompatActivity {
     private void fetchPendingCoursesFromServer() {
         updateFilterButtonStyle(FILTER_PENDING);
 
-        String url = BASE_URL + "/api/lessons/allPending";
+        if (adapter != null) {
+            adapter.setMode("PENDING");
+        }
+
+        /*
+         * API này phải trả về:
+         * - lesson PENDING
+         * - hoặc lesson ACTIVE có module PENDING / PENDING_DELETE
+         *
+         * Không dùng /allActive ở tab chưa duyệt.
+         */
+        String url = BASE_URL + "/api/lessons/allPendingOrHasPendingModules";
 
         fetchCoursesByUrl(
                 url,
-                "Không có khóa học chưa duyệt nào",
+                "Không có khóa học hoặc bài giảng chưa duyệt nào",
                 "Lỗi lấy danh sách khóa học chưa duyệt"
         );
     }
 
-    private void fetchCoursesByUrl(
-            String url,
-            String emptyMessage,
-            String errorMessage
-    ) {
+    private void fetchCoursesByUrl(String url, String emptyMessage, String errorMessage) {
         String token = getToken();
 
         if (token == null || token.trim().isEmpty()) {
@@ -207,9 +217,7 @@ public class AdminManageCourse extends AppCompatActivity {
     private void handleLessonResponse(JSONObject response, String emptyMessage) {
         try {
             Gson gson = new Gson();
-
-            Type type = new TypeToken<ApiResponse<List<LessonResponse>>>() {
-            }.getType();
+            Type type = new TypeToken<ApiResponse<List<LessonResponse>>>() {}.getType();
 
             ApiResponse<List<LessonResponse>> apiResponse =
                     gson.fromJson(response.toString(), type);
@@ -221,26 +229,45 @@ public class AdminManageCourse extends AppCompatActivity {
 
             if (apiResponse.getCode() != 1000) {
                 showEmptyState("Lỗi hệ thống: " + apiResponse.getMessage());
-                Toast.makeText(
-                        this,
-                        "Lỗi hệ thống: " + apiResponse.getMessage(),
-                        Toast.LENGTH_SHORT
-                ).show();
+                Toast.makeText(this, "Lỗi hệ thống: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
                 return;
             }
 
             List<LessonResponse> remoteLessons = apiResponse.getResult();
 
+            originalList.clear();
             lessonList.clear();
 
             if (remoteLessons != null && !remoteLessons.isEmpty()) {
-                lessonList.addAll(remoteLessons);
-                hideEmptyState();
-            } else {
-                showEmptyState(emptyMessage);
+                for (LessonResponse lesson : remoteLessons) {
+                    if (lesson == null) {
+                        continue;
+                    }
+
+                    String status = safe(lesson.getStatus());
+
+                    /*
+                     * Yêu cầu: tab chưa duyệt không hiển thị lesson REJECTED.
+                     */
+                    if (currentFilter == FILTER_PENDING
+                            && "REJECTED".equalsIgnoreCase(status)) {
+                        continue;
+                    }
+
+                    originalList.add(lesson);
+                    lessonList.add(lesson);
+                }
             }
 
-            adapter.notifyDataSetChanged();
+            if (lessonList.isEmpty()) {
+                showEmptyState(emptyMessage);
+            } else {
+                hideEmptyState();
+            }
+
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
 
         } catch (Exception e) {
             Log.e("ADMIN_COURSE_PARSE", "Lỗi parse: " + e.getMessage());
@@ -259,10 +286,17 @@ public class AdminManageCourse extends AppCompatActivity {
                 if (!query.isEmpty()) {
                     searchLocalCourses(query);
                 } else {
-                    if (currentFilter == FILTER_APPROVED) {
-                        fetchApprovedCoursesFromServer();
+                    lessonList.clear();
+                    lessonList.addAll(originalList);
+
+                    if (adapter != null) {
+                        adapter.notifyDataSetChanged();
+                    }
+
+                    if (lessonList.isEmpty()) {
+                        showEmptyState("Không có dữ liệu");
                     } else {
-                        fetchPendingCoursesFromServer();
+                        hideEmptyState();
                     }
                 }
             });
@@ -272,28 +306,23 @@ public class AdminManageCourse extends AppCompatActivity {
     private void searchLocalCourses(String query) {
         String lowerQuery = query.toLowerCase();
 
-        List<LessonResponse> filteredList = new ArrayList<>();
+        lessonList.clear();
 
-        for (LessonResponse lesson : lessonList) {
-            if (lesson == null) continue;
-
-            String title = "";
-
-            try {
-                if (lesson.getTitle() != null) {
-                    title = lesson.getTitle().toLowerCase();
-                }
-            } catch (Exception ignored) {
+        for (LessonResponse lesson : originalList) {
+            if (lesson == null) {
+                continue;
             }
 
+            String title = safe(lesson.getTitle()).toLowerCase();
+
             if (title.contains(lowerQuery)) {
-                filteredList.add(lesson);
+                lessonList.add(lesson);
             }
         }
 
-        lessonList.clear();
-        lessonList.addAll(filteredList);
-        adapter.notifyDataSetChanged();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
 
         if (lessonList.isEmpty()) {
             showEmptyState("Không tìm thấy khóa học phù hợp");
@@ -303,9 +332,7 @@ public class AdminManageCourse extends AppCompatActivity {
     }
 
     private String getToken() {
-        SharedPreferences sharedPreferences =
-                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-
+        SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         return sharedPreferences.getString(KEY_ACCESS_TOKEN, "");
     }
 
@@ -348,5 +375,13 @@ public class AdminManageCourse extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private String safe(String value) {
+        if (value == null || "null".equalsIgnoreCase(value.trim())) {
+            return "";
+        }
+
+        return value.trim();
     }
 }

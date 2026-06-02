@@ -12,4 +12,5 @@ public interface ModuleRepository extends JpaRepository<Module, Integer> {
     List<Module> findByTitleContainingIgnoreCase(String title);
     List<Module> findByLessonId(Integer lessonId);
     List<Module> findByLessonIdAndStatusNot(Integer lessonId, Status status);
+    List<Module> findByLessonIdAndStatus(Integer lessonId, Status status);
 }

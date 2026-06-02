@@ -118,13 +118,15 @@
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
-            <VideoView
+            <androidx.media3.ui.PlayerView
                 android:id="@+id/videoModule"
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
+                android:layout_height="240dp"
                 android:layout_marginTop="8dp"
                 android:background="#000000"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:use_controller="true"
+                app:resize_mode="fit" />
 
             <TextView
                 android:layout_width="match_parent"

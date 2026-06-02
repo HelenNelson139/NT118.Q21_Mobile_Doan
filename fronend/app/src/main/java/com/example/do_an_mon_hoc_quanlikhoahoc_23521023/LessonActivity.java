@@ -12,12 +12,13 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.media3.common.MediaItem;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 
 import com.bumptech.glide.Glide;
 
@@ -30,11 +31,20 @@ import retrofit2.Response;
 
 public class LessonActivity extends AppCompatActivity {
 
-    private TextView txtLessonTitle, txtObjective, txtContent, txtExample;
-    private ImageView imgExample, imgCourse;
-    private ImageButton btnBack, btnNext;
+    private TextView txtLessonTitle;
+    private TextView txtObjective;
+    private TextView txtContent;
+    private TextView txtExample;
 
-    private VideoView videoModule;
+    private ImageView imgExample;
+    private ImageView imgCourse;
+
+    private ImageButton btnBack;
+    private ImageButton btnNext;
+
+    private PlayerView videoModule;
+    private ExoPlayer lessonPlayer;
+
     private LinearLayout layoutModuleFiles;
 
     private int currentIndex = 0;
@@ -92,6 +102,7 @@ public class LessonActivity extends AppCompatActivity {
             }
 
             fetchModuleFromServer();
+
         } else {
             isModuleMode = false;
             currentIndex = getIntent().getIntExtra("index", 0);
@@ -101,6 +112,8 @@ public class LessonActivity extends AppCompatActivity {
 
     private void setupButtonEvents() {
         btnNext.setOnClickListener(v -> {
+            releaseLessonPlayer();
+
             if (isModuleMode) {
                 if (moduleIds != null && currentIndex < moduleIds.size() - 1) {
                     currentIndex++;
@@ -115,6 +128,8 @@ public class LessonActivity extends AppCompatActivity {
         });
 
         btnBack.setOnClickListener(v -> {
+            releaseLessonPlayer();
+
             if (isModuleMode) {
                 if (currentIndex == 0) {
                     finish();
@@ -158,7 +173,12 @@ public class LessonActivity extends AppCompatActivity {
                         } else {
                             showEmptyLesson();
                         }
+                    } else {
+                        showEmptyLesson();
                     }
+
+                } else {
+                    showEmptyLesson();
                 }
             }
 
@@ -168,11 +188,14 @@ public class LessonActivity extends AppCompatActivity {
                     Throwable t
             ) {
                 Log.e("TEACHER_LESSON_API", "Thất bại: " + t.getMessage());
+                showEmptyLesson();
             }
         });
     }
 
     private void loadLesson() {
+        releaseLessonPlayer();
+
         if (lessonList == null || lessonList.isEmpty()) {
             showEmptyLesson();
             return;
@@ -188,6 +211,14 @@ public class LessonActivity extends AppCompatActivity {
         txtContent.setText(safe(lesson.getDescription()));
         txtExample.setText(safe(lesson.getSkillLearned()));
 
+        if (videoModule != null) {
+            videoModule.setVisibility(View.GONE);
+        }
+
+        if (layoutModuleFiles != null) {
+            layoutModuleFiles.removeAllViews();
+        }
+
         String thumbnailUrl = lesson.getThumbnailUrl();
 
         if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
@@ -200,10 +231,16 @@ public class LessonActivity extends AppCompatActivity {
             imgCourse.setImageResource(R.drawable.course_python);
         }
 
+        if (imgExample != null) {
+            imgExample.setImageResource(R.drawable.course_python);
+        }
+
         updateNavigationButtonsForLessons();
     }
 
     private void fetchModuleFromServer() {
+        releaseLessonPlayer();
+
         if (moduleIds == null || moduleIds.isEmpty()) {
             showEmptyModule();
             return;
@@ -249,6 +286,8 @@ public class LessonActivity extends AppCompatActivity {
     }
 
     private void loadModule(ModuleResponse module) {
+        releaseLessonPlayer();
+
         if (module == null) {
             showEmptyModule();
             return;
@@ -270,6 +309,14 @@ public class LessonActivity extends AppCompatActivity {
                     .into(imgExample);
         } else {
             imgExample.setImageResource(R.drawable.course_python);
+        }
+
+        if (videoModule != null) {
+            videoModule.setVisibility(View.GONE);
+        }
+
+        if (layoutModuleFiles != null) {
+            layoutModuleFiles.removeAllViews();
         }
 
         fetchFilesOfModule(module.getId());
@@ -294,13 +341,16 @@ public class LessonActivity extends AppCompatActivity {
                     layoutModuleFiles.removeAllViews();
                 }
 
+                releaseLessonPlayer();
+
                 if (videoModule != null) {
-                    videoModule.stopPlayback();
                     videoModule.setVisibility(View.GONE);
                 }
 
                 if (response.isSuccessful() && response.body() != null) {
                     List<FileResponse> files = response.body();
+
+                    boolean hasVideo = false;
 
                     for (FileResponse file : files) {
                         if (file == null || file.getFileUrl() == null) {
@@ -310,11 +360,16 @@ public class LessonActivity extends AppCompatActivity {
                         String url = file.getFileUrl();
                         String name = file.getFileName();
 
-                        if (isVideoFile(url, name)) {
+                        if (isVideoFile(url, name) && !hasVideo) {
+                            hasVideo = true;
                             showVideo(url);
+                        } else {
+                            addDownloadButton(name, url);
                         }
+                    }
 
-                        addDownloadButton(name, url);
+                    if (!hasVideo) {
+                        Log.d("MODULE_VIDEO", "Module này chưa có video");
                     }
                 }
             }
@@ -327,30 +382,35 @@ public class LessonActivity extends AppCompatActivity {
     }
 
     private void showVideo(String videoUrl) {
-        if (videoModule == null) {
+        if (videoModule == null || videoUrl == null || videoUrl.trim().isEmpty()) {
             return;
         }
 
-        videoModule.setVisibility(View.VISIBLE);
+        try {
+            videoModule.setVisibility(View.VISIBLE);
 
-        MediaController mediaController = new MediaController(this);
-        mediaController.setAnchorView(videoModule);
+            releaseLessonPlayer();
 
-        videoModule.setMediaController(mediaController);
-        videoModule.setVideoURI(Uri.parse(videoUrl));
-        videoModule.requestFocus();
+            lessonPlayer = new ExoPlayer.Builder(this).build();
+            videoModule.setPlayer(lessonPlayer);
 
-        videoModule.setOnPreparedListener(mp -> videoModule.seekTo(1));
+            MediaItem mediaItem = MediaItem.fromUri(Uri.parse(videoUrl));
 
-        videoModule.setOnErrorListener((mp, what, extra) -> {
+            lessonPlayer.setMediaItem(mediaItem);
+            lessonPlayer.prepare();
+            lessonPlayer.setPlayWhenReady(false);
+
+            Log.d("LESSON_VIDEO_URL", videoUrl);
+
+        } catch (Exception e) {
+            Log.e("SHOW_VIDEO_ERROR", String.valueOf(e.getMessage()));
+
             Toast.makeText(
-                    LessonActivity.this,
-                    "Không phát được video này",
-                    Toast.LENGTH_SHORT
+                    this,
+                    "Không thể khởi tạo video: " + e.getMessage(),
+                    Toast.LENGTH_LONG
             ).show();
-
-            return true;
-        });
+        }
     }
 
     private void addDownloadButton(String fileName, String fileUrl) {
@@ -437,10 +497,13 @@ public class LessonActivity extends AppCompatActivity {
                 || value.contains(".mov")
                 || value.contains(".mkv")
                 || value.contains(".webm")
+                || value.contains(".m4v")
                 || value.contains("video");
     }
 
     private void showEmptyLesson() {
+        releaseLessonPlayer();
+
         txtLessonTitle.setText("Không có khóa học");
         txtObjective.setText("");
         txtContent.setText("");
@@ -449,11 +512,21 @@ public class LessonActivity extends AppCompatActivity {
         imgCourse.setImageResource(R.drawable.course_python);
         imgExample.setImageResource(R.drawable.course_python);
 
+        if (videoModule != null) {
+            videoModule.setVisibility(View.GONE);
+        }
+
+        if (layoutModuleFiles != null) {
+            layoutModuleFiles.removeAllViews();
+        }
+
         btnBack.setVisibility(View.INVISIBLE);
         btnNext.setVisibility(View.INVISIBLE);
     }
 
     private void showEmptyModule() {
+        releaseLessonPlayer();
+
         txtLessonTitle.setText("Không có bài học");
         txtObjective.setText("");
         txtContent.setText("");
@@ -495,6 +568,32 @@ public class LessonActivity extends AppCompatActivity {
         btnNext.setVisibility(currentIndex == moduleIds.size() - 1 ? View.INVISIBLE : View.VISIBLE);
     }
 
+    private void releaseLessonPlayer() {
+        if (lessonPlayer != null) {
+            lessonPlayer.release();
+            lessonPlayer = null;
+        }
+
+        if (videoModule != null) {
+            videoModule.setPlayer(null);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (lessonPlayer != null) {
+            lessonPlayer.pause();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseLessonPlayer();
+    }
+
     private String safe(String value) {
         if (value == null || "null".equalsIgnoreCase(value.trim())) {
             return "";
@@ -502,5 +601,4 @@ public class LessonActivity extends AppCompatActivity {
 
         return value.trim();
     }
-
 }
